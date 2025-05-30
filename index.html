@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
+  <script src="
+https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
+"></script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -165,6 +168,8 @@
   <!-- Экран ввода данных -->
   <div class="screen active" id="inputScreen">
     <div class="input-screen">
+      <input type="file" id="photoInput" accept="image/*" />
+<button onclick="recognizeFromPhoto()">Распознать с фото</button>
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
@@ -451,6 +456,78 @@
 
     // Изначальный вызов
     updateCloseButtonVisibility();
+
+    function recognizeFromPhoto() {
+  const fileInput = document.getElementById('photoInput');
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("Пожалуйста, выберите фото.");
+    return;
+  }
+
+  Tesseract.recognize(file, 'rus', {
+    logger: m => console.log(m)
+  }).then(({ data: { text } }) => {
+    console.log("Распознанный текст:", text);
+
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
+    // 1. Перевозчик
+    const carrierMatch = text.match(/Перевозчик\s*[:\-]?\s*([^\n\r]+)/i);
+    if (carrierMatch) {
+      const rawCarrier = carrierMatch[1].trim();
+      const cleanedCarrier = rawCarrier.replace(/[^\wА-Яа-яЁё \-]/g, '');
+      document.getElementById('inputCarrier').value = cleanedCarrier;
+    }
+
+    // 2. Госномер
+    const plateMatch = text.match(/([авекмнорстух]\d{3}[авекмнорстух]{2}\d{2,3})/i);
+    let plate = '';
+    if (plateMatch) {
+      plate = plateMatch[1].trim();
+      document.getElementById('inputPlate').value = plate;
+    }
+
+    // 3. Поиск маршрута построчно (гибкий шаблон)
+    console.log("🔍 Проверка строк для маршрута:");
+
+    let routeLine = null;
+
+    for (let line of lines) {
+      console.log("▶️", line);
+      if (/\d+\s*,\s*.*-.*$/.test(line)) {
+        routeLine = line;
+        break;
+      }
+    }
+
+    if (routeLine) {
+      console.log("✅ Найдена строка маршрута:", routeLine);
+
+      const routeMatch = routeLine.match(/\d+\s*,\s*(.+)/);
+      if (routeMatch) {
+        let routeText = routeMatch[1].trim();
+
+        if (plate && routeText.includes(plate)) {
+          routeText = routeText.replace(plate, '').trim().replace(/\s{2,}/g, ' ');
+        }
+
+        document.getElementById('inputRoute').value = routeText;
+      } else {
+        console.log("⚠️ Не удалось извлечь маршрутную часть.");
+      }
+    } else {
+      console.log("❌ Строка маршрута не найдена по шаблону.");
+    }
+
+    alert("Распознавание завершено. Проверьте и дополните данные.");
+  }).catch(err => {
+    console.error("Ошибка при распознавании:", err);
+    alert("Произошла ошибка при распознавании текста.");
+  });
+}
+
+
 
   </script>
 </body>
