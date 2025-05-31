@@ -162,22 +162,141 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       border-radius: 4px;
       cursor: pointer;
     }
+    .photo-loader-block {
+  margin-bottom: 24px;
+}
+
+.photo-loader-block input,
+.photo-loader-block button {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 4px;
+  border: none;
+}
+
+.photo-loader-block button {
+  background-color: #e21a1a;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.loader {
+  border: 4px solid #ccc;
+  border-top: 4px solid #e21a1a;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+    /* Блок снизу */
+.photo-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2b2b2b;
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Скрыть input-файл, стилизуем label */
+.photo-controls input[type="file"] {
+  display: none;
+}
+
+.upload-label {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #444;
+  color: white;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.photo-controls button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #e21a1a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* Кнопка "Продолжить" отдельно выделена */
+.submit-button {
+  margin-top: 20px;
+  background-color: #26a269;
+}
+
+.loader {
+  border: 4px solid #ccc;
+  border-top: 4px solid #e21a1a;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+    .loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
   </style>
 </head>
 <body>
   <!-- Экран ввода данных -->
   <div class="screen active" id="inputScreen">
     <div class="input-screen">
-      <input type="file" id="photoInput" accept="image/*" />
-<button onclick="recognizeFromPhoto()">Распознать с фото</button>
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
       <input id="inputFare" placeholder="Стоимость (например: 35.00)" />
-      <input id="inputCount" placeholder="Количество билетов (например: 1)" />
-      <button onclick="submitForm()">Продолжить</button>
+      <input id="inputCount" placeholder="Количество билетов (например: 1)" /> 
     </div>
-  </div>
+    
+      <div class="photo-controls">
+    <input type="file" id="photoInput" accept="image/*" />
+    <label for="photoInput" class="upload-label">Выбрать фото</label>
+    <button onclick="recognizeFromPhoto()">Распознать с фото</button>
+    <div id="loader" class="loader" style="display: none;"></div>
+    <button onclick="submitForm()" class="submit-button">Продолжить</button>
+      </div>
+</div>
 
   <!-- Основной экран с вкладками -->
   <div class="container screen" id="mainScreen">
@@ -460,6 +579,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     function recognizeFromPhoto() {
   const fileInput = document.getElementById('photoInput');
   const file = fileInput.files[0];
+  document.getElementById('loadingOverlay').style.display = 'flex';
+
   if (!file) {
     alert("Пожалуйста, выберите фото.");
     return;
@@ -472,29 +593,32 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
     const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-    // 1. Перевозчик
+    // === 1. Перевозчик ===
+    let carrier = '';
     const carrierMatch = text.match(/Перевозчик\s*[:\-]?\s*([^\n\r]+)/i);
     if (carrierMatch) {
-      const rawCarrier = carrierMatch[1].trim();
-      const cleanedCarrier = rawCarrier.replace(/[^\wА-Яа-яЁё \-]/g, '');
-      document.getElementById('inputCarrier').value = cleanedCarrier;
+      carrier = carrierMatch[1].trim().replace(/[^\wА-Яа-яЁё\-]/g, '');
+
+      // Попробуем подставить дефис, если его нет (например, КПАТП5 -> КПАТП-5)
+      const smartFix = carrier.match(/^([А-ЯA-Z]+)(\d{1,3})$/);
+      if (smartFix) {
+        carrier = `${smartFix[1]}-${smartFix[2]}`;
+      }
+
+      document.getElementById('inputCarrier').value = carrier;
     }
 
-    // 2. Госномер
-    const plateMatch = text.match(/([авекмнорстух]\d{3}[авекмнорстух]{2}\d{2,3})/i);
-    let plate = '';
-    if (plateMatch) {
-      plate = plateMatch[1].trim();
+    // === 2. Госномер (расширенный шаблон с запасом на ошибки) ===
+    // Учитываем OCR-подмены: р-п, с-с, о-o, в-b и т.д.
+    const allPossiblePlates = text.match(/[авекмнорстухabekmhopctyx]\d{3}[авекмнорстухabekmhopctyx]{2}\d{2,3}/gi);
+    if (allPossiblePlates && allPossiblePlates.length > 0) {
+      const plate = allPossiblePlates[0].replace(/[^\w\d]/g, '').toLowerCase();
       document.getElementById('inputPlate').value = plate;
     }
 
-    // 3. Поиск маршрута построчно (гибкий шаблон)
-    console.log("🔍 Проверка строк для маршрута:");
-
+    // === 3. Маршрут (построчно) ===
     let routeLine = null;
-
     for (let line of lines) {
-      console.log("▶️", line);
       if (/\d+\s*,\s*.*-.*$/.test(line)) {
         routeLine = line;
         break;
@@ -502,34 +626,38 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     }
 
     if (routeLine) {
-      console.log("✅ Найдена строка маршрута:", routeLine);
-
+      console.log("Маршрутная строка найдена:", routeLine);
       const routeMatch = routeLine.match(/\d+\s*,\s*(.+)/);
       if (routeMatch) {
         let routeText = routeMatch[1].trim();
 
-        if (plate && routeText.includes(plate)) {
-          routeText = routeText.replace(plate, '').trim().replace(/\s{2,}/g, ' ');
+        // Если вдруг распознался только один адрес (до тире), подставим шаблон
+        if (!routeText.includes('–') && !routeText.includes('-')) {
+          routeText += ' - ???';
+        }
+
+        // Удалим случайно вставленный госномер
+        const plateValue = document.getElementById('inputPlate').value;
+        if (plateValue && routeText.includes(plateValue)) {
+          routeText = routeText.replace(plateValue, '').trim().replace(/\s{2,}/g, ' ');
         }
 
         document.getElementById('inputRoute').value = routeText;
-      } else {
-        console.log("⚠️ Не удалось извлечь маршрутную часть.");
       }
-    } else {
-      console.log("❌ Строка маршрута не найдена по шаблону.");
     }
 
     alert("Распознавание завершено. Проверьте и дополните данные.");
   }).catch(err => {
     console.error("Ошибка при распознавании:", err);
     alert("Произошла ошибка при распознавании текста.");
+  }).finally(() => {
+    document.getElementById('loadingOverlay').style.display = 'none';
   });
 }
 
-
-
   </script>
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loader"></div>
+</div>
 </body>
 </html>
-
