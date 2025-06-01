@@ -28,10 +28,13 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       color: #fff;
     }
     .tab {
+  position: relative;
+  left: -16px;
+  width: calc(100% + 32px);
       display: flex;
       justify-content: space-around;
-      border-bottom: 1px solid #444;
-      margin-bottom: 20px;
+      border-bottom: 1px solid #333;
+
     }
     .tab-item {
       display: flex;
@@ -58,7 +61,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       background-color: #e21a1a;
     }
     .section {
-      border-bottom: 1px solid #444;
+      border-bottom: 1px solid #333;
       padding: 15px 0;
       opacity: 0;
       transform: translateY(10px);
@@ -83,16 +86,17 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     /* Кнопка "ЗАКРЫТЬ" - всегда отображается на основном экране */
     .bottom-button {
       width: 100%;
+      padding: 14px 0;
       background-color: #e21a1a;
       color: white;
       text-align: center;
-      padding: 18px 0;
       font-weight: bold;
-      font-size: 18px;
+      font-size: 14px;
       position: fixed;
-      bottom: 4px; /* Приподнята от низа */
-      left: 0;
-      border-radius: 12px; /* Закругляем углы */
+      bottom: 4px;
+      left: 2px;
+      right: 2px;
+      border-radius: 9px; /* Закругляем углы */
       cursor: pointer;
       user-select: none;
       box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
@@ -275,7 +279,25 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   justify-content: center;
   z-index: 9999;
 }
+    .section .icon {
+  margin-left: 12px; /* сдвигает иконку немного правее */
+}
 
+.section span,
+.section p {
+  margin-left: 12px; /* сдвигает текст немного правее */
+}
+    .tab-container {
+  padding: 0;
+  margin: 0;
+}
+    .ticket-content {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+
+    
   </style>
 </head>
 <body>
@@ -439,14 +461,14 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     <div id="control" class="screen">
       <div class="qr-container">
         <!-- Пример QR-кода, ссылка для демонстрации -->
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=ExampleQRCode" alt="QR Code" />
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=ExampleQRCode" alt="QR Code" />
       </div>
     </div>
   </div>
 
   <!-- Кнопка закрыть, отображается всегда на основном экране -->
+  <div class="pre-footer"></div>
   <div class="bottom-button" id="closeButton" onclick="closeApp()">ЗАКРЫТЬ</div>
-
   <script>
     // Получаем элементы для управления
     const inputScreen = document.getElementById('inputScreen');
