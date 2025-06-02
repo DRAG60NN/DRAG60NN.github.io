@@ -291,13 +291,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   padding: 0;
   margin: 0;
 }
-    .ticket-content {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-
-    
+   
   </style>
 </head>
 <body>
@@ -308,7 +302,15 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
       <input id="inputFare" placeholder="Стоимость (например: 35.00)" />
-      <input id="inputCount" placeholder="Количество билетов (например: 1)" /> 
+      <div class="custom-slider-wrapper">
+  <label for="inputCountRange">Количество билетов</label>
+  <div class="slider-display">
+    <div id="sliderValueBox"><span id="sliderValue">1</span></div>
+    <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" oninput="updateCountLabel(this.value)" />
+  </div>
+  <input type="hidden" id="inputCount" value="1" />
+</div>
+
     </div>
     
       <div class="photo-controls">
@@ -689,6 +691,12 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     document.getElementById('loadingOverlay').style.display = 'none';
   };
   }
+    function updateCountLabel(value) {
+  document.getElementById('sliderValue').textContent = value;
+  document.getElementById('inputCount').value = value;
+}
+
+    
   </script>
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">
   <div class="loader"></div>
