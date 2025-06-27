@@ -291,12 +291,39 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   padding: 0;
   margin: 0;
 }
+
+#authScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #2b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#authScreen .input-screen {
+  max-width: 400px;
+  width: 90%;
+}
+
+
    
   </style>
 </head>
 <body>
+<!-- Экран авторизации -->
+<div id="authScreen" class="screen active">
+  <div class="input-screen">
+    <input id="authToken" placeholder="Введите токен доступа" />
+    <button onclick="checkAccess()">Войти</button>
+  </div>
+</div>
+
+
+  
   <!-- Экран ввода данных -->
-  <div class="screen active" id="inputScreen">
+  <div class="screen" id="inputScreen">
     <div class="input-screen">
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
@@ -319,8 +346,23 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     <button onclick="recognizeFromPhoto()">Распознать с фото</button>
     <div id="loader" class="loader" style="display: none;"></div>
     <button onclick="submitForm()" class="submit-button">Продолжить</button>
+        <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
+
       </div>
 </div>
+  
+  <div id="adminPanel" style="display: none; padding: 20px; background: #1e1e1e; border-top: 1px solid #444; margin-top: 20px;">
+  <h3>Админка</h3>
+  
+  <input id="newTokenInput" placeholder="Новый токен" />
+  <button onclick="addToken()">Добавить токен</button>
+  
+  <br /><br />
+  
+  <input id="removeTokenInput" placeholder="Удалить токен" />
+  <button onclick="removeToken()">Удалить токен</button>
+</div>
+
 
   <!-- Основной экран с вкладками -->
   <div class="container screen" id="mainScreen">
@@ -696,10 +738,129 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   document.getElementById('inputCount').value = value;
 }
 
+    window.addEventListener('DOMContentLoaded', () => {
+  const accessGranted = localStorage.getItem('ticket_access_granted');
+  if (accessGranted === 'true') {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('inputScreen').classList.add('active');
+  }
+});
+
+    const adminToken = 'ADMIN-SUPERUSER-g8F2kLm9';
+    
+    let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
+
+    async function checkAccess() {
+  const token = document.getElementById('authToken').value.trim();
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  // Показываем загрузку
+  document.getElementById('loadingOverlay').style.display = 'flex';
+
+  if (token === adminToken) {
+    // Вход как админ — без обращения к таблице
+    localStorage.setItem('ticket_access_granted', 'true');
+    localStorage.setItem('is_admin', 'true');
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('inputScreen').classList.add('active');
+    document.getElementById('adminButton').style.display = 'inline-block';
+    document.getElementById('loadingOverlay').style.display = 'none';
+    return;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({ token })
+    });
+
+    const result = await response.text();
+
+    if (result === 'valid') {
+      localStorage.setItem('ticket_access_granted', 'true');
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('inputScreen').classList.add('active');
+
+      if (localStorage.getItem('is_admin') === 'true') {
+        document.getElementById('adminButton').style.display = 'inline-block';
+      }
+    } else {
+      alert('Доступ запрещён. Неверный или уже использованный токен.');
+    }
+  } catch (error) {
+    console.error('Ошибка запроса:', error);
+    alert('Ошибка соединения. Попробуйте позже.');
+  } finally {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
+    async function addToken() {
+  const token = document.getElementById('newTokenInput').value.trim();
+  if (!token) return alert('Введите токен');
+
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+  
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'add',
+        token: token
+      })
+    });
+
+    const result = await res.text();
+    if (result === 'added') {
+      alert('Токен добавлен!');
+      document.getElementById('newTokenInput').value = '';
+    } else {
+      alert('Ошибка при добавлении: ' + result);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка подключения');
+  }
+}
+
+async function removeToken() {
+  const token = document.getElementById('removeTokenInput').value.trim();
+  if (!token) return alert('Введите токен для удаления');
+
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'remove',
+        token: token
+      })
+    });
+
+    const result = await res.text();
+    if (result === 'removed') {
+      alert('Токен удалён!');
+      document.getElementById('removeTokenInput').value = '';
+    } else if (result === 'not_found') {
+      alert('Токен не найден.');
+    } else {
+      alert('Ошибка при удалении: ' + result);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка подключения');
+  }
+}
+
     
   </script>
-<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  
+</div>
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
   <div class="loader"></div>
 </div>
+
+
+  
 </body>
 </html>
