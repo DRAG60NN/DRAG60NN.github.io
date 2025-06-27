@@ -381,7 +381,6 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <!-- Экран ввода данных -->
   <div class="screen" id="inputScreen">
     <div class="input-screen">
-        <input id="inputTicketCode" placeholder="Код билета (необязательно)" />=""
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
@@ -657,21 +656,6 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
       const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
       const count = document.getElementById('inputCount').value.trim() || defaultData.count;
-      
-      const code = document.getElementById('inputTicketCode').value.trim();
-if (code) {
-  // Сохраняем только carrier, route, plate
-  fetch(CODE_API_URL, {
-    method: 'POST',
-    body: new URLSearchParams({
-      action: 'saveByCode',
-      code: code,
-      carrier: carrier,
-      route: route,
-      plate: plate
-    })
-  }).catch(err => console.error('Ошибка сохранения по коду:', err));
-}
 
       // Заполняем данные на основном экране
       carrierOutput.textContent = carrier;
@@ -970,30 +954,6 @@ async function loadTokens() {
     alert('Не удалось загрузить список токенов.');
   }
 }
-const CODE_API_URL = 'https://script.google.com/macros/s/AKfycbytfCl5FdqEtv3aeATvEkIBQNycKvUOInl5SWPxfAv09K9PdkIoMuD4htF_Ve23dBI85A/exec'; // <-- сюда вставь свой URL
-
-document.getElementById('inputTicketCode').addEventListener('change', async function() {
-  const code = this.value.trim();
-  if (!code) return;
-  try {
-    const res = await fetch(CODE_API_URL, {
-      method: 'POST',
-      body: new URLSearchParams({
-        action: 'getByCode',
-        code: code
-      })
-    });
-    const data = await res.json();
-    if (data && (data.carrier || data.route || data.plate)) {
-      document.getElementById('inputCarrier').value = data.carrier || '';
-      document.getElementById('inputRoute').value = data.route || '';
-      document.getElementById('inputPlate').value = data.plate || '';
-    }
-  } catch (err) {
-    console.error('Ошибка автозаполнения по коду:', err);
-  }
-});
-
 
   </script>
   
