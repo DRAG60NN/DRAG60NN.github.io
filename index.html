@@ -363,7 +363,59 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   z-index: 2;
 }
 
+#codeLoader {
+  display: none;
+  margin-left: 8px;
+  font-size: 16px;
+  animation: blink 1s linear infinite;
+}
 
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+.custom-slider-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.slider-display {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+#inputCountRange {
+  flex: 1;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #555;
+  outline: none;
+  accent-color: #e21a1a;
+}
+
+#inputCountRange::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e21a1a;
+  cursor: pointer;
+  border: none;
+  margin-top: -8px;
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #bbb;
+  padding: 0 4px;
+  margin-top: 4px;
+}
 
   </style>
 </head>
@@ -381,6 +433,14 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <!-- Экран ввода данных -->
   <div class="screen" id="inputScreen">
     <div class="input-screen">
+      <div style="display: flex; gap: 10px; align-items: center;">
+  <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1;" />
+  <button onclick="checkOrSaveCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
+</div>
+<div id="codeLoaderWrapper" style="text-align: center; margin-top: -4px;">
+  <span id="codeLoader" style="display: none; font-size: 18px; animation: blink 1s linear infinite;">⏳ Проверка кода...</span>
+</div>
+
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
@@ -390,6 +450,9 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div class="slider-display">
     <div id="sliderValueBox"><span id="sliderValue">1</span></div>
     <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" oninput="updateCountLabel(this.value)" />
+<div class="slider-labels">
+</div>
+
   </div>
   <input type="hidden" id="inputCount" value="1" />
 </div>
@@ -648,33 +711,54 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       }, 1000);
     }
 
-    // Функция обработки формы
-    function submitForm() {
-      // Считываем значения из инпутов
-      const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
-      const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
-      const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
-      const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
-      const count = document.getElementById('inputCount').value.trim() || defaultData.count;
 
-      // Заполняем данные на основном экране
-      carrierOutput.textContent = carrier;
-      routeOutput.textContent = route;
-      plateOutput.textContent = plate;
-      fareOutput.textContent = `${count} шт., Полный, ${fare} ₽`;
+    async function submitForm() {
+  // Считываем значения из инпутов
+  const code = document.getElementById('inputCode').value.trim();
+  const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
+  const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
+  const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
+  const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
+  const count = document.getElementById('inputCount').value.trim() || defaultData.count;
 
-      // Устанавливаем текущие дату и время
-      const now = new Date();
-      dateOutput.textContent = now.toLocaleDateString('ru-RU');
-      timeOutput.textContent = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
-
-      // Скрываем экран ввода, показываем основной
-      inputScreen.classList.remove('active');
-      mainScreen.classList.add('active');
-
-      // Запускаем таймер
-      startCountdown();
+  // 🔁 Отправка в Google Таблицу, если указан код
+  if (code) {
+    try {
+      const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+      await fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams({
+          action: 'save_code_data',
+          code: code,
+          carrier: carrier,
+          route: route,
+          plate: plate
+        })
+      });
+    } catch (err) {
+      console.error("Ошибка сохранения кода:", err);
     }
+  }
+
+  // Заполняем данные на основном экране
+  carrierOutput.textContent = carrier;
+  routeOutput.textContent = route;
+  plateOutput.textContent = plate;
+  fareOutput.textContent = `${count} шт., Полный, ${fare} ₽`;
+
+  // Устанавливаем текущие дату и время
+  const now = new Date();
+  dateOutput.textContent = now.toLocaleDateString('ru-RU');
+  timeOutput.textContent = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+
+  // Скрываем экран ввода, показываем основной
+  inputScreen.classList.remove('active');
+  mainScreen.classList.add('active');
+
+  // Запускаем таймер
+  startCountdown();
+}
+
 
     // Функция "Закрыть" - просто сбрасывает к экрану ввода
     function closeApp() {
@@ -952,6 +1036,93 @@ async function loadTokens() {
   } catch (err) {
     console.error(err);
     alert('Не удалось загрузить список токенов.');
+  }
+}
+
+document.getElementById('inputCode').addEventListener('input', async function () {
+  const code = this.value.trim();
+  if (!code) return;
+
+  const url = 'https://script.google.com/macros/s/ВАШ_URL/exec';
+  const res = await fetch(url, {
+    method: 'POST',
+    body: new URLSearchParams({
+      action: 'get_code_data',
+      code: code
+    })
+  });
+
+  const result = await res.text();
+  try {
+    const data = JSON.parse(result);
+    if (data.carrier) document.getElementById('inputCarrier').value = data.carrier;
+    if (data.route) document.getElementById('inputRoute').value = data.route;
+    if (data.plate) document.getElementById('inputPlate').value = data.plate;
+  } catch (e) {
+    // Not found or malformed
+  }
+});
+
+async function checkOrSaveCode() {
+  const code = document.getElementById('inputCode').value.trim();
+  if (!code) return alert("Введите код");
+
+  const carrier = document.getElementById('inputCarrier').value.trim();
+  const route = document.getElementById('inputRoute').value.trim();
+  const plate = document.getElementById('inputPlate').value.trim();
+  const loader = document.getElementById('codeLoader');
+
+  loader.style.display = 'inline';
+
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'get_code_data',
+        code: code
+      })
+    });
+
+    const result = await res.text();
+
+    // Если данные найдены — вставим
+    try {
+      const data = JSON.parse(result);
+      if (data.carrier) document.getElementById('inputCarrier').value = data.carrier;
+      if (data.route) document.getElementById('inputRoute').value = data.route;
+      if (data.plate) document.getElementById('inputPlate').value = data.plate;
+
+      alert("Данные успешно подставлены по коду");
+    } catch (e) {
+      // Не найдено — пробуем сохранить, если поля НЕ дефолтные
+      if (
+        carrier && route && plate &&
+        carrier !== defaultData.carrier &&
+        route !== defaultData.route &&
+        plate !== defaultData.plate
+      ) {
+        const saveRes = await fetch(url, {
+          method: 'POST',
+          body: new URLSearchParams({
+            action: 'save_code_data',
+            code: code,
+            carrier: carrier,
+            route: route,
+            plate: plate
+          })
+        });
+        alert("Данные сохранены по коду");
+      } else {
+        alert("Нет данных для сохранения. Заполните поля вручную.");
+      }
+    }
+  } catch (err) {
+    console.error("Ошибка:", err);
+    alert("Ошибка при проверке кода.");
+  } finally {
+    loader.style.display = 'none';
   }
 }
 
