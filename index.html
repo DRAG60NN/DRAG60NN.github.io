@@ -375,14 +375,17 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   50% { opacity: 0.2; }
 }
 .custom-slider-wrapper {
+  position: relative;
+  top: -25px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 3px;
 }
 
 .slider-display {
   position: relative;
+  top:-16px;
   display: flex;
   align-items: center;
 }
@@ -390,7 +393,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 #inputCountRange {
   flex: 1;
   appearance: none;
-  height: 4px;
+  height: 3px;
   border-radius: 2px;
   background: #555;
   outline: none;
@@ -405,17 +408,18 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   background: #e21a1a;
   cursor: pointer;
   border: none;
-  margin-top: -8px;
+  margin-top: -2px;
 }
 
 .slider-labels {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between;  
   font-size: 14px;
   color: #bbb;
   padding: 0 4px;
   margin-top: 4px;
 }
+
 
   </style>
 </head>
@@ -451,8 +455,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     <div id="sliderValueBox"><span id="sliderValue">1</span></div>
     <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" oninput="updateCountLabel(this.value)" />
 <div class="slider-labels">
-</div>
-
+</div>      
+      
   </div>
   <input type="hidden" id="inputCount" value="1" />
 </div>
