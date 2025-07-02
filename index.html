@@ -145,7 +145,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       border-radius: 12px;
     }
     .input-screen {
-      padding: 40px 20px;
+      padding: 30px 40px 0px 20px;
     }
     .input-screen input {
       width: 100%;
@@ -438,10 +438,10 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div class="screen" id="inputScreen">
     <div class="input-screen">
       <div style="display: flex; gap: 10px; align-items: center;">
-  <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1;" />
+  <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1; margin-right: 10px;" />
   <button onclick="checkOrSaveCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
 </div>
-<div id="codeLoaderWrapper" style="text-align: center; margin-top: -4px;">
+<div id="codeLoaderWrapper" style="text-align: center;">
   <span id="codeLoader" style="display: none; font-size: 18px; animation: blink 1s linear infinite;">⏳ Проверка кода...</span>
 </div>
 
