@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <script src="
+https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
+"></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Билет</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Основные стили страницы */
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #2b2b2b;
+      color: #fff;
+    }
+    .container {
+      padding: 20px;
+      padding-bottom: 80px; /* Отступ снизу для кнопки */
+    }
+    .top-text {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 15px;
+      color: #fff;
+    }
+    .tab {
+  position: relative;
+  left: -16px;
+  width: calc(100% + 32px);
+      display: flex;
+      justify-content: space-around;
+      border-bottom: 1px solid #333;
+
+    }
+    .tab-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      color: #ccc;
+      padding: 10px 0;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tab-item.active {
+      color: #e21a1a;
+      font-weight: 500;
+    }
+    .tab-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: #e21a1a;
+    }
+    .section {
+      border-bottom: 1px solid #333;
+      padding: 15px 0;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    .label {
+      color: #b0b0b0;
+      font-size: 14px;
+      font-weight: 300;
+    }
+    .value {
+      font-size: 20px;
+      font-weight: 500;
+      margin-top: 5px;
+    }
+    .value-small {
+      font-size: 14px;
+      color: #aaa;
+      margin-top: 3px;
+      font-weight: 300;
+    }
+    /* Кнопка "ЗАКРЫТЬ" - всегда отображается на основном экране */
+    .bottom-button {
+      width: 100%;
+      padding: 14px 0;
+      background-color: #e21a1a;
+      color: white;
+      text-align: center;
+      font-weight: bold;
+      font-size: 14px;
+      position: fixed;
+      bottom: 4px;
+      left: 2px;
+      right: 2px;
+      border-radius: 9px; /* Закругляем углы */
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
+      z-index: 1000;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon svg {
+      width: 100%;
+      height: 100%;
+      fill: #aaa;
+    }
+    .screen {
+      display: none;
+    }
+    .screen.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .qr-container {
+      background: #fff;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      border-radius: 12px;
+    }
+    .qr-container img {
+      width: 220px;
+      height: 220px;
+      border-radius: 12px;
+    }
+    .input-screen {
+      padding: 30px 40px 0px 20px;
+    }
+    .input-screen input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+    }
+    .input-screen button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #e21a1a;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .photo-loader-block {
+  margin-bottom: 24px;
+}
+
+.photo-loader-block input,
+.photo-loader-block button {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 4px;
+  border: none;
+}
+
+.photo-loader-block button {
+  background-color: #e21a1a;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.loader {
+  border: 4px solid #ccc;
+  border-top: 4px solid #e21a1a;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+    /* Блок снизу */
+.photo-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #2b2b2b;
+  padding: 20px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Скрыть input-файл, стилизуем label */
+.photo-controls input[type="file"] {
+  display: none;
+}
+
+.upload-label {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #444;
+  color: white;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.photo-controls button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #e21a1a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* Кнопка "Продолжить" отдельно выделена */
+.submit-button {
+  margin-top: 20px;
+  background-color: #26a269;
+}
+
+.loader {
+  border: 4px solid #ccc;
+  border-top: 4px solid #e21a1a;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+    .loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+    .section .icon {
+  margin-left: 12px; /* сдвигает иконку немного правее */
+}
+
+.section span,
+.section p {
+  margin-left: 12px; /* сдвигает текст немного правее */
+}
+    .tab-container {
+  padding: 0;
+  margin: 0;
+}
+
+#authScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #2b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#authScreen .input-screen {
+  max-width: 400px;
+  width: 90%;
+}
+
+.admin-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-content {
+  position: relative;
+  background: #1e1e1e;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #000;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.admin-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.admin-content button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background: #e21a1a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-admin-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 26px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 2;
+}
+
+#codeLoader {
+  display: none;
+  margin-left: 8px;
+  font-size: 16px;
+  animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+.custom-slider-wrapper {
+  position: relative;
+  top: -25px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.slider-display {
+  position: relative;
+  top:-16px;
+  display: flex;
+  align-items: center;
+}
+
+#inputCountRange {
+  flex: 1;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: #555;
+  outline: none;
+  accent-color: #e21a1a;
+}
+
+#inputCountRange::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e21a1a;
+  cursor: pointer;
+  border: none;
+  margin-top: -2px;
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;  
+  font-size: 14px;
+  color: #bbb;
+  padding: 0 4px;
+  margin-top: 4px;
+}
+
+
+  </style>
+</head>
+<body>
+<!-- Экран авторизации -->
+<div id="authScreen" class="screen active">
+  <div class="input-screen">
+    <input id="authToken" placeholder="Введите токен доступа" />
+    <button onclick="checkAccess()">Войти</button>
+  </div>
+</div>
+
+
+  
+  <!-- Экран ввода данных -->
+  <div class="screen" id="inputScreen">
+    <div class="input-screen">
+      <div style="display: flex; gap: 10px; align-items: center;">
+  <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1; margin-right: 10px;" />
+  <button onclick="checkOrSaveCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
+</div>
+<div id="codeLoaderWrapper" style="text-align: center;">
+  <span id="codeLoader" style="display: none; font-size: 18px; animation: blink 1s linear infinite;">⏳ Проверка кода...</span>
+</div>
+
+      <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
+      <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
+      <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
+      <input id="inputFare" placeholder="Стоимость (например: 35.00)" />
+      <div class="custom-slider-wrapper">
+  <label for="inputCountRange">Количество билетов</label>
+  <div class="slider-display">
+    <div id="sliderValueBox"><span id="sliderValue">1</span></div>
+    <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" oninput="updateCountLabel(this.value)" />
+<div class="slider-labels">
+</div>      
+      
+  </div>
+  <input type="hidden" id="inputCount" value="1" />
+</div>
+
+    </div>
+    
+      <div class="photo-controls">
+    <input type="file" id="photoInput" accept="image/*" />
+    <label for="photoInput" class="upload-label">Выбрать фото</label>
+    <button onclick="recognizeFromPhoto()">Распознать с фото</button>
+    <div id="loader" class="loader" style="display: none;"></div>
+    <button onclick="submitForm()" class="submit-button">Продолжить</button>
+        <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
+
+      </div>
+</div>
+  
+  <div id="adminPanel" class="admin-modal" style="display: none;">
+  <div class="admin-content">
+    <button class="close-admin-button" onclick="toggleAdminMenu()">×</button>
+
+    <h2>Админ-панель</h2>
+
+    <input id="newTokenInput" placeholder="Новый токен" />
+    <button onclick="addToken()">Добавить токен</button>
+
+    <br /><br />
+
+    <input id="removeTokenInput" placeholder="Удалить токен" />
+    <button onclick="removeToken()">Удалить токен</button>
+
+    <hr style="margin: 20px 0; border: 1px solid #444;" />
+
+    <h3 style="margin-bottom: 10px;">Все токены</h3>
+    <button onclick="loadTokens()">Обновить список</button>
+    <ul id="tokenList" style="list-style: none; padding: 0; margin-top: 10px; font-size: 14px;"></ul>
+  </div>
+</div>
+
+
+
+
+  <!-- Основной экран с вкладками -->
+  <div class="container screen" id="mainScreen">
+    <div class="top-text">Действует: <span id="countdown">15</span> сек.</div>
+
+    <div class="tab" id="tabs">
+      <div class="tab-item active" onclick="switchTab('ticket', event)">
+        <div style="display: flex; align-items: center; gap: 8px; color: #df1d1d;">
+  <!-- SVG иконка -->
+  <svg width="25pt" height="25pt" viewBox="0 0 140 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#282525ff">
+</g>
+<g id="#ca211fff">
+<path fill="#ca211f" opacity="1.00" d=" M 70.74 31.51 C 81.83 31.06 92.91 31.97 104.00 31.65 C 110.82 31.68 118.83 31.75 123.76 37.24 C 126.38 41.26 126.20 46.38 126.44 51.00 C 126.34 58.66 126.89 66.35 126.18 73.97 C 126.13 79.14 116.09 80.87 116.47 74.65 C 116.50 65.45 115.54 56.28 115.56 47.08 C 115.57 45.69 115.34 43.63 113.57 43.53 C 107.73 42.96 101.84 43.51 96.00 42.82 C 82.89 42.67 69.66 41.61 56.64 43.80 C 53.49 44.53 53.40 48.40 53.33 51.01 C 53.47 76.94 53.21 102.88 53.45 128.80 C 53.16 132.81 58.03 133.17 60.94 133.32 C 70.63 133.30 80.35 133.82 90.00 132.69 C 94.81 132.75 99.89 131.89 104.52 133.52 C 108.20 136.00 111.52 139.42 113.09 143.65 C 110.09 144.18 107.05 144.57 104.00 144.47 C 93.67 144.30 83.34 144.49 73.01 144.47 C 65.80 144.44 58.48 144.85 51.41 143.19 C 47.42 142.37 44.31 139.13 42.81 135.46 C 40.98 130.87 41.91 125.83 41.22 121.05 C 40.26 116.03 41.84 111.03 41.65 106.00 C 41.45 92.66 41.73 79.33 41.56 66.00 C 41.38 58.96 42.71 51.99 42.52 44.94 C 42.13 39.43 46.43 34.45 51.50 32.86 C 57.79 31.26 64.32 31.76 70.74 31.51 Z" />
+<path fill="#ca211f" opacity="1.00" d=" M 68.37 61.26 C 73.12 59.96 78.13 60.67 82.99 60.50 C 88.54 60.77 94.22 59.93 99.67 61.24 C 103.71 62.20 105.50 69.85 100.86 71.18 C 96.28 71.86 91.62 71.39 87.00 71.50 C 80.91 71.36 74.70 72.00 68.72 70.55 C 63.85 70.33 64.55 62.58 68.37 61.26 Z" />
+<path fill="#ca211f" opacity="1.00" d=" M 64.68 82.70 C 65.84 80.96 68.18 81.54 69.95 81.32 C 78.96 81.44 87.97 81.31 96.99 81.39 C 99.46 81.51 102.74 81.44 104.08 83.98 C 105.24 86.39 104.10 89.04 103.43 91.42 C 97.30 91.91 91.14 91.26 85.03 92.04 C 80.45 92.58 75.82 92.76 71.21 92.55 C 68.90 92.45 66.50 91.84 64.72 90.28 C 64.08 87.82 64.04 85.16 64.68 82.70 Z" />
+<path fill="#ca211f" opacity="1.00" d=" M 128.32 82.18 C 135.66 80.80 143.65 81.01 150.42 84.48 C 159.08 88.52 166.43 96.43 168.25 105.98 C 169.07 113.30 168.10 121.07 164.58 127.62 C 161.38 132.62 157.39 137.50 151.87 140.04 C 146.34 142.68 140.25 145.18 133.99 144.15 C 127.83 143.22 122.06 140.49 116.85 137.17 C 103.10 126.01 101.54 102.06 115.19 90.19 C 118.96 86.69 123.26 83.47 128.32 82.18 M 140.85 110.87 C 138.45 112.75 136.36 115.89 132.99 115.77 C 129.89 116.26 128.45 113.04 126.38 111.41 C 125.37 110.10 123.49 110.58 122.90 112.01 C 123.95 116.03 126.51 119.66 129.79 122.18 C 132.45 123.32 135.71 122.73 137.99 120.97 C 142.23 117.97 146.00 114.19 148.74 109.75 C 149.88 108.03 149.63 105.86 149.87 103.90 C 146.01 104.87 143.82 108.53 140.85 110.87 Z" />
+<path fill="#ca211f" opacity="1.00" d=" M 64.35 103.32 C 69.56 100.12 76.30 101.16 81.69 103.40 C 84.14 104.15 85.32 106.94 84.28 109.25 C 82.37 111.83 78.91 111.62 76.05 111.71 C 72.63 111.68 69.14 111.94 65.77 111.20 C 63.42 109.37 64.77 105.89 64.35 103.32 Z" />
+  </g>
+</svg>
+</div>
+        <div>1 070 004 271</div>
+      </div>
+      <div class="tab-item" onclick="switchTab('control', event)">     
+  <div class="icon">
+    <svg width="25pt" height="25pt" viewBox="0 0 132 166" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#252525ff">
+</g>
+<g id="#e8e8e8ff">
+<path fill="#e8e8e8" opacity="1.00" d=" M 53.91 15.16 C 57.31 14.63 60.18 12.34 63.55 11.86 C 67.50 12.55 71.17 14.36 75.12 15.11 C 85.14 17.13 95.11 19.45 104.89 22.45 C 108.41 23.21 111.41 26.84 110.40 30.52 C 109.31 34.11 105.91 36.21 103.85 39.18 C 102.99 42.77 103.98 46.53 103.23 50.13 C 99.86 52.53 96.26 55.06 92.04 55.55 C 85.35 56.45 78.77 58.20 72.00 58.41 C 64.26 58.66 56.47 58.80 48.82 57.43 C 41.46 56.17 33.37 55.55 27.38 50.59 C 23.85 48.12 26.63 43.59 26.14 40.14 C 24.34 36.50 20.17 34.15 19.43 30.00 C 20.28 26.25 23.28 22.79 27.14 21.98 C 36.17 20.11 44.88 17.02 53.91 15.16 M 50.27 30.03 C 48.01 31.21 48.26 34.43 49.96 35.99 C 53.77 40.19 59.38 42.95 64.98 43.52 C 70.57 42.46 75.54 39.18 80.29 36.17 C 83.47 34.07 80.09 29.31 77.01 29.53 C 73.81 30.43 71.36 33.15 67.99 33.55 C 64.44 33.84 60.26 34.34 57.58 31.48 C 55.72 29.46 52.75 28.60 50.27 30.03 Z" />
+<path fill="#e8e8e8" opacity="1.00" d=" M 32.12 63.04 C 33.24 61.67 35.18 62.85 36.58 63.05 C 40.52 64.30 44.41 66.76 46.13 70.67 C 47.88 74.09 49.25 78.04 52.62 80.24 C 56.39 82.76 60.86 84.87 65.51 84.35 C 70.64 83.89 75.29 81.33 79.32 78.27 C 83.10 75.57 82.58 69.98 86.06 67.04 C 88.87 64.77 92.21 62.66 95.93 62.58 C 97.22 63.38 97.73 64.52 97.47 66.02 C 97.17 71.65 94.25 76.67 91.67 81.53 C 88.89 87.02 83.13 89.80 78.55 93.54 C 75.93 95.86 72.28 95.55 69.03 95.63 C 64.68 95.61 60.33 95.76 55.99 95.49 C 51.94 95.26 48.62 92.66 45.31 90.60 C 40.02 87.39 37.23 81.61 34.52 76.30 C 32.76 72.21 30.74 67.51 32.12 63.04 Z" />
+<path fill="#e8e8e8" opacity="1.00" d=" M 34.34 106.05 C 35.79 105.74 37.34 105.41 38.80 105.91 C 48.06 108.91 54.50 116.91 63.41 120.57 C 67.26 121.45 70.44 118.30 73.44 116.38 C 78.39 112.88 83.31 109.19 88.90 106.74 C 93.59 104.88 98.56 107.16 103.03 108.66 C 108.01 110.25 111.58 114.26 114.94 118.06 C 119.42 123.33 123.14 129.86 122.63 137.02 C 122.45 140.06 123.19 144.49 119.71 145.96 C 116.59 146.98 113.22 146.51 110.00 146.60 C 78.65 146.52 47.30 146.58 15.95 146.62 C 13.16 146.57 9.84 146.36 8.05 143.89 C 5.67 140.71 6.87 136.54 7.57 133.01 C 9.03 127.61 10.75 121.89 14.92 117.92 C 18.35 114.61 21.44 110.61 26.02 108.84 C 28.72 107.71 31.49 106.72 34.34 106.05 M 26.37 123.36 C 23.50 126.23 19.78 129.58 20.78 134.11 C 26.14 135.06 31.60 134.51 37.00 134.59 C 43.88 134.43 50.78 135.05 57.63 134.27 C 55.06 129.55 49.82 127.50 45.92 124.14 C 42.58 121.79 39.51 118.06 35.06 118.26 C 31.46 118.26 28.86 121.16 26.37 123.36 M 91.48 118.57 C 86.41 120.36 82.89 124.69 78.39 127.45 C 75.22 129.54 71.10 131.26 70.11 135.34 C 83.20 135.43 96.31 135.63 109.38 135.19 C 110.87 130.51 106.64 127.19 103.98 124.02 C 101.00 120.41 96.36 117.27 91.48 118.57 Z" />
+  </g>
+</svg>
+        </div>
+        Контроль
+      </div>
+    </div>
+
+    <!-- Вкладка билета -->
+    <div id="ticket" class="screen active">
+      <div class="section">
+        <div class="row">
+          <div class="icon">
+            <svg width="25pt" height="25pt" viewBox="0 0 132 166" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#252525ff">
+</g>
+<g id="#e8e8e8ff">
+<path fill="#e8e8e8" opacity="1.00" d=" M 53.91 15.16 C 57.31 14.63 60.18 12.34 63.55 11.86 C 67.50 12.55 71.17 14.36 75.12 15.11 C 85.14 17.13 95.11 19.45 104.89 22.45 C 108.41 23.21 111.41 26.84 110.40 30.52 C 109.31 34.11 105.91 36.21 103.85 39.18 C 102.99 42.77 103.98 46.53 103.23 50.13 C 99.86 52.53 96.26 55.06 92.04 55.55 C 85.35 56.45 78.77 58.20 72.00 58.41 C 64.26 58.66 56.47 58.80 48.82 57.43 C 41.46 56.17 33.37 55.55 27.38 50.59 C 23.85 48.12 26.63 43.59 26.14 40.14 C 24.34 36.50 20.17 34.15 19.43 30.00 C 20.28 26.25 23.28 22.79 27.14 21.98 C 36.17 20.11 44.88 17.02 53.91 15.16 M 50.27 30.03 C 48.01 31.21 48.26 34.43 49.96 35.99 C 53.77 40.19 59.38 42.95 64.98 43.52 C 70.57 42.46 75.54 39.18 80.29 36.17 C 83.47 34.07 80.09 29.31 77.01 29.53 C 73.81 30.43 71.36 33.15 67.99 33.55 C 64.44 33.84 60.26 34.34 57.58 31.48 C 55.72 29.46 52.75 28.60 50.27 30.03 Z" />
+<path fill="#e8e8e8" opacity="1.00" d=" M 32.12 63.04 C 33.24 61.67 35.18 62.85 36.58 63.05 C 40.52 64.30 44.41 66.76 46.13 70.67 C 47.88 74.09 49.25 78.04 52.62 80.24 C 56.39 82.76 60.86 84.87 65.51 84.35 C 70.64 83.89 75.29 81.33 79.32 78.27 C 83.10 75.57 82.58 69.98 86.06 67.04 C 88.87 64.77 92.21 62.66 95.93 62.58 C 97.22 63.38 97.73 64.52 97.47 66.02 C 97.17 71.65 94.25 76.67 91.67 81.53 C 88.89 87.02 83.13 89.80 78.55 93.54 C 75.93 95.86 72.28 95.55 69.03 95.63 C 64.68 95.61 60.33 95.76 55.99 95.49 C 51.94 95.26 48.62 92.66 45.31 90.60 C 40.02 87.39 37.23 81.61 34.52 76.30 C 32.76 72.21 30.74 67.51 32.12 63.04 Z" />
+<path fill="#e8e8e8" opacity="1.00" d=" M 34.34 106.05 C 35.79 105.74 37.34 105.41 38.80 105.91 C 48.06 108.91 54.50 116.91 63.41 120.57 C 67.26 121.45 70.44 118.30 73.44 116.38 C 78.39 112.88 83.31 109.19 88.90 106.74 C 93.59 104.88 98.56 107.16 103.03 108.66 C 108.01 110.25 111.58 114.26 114.94 118.06 C 119.42 123.33 123.14 129.86 122.63 137.02 C 122.45 140.06 123.19 144.49 119.71 145.96 C 116.59 146.98 113.22 146.51 110.00 146.60 C 78.65 146.52 47.30 146.58 15.95 146.62 C 13.16 146.57 9.84 146.36 8.05 143.89 C 5.67 140.71 6.87 136.54 7.57 133.01 C 9.03 127.61 10.75 121.89 14.92 117.92 C 18.35 114.61 21.44 110.61 26.02 108.84 C 28.72 107.71 31.49 106.72 34.34 106.05 M 26.37 123.36 C 23.50 126.23 19.78 129.58 20.78 134.11 C 26.14 135.06 31.60 134.51 37.00 134.59 C 43.88 134.43 50.78 135.05 57.63 134.27 C 55.06 129.55 49.82 127.50 45.92 124.14 C 42.58 121.79 39.51 118.06 35.06 118.26 C 31.46 118.26 28.86 121.16 26.37 123.36 M 91.48 118.57 C 86.41 120.36 82.89 124.69 78.39 127.45 C 75.22 129.54 71.10 131.26 70.11 135.34 C 83.20 135.43 96.31 135.63 109.38 135.19 C 110.87 130.51 106.64 127.19 103.98 124.02 C 101.00 120.41 96.36 117.27 91.48 118.57 Z" />
+
+          </div>
+          <div>
+            <div class="label">Перевозчик</div>
+            <div class="value" id="carrierOutput">КПАТП-5</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="row">
+          <div class="icon">
+            <svg width="38pt" height="42pt" viewBox="0 0 38 42" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#262626ff">
+</g>
+<g id="#dededeff">
+<path fill="#dedede" opacity="1.00" d=" M 15.20 4.23 C 21.98 3.66 29.89 3.89 34.93 9.16 C 35.19 10.36 35.45 11.55 35.72 12.75 C 38.41 14.89 37.69 18.33 37.51 21.32 C 37.00 21.70 35.97 22.46 35.45 22.84 C 35.44 26.17 35.48 29.49 35.36 32.82 C 34.62 33.72 33.88 34.62 33.14 35.51 C 33.10 37.28 33.04 39.06 32.94 40.83 C 32.17 40.88 30.62 40.98 29.85 41.03 C 29.76 39.51 29.68 37.99 29.62 36.47 C 22.80 36.57 15.99 36.45 9.18 36.53 C 9.05 37.99 8.93 39.45 8.79 40.91 C 8.09 40.92 6.68 40.93 5.98 40.94 C 5.82 39.18 5.67 37.42 5.52 35.67 C 2.39 32.25 3.57 27.40 3.25 23.21 C 0.48 21.08 1.10 17.59 1.36 14.54 C 1.78 14.13 2.62 13.32 3.05 12.91 C 3.42 6.79 10.11 4.81 15.20 4.23 M 7.03 10.81 C 12.71 11.84 18.23 8.30 23.83 10.22 C 26.40 11.11 29.16 10.93 31.83 10.70 C 30.07 9.56 28.19 8.48 26.08 8.18 C 19.73 6.98 12.55 7.04 7.03 10.81 M 6.81 14.22 C 6.82 16.21 6.81 18.20 6.80 20.19 C 10.39 20.18 13.99 20.20 17.58 20.23 C 17.59 18.21 17.60 16.19 17.59 14.17 C 14.00 14.16 10.40 14.18 6.81 14.22 M 21.08 14.16 C 21.08 16.15 21.07 18.14 21.10 20.13 C 24.74 20.18 28.39 20.17 32.04 20.20 C 32.00 18.19 31.96 16.18 31.89 14.17 C 28.29 14.17 24.69 14.18 21.08 14.16 M 6.83 23.76 C 7.32 26.68 5.56 30.70 7.92 32.89 C 15.76 33.18 23.60 32.86 31.44 33.00 C 32.08 29.98 32.13 26.88 32.04 23.81 C 23.63 23.69 15.23 23.80 6.83 23.76 Z" />
+<path fill="#dedede" opacity="1.00" d=" M 10.35 26.39 C 12.35 24.73 15.22 28.31 13.11 29.82 C 11.12 32.65 6.90 27.94 10.35 26.39 Z" />
+<path fill="#dedede" opacity="1.00" d=" M 26.48 26.39 C 29.32 24.40 31.20 30.21 27.88 30.51 C 25.61 31.59 23.52 26.98 26.48 26.39 Z" />
+</g>
+</svg>
+          </div>
+          <div>
+            <div class="value-small" id="routeOutput">3-я Дальневосточная - Молодежная</div>
+            <div class="value" id="plateOutput">в447рр124</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="row">
+          <div class="icon">
+            <svg width="111pt" height="129pt" viewBox="0 0 111 129" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#242424ff">
+</g>
+<g id="#e7e7e6ff">
+<path fill="#e7e7e6" opacity="1.00" d=" M 25.27 12.24 C 27.96 8.65 32.63 7.45 36.91 7.53 C 47.96 7.49 59.01 7.36 70.06 7.49 C 77.50 7.39 84.56 10.54 90.73 14.43 C 100.09 21.46 105.29 33.39 104.66 45.01 C 105.38 57.59 98.27 69.93 87.63 76.42 C 80.63 80.93 72.09 81.42 64.03 82.19 C 54.23 82.59 44.40 82.07 34.59 82.45 C 34.68 86.41 34.01 90.66 35.88 94.32 C 47.23 94.96 58.63 94.40 70.00 94.58 C 75.12 94.73 80.30 94.04 85.38 94.88 C 87.87 96.06 89.37 98.96 89.48 101.64 C 87.67 105.53 82.91 106.27 79.08 106.34 C 64.49 106.40 49.90 106.34 35.31 106.34 C 35.30 110.69 35.62 115.09 34.81 119.39 C 34.16 124.40 25.65 124.75 23.79 120.24 C 21.42 116.07 21.66 111.10 21.50 106.47 C 16.92 106.24 11.79 106.93 7.74 104.33 C 5.77 101.94 6.24 98.24 7.58 95.65 C 12.00 93.57 17.50 95.92 21.56 93.21 C 21.66 89.90 22.43 86.11 20.86 83.11 C 16.33 81.74 11.25 82.36 7.01 80.04 C 6.21 76.78 6.33 73.10 7.96 70.10 C 11.93 69.22 16.03 69.94 20.03 69.36 C 21.90 68.77 21.46 66.57 21.62 65.09 C 21.69 52.37 21.69 39.65 21.65 26.94 C 21.64 21.87 22.27 16.48 25.27 12.24 M 35.63 20.18 C 34.87 36.38 35.43 52.61 35.30 68.81 C 47.22 68.82 59.14 68.95 71.06 68.84 C 77.39 69.13 82.51 64.82 86.98 60.90 C 92.48 55.95 93.00 47.92 92.57 41.01 C 92.24 32.11 85.92 23.40 77.13 21.22 C 73.54 20.17 69.75 20.19 66.04 20.17 C 55.90 20.23 45.77 20.21 35.63 20.18 Z" />
+</g>
+</svg>
+          </div>
+          <div>
+            <div class="label">Стоимость</div>
+            <div class="value" id="fareOutput">1 шт., Полный, 35.00 ₽</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="row">
+          <div class="icon">
+            <svg width="126pt" height="145pt" viewBox="0 0 126 145" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#232323ff">
+</g>
+<g id="#e6e7e6ff">
+<path fill="#e6e7e6" opacity="1.00" d=" M 31.81 10.08 C 32.99 4.98 40.95 4.10 43.45 8.61 C 44.86 12.74 44.34 17.20 44.53 21.49 C 56.49 21.60 68.45 21.41 80.41 21.59 C 80.89 16.48 79.76 9.74 84.56 6.36 C 88.09 3.86 92.56 6.85 93.73 10.46 C 94.85 14.04 94.39 17.85 94.47 21.54 C 102.42 20.96 111.41 21.62 117.17 27.85 C 119.79 30.11 120.73 33.58 120.58 36.94 C 120.54 66.32 120.66 95.70 120.52 125.07 C 120.86 130.58 116.15 134.46 111.84 136.96 C 108.59 138.96 104.65 138.67 100.99 138.75 C 75.65 138.67 50.32 138.74 24.98 138.72 C 19.02 138.67 11.98 138.04 8.27 132.70 C 5.57 129.83 4.23 125.97 4.48 122.05 C 4.45 94.35 4.48 66.64 4.41 38.94 C 3.95 33.24 7.59 28.13 11.90 24.82 C 17.91 21.62 24.94 21.32 31.60 21.48 C 31.54 17.69 31.20 13.85 31.81 10.08 M 16.59 55.59 C 16.17 75.39 16.56 95.20 16.33 115.00 C 16.50 118.08 15.96 121.53 17.74 124.26 C 20.50 125.94 23.91 125.43 27.00 125.57 C 54.10 125.27 81.22 125.85 108.31 125.29 C 109.35 120.60 109.74 115.79 109.62 110.99 C 109.42 92.53 109.83 74.06 109.39 55.59 C 78.46 55.39 47.52 55.30 16.59 55.59 Z" />
+<path fill="#e6e7e6" opacity="1.00" d=" M 30.53 72.42 C 40.02 72.43 49.52 72.09 59.01 72.48 C 61.05 72.21 62.63 74.02 62.45 76.00 C 62.87 84.83 62.44 93.67 62.61 102.51 C 56.57 105.81 49.56 104.42 43.00 104.69 C 38.80 104.56 34.38 105.22 30.37 103.67 C 29.29 100.57 29.52 97.23 29.49 94.00 C 29.70 86.80 28.93 79.51 30.53 72.42 Z" />
+</g>
+</svg>
+          </div>
+          <div>
+            <div class="label">Дата покупки</div>
+            <div class="value" id="dateOutput">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="row">
+          <div class="icon">
+            <svg width="144pt" height="149pt" viewBox="0 0 144 149" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g id="#242424ff">
+</g>
+<g id="#eaeaeaff">
+<path fill="#eaeaea" opacity="1.00" d=" M 61.54 9.16 C 74.23 7.30 87.24 9.25 99.00 14.29 C 106.80 16.99 112.93 22.67 118.95 28.08 C 123.48 32.81 127.66 38.04 130.23 44.11 C 134.78 54.48 138.89 65.50 138.53 77.00 C 137.40 89.48 134.25 102.26 126.61 112.44 C 118.97 123.06 109.14 132.93 96.46 137.13 C 86.34 140.34 75.69 142.95 65.00 141.51 C 57.73 140.47 50.46 138.85 43.68 135.98 C 30.05 129.00 18.79 117.54 12.00 103.81 C 5.33 89.21 3.34 72.16 8.35 56.74 C 10.82 46.23 17.14 37.18 24.09 29.14 C 29.48 23.67 35.36 18.39 42.53 15.37 C 48.67 12.77 54.90 10.11 61.54 9.16 M 64.61 21.31 C 55.12 23.40 45.35 26.32 37.93 32.91 C 31.99 37.36 28.00 43.74 23.89 49.78 C 19.93 55.67 19.68 62.97 18.12 69.69 C 16.52 76.63 18.82 83.57 19.96 90.40 C 21.36 99.02 27.07 106.02 32.50 112.54 C 42.54 122.67 56.61 129.13 71.00 128.82 C 83.62 129.33 96.23 124.79 106.21 117.16 C 110.42 114.08 113.46 109.77 116.83 105.86 C 120.45 101.57 121.89 96.04 123.64 90.84 C 124.70 87.68 125.50 84.41 125.55 81.07 C 125.71 73.43 126.39 65.40 123.02 58.29 C 119.32 47.14 111.83 37.39 102.23 30.68 C 95.54 25.29 86.93 23.60 78.80 21.61 C 74.17 20.45 69.29 20.30 64.61 21.31 Z" />
+<path fill="#eaeaea" opacity="1.00" d=" M 69.59 33.78 C 73.33 33.21 78.57 35.58 78.27 40.00 C 78.63 47.66 77.83 55.33 78.53 62.98 C 84.44 60.17 89.22 55.40 95.29 52.88 C 98.04 51.55 100.39 54.23 101.96 56.15 C 104.38 58.89 100.90 62.06 99.03 64.02 C 93.09 68.81 86.60 72.89 80.31 77.21 C 77.08 79.15 73.62 81.88 69.63 81.33 C 65.96 78.94 64.34 74.33 64.55 70.09 C 64.66 61.04 64.56 51.99 64.63 42.95 C 64.48 39.27 66.38 35.62 69.59 33.78 Z" />
+</g>
+</svg>
+
+          </div>
+          <div>
+            <div class="label">Время покупки</div>
+            <div class="value" id="timeOutput">--:--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Вкладка контроля с QR-кодом -->
+    <div id="control" class="screen">
+      <div class="qr-container">
+        <!-- Пример QR-кода, ссылка для демонстрации -->
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=ExampleQRCode" alt="QR Code" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Кнопка закрыть, отображается всегда на основном экране -->
+  <div class="pre-footer"></div>
+  <div class="bottom-button" id="closeButton" onclick="closeApp()">ЗАКРЫТЬ</div>
+  <script>
+    // Получаем элементы для управления
+    const inputScreen = document.getElementById('inputScreen');
+    const mainScreen = document.getElementById('mainScreen');
+    const countdownEl = document.getElementById('countdown');
+    const dateOutput = document.getElementById('dateOutput');
+    const timeOutput = document.getElementById('timeOutput');
+    const closeButton = document.getElementById('closeButton');
+
+    // Выводы для билета
+    const carrierOutput = document.getElementById('carrierOutput');
+    const routeOutput = document.getElementById('routeOutput');
+    const plateOutput = document.getElementById('plateOutput');
+    const fareOutput = document.getElementById('fareOutput');
+
+    // Вкладки и экраны
+    const tabs = document.querySelectorAll('.tab-item');
+    const screens = document.querySelectorAll('#mainScreen > .screen');
+
+    // Дефолтные данные, если что-то не введено
+    const defaultData = {
+      carrier: 'КПАТП-5',
+      route: '3-я Дальневосточная - Молодежная',
+      plate: 'в447рр124',
+      fare: '35.00',
+      count: '1',
+    };
+
+    let countdownInterval;
+
+    // Функция переключения вкладок
+    function switchTab(tabName, event) {
+      tabs.forEach(tab => {
+        if (tab.textContent.trim() === 'Контроль' && tabName === 'control') {
+          tab.classList.add('active');
+        } else if (tab.textContent.trim() !== 'Контроль' && tabName === 'ticket') {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+      // Показываем/скрываем экраны по имени вкладки
+      if (tabName === 'ticket') {
+        document.getElementById('ticket').classList.add('active');
+        document.getElementById('control').classList.remove('active');
+      } else {
+        document.getElementById('ticket').classList.remove('active');
+        document.getElementById('control').classList.add('active');
+      }
+    }
+
+    // Запуск обратного отсчета
+    function startCountdown() {
+      let time = 15;
+      countdownEl.textContent = time;
+      countdownInterval = setInterval(() => {
+        time--;
+        if (time <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = '0';
+          // Можно добавить действие по окончании отсчета, если нужно
+        } else {
+          countdownEl.textContent = time;
+        }
+      }, 1000);
+    }
+
+
+    async function submitForm() {
+  // Считываем значения из инпутов
+  const code = document.getElementById('inputCode').value.trim();
+  const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
+  const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
+  const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
+  const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
+  const count = document.getElementById('inputCount').value.trim() || defaultData.count;
+
+  // 🔁 Отправка в Google Таблицу, если указан код
+  if (code) {
+    try {
+      const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+      await fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams({
+          action: 'save_code_data',
+          code: code,
+          carrier: carrier,
+          route: route,
+          plate: plate
+        })
+      });
+    } catch (err) {
+      console.error("Ошибка сохранения кода:", err);
+    }
+  }
+
+  // Заполняем данные на основном экране
+  carrierOutput.textContent = carrier;
+  routeOutput.textContent = route;
+  plateOutput.textContent = plate;
+  fareOutput.textContent = `${count} шт., Полный, ${fare} ₽`;
+
+  // Устанавливаем текущие дату и время
+  const now = new Date();
+  dateOutput.textContent = now.toLocaleDateString('ru-RU');
+  timeOutput.textContent = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+
+  // Скрываем экран ввода, показываем основной
+  inputScreen.classList.remove('active');
+  mainScreen.classList.add('active');
+
+  // Запускаем таймер
+  startCountdown();
+}
+
+
+    // Функция "Закрыть" - просто сбрасывает к экрану ввода
+    function closeApp() {
+      clearInterval(countdownInterval);
+      inputScreen.classList.add('active');
+      mainScreen.classList.remove('active');
+
+      // Очищаем инпуты
+      ['inputCarrier','inputRoute','inputPlate','inputFare','inputCount'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+
+      // Сброс вкладок к первой
+      switchTab('ticket');
+    }
+
+    // Инициализация: отображаем вкладку "1 070 004 271" и активируем кнопку "ЗАКРЫТЬ"
+    switchTab('ticket');
+
+    // Кнопка "ЗАКРЫТЬ" всегда видна только на основном экране
+    function updateCloseButtonVisibility() {
+      if (mainScreen.classList.contains('active')) {
+        closeButton.style.display = 'block';
+      } else {
+        closeButton.style.display = 'none';
+      }
+    }
+
+    // Следим за сменой экранов и обновляем видимость кнопки
+    const observer = new MutationObserver(updateCloseButtonVisibility);
+    observer.observe(mainScreen, { attributes: true, attributeFilter: ['class'] });
+
+    // Изначальный вызов
+    updateCloseButtonVisibility();
+
+    function recognizeFromPhoto() {
+  const fileInput = document.getElementById('photoInput');
+  const file = fileInput.files[0];
+  document.getElementById('loadingOverlay').style.display = 'flex';
+
+  if (!file) {
+    alert("Пожалуйста, выберите фото.");
+    document.getElementById('loadingOverlay').style.display = 'none';
+    return;
+  }
+
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+
+  img.onload = async () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    const zones = {
+      inputCarrier: [
+        { x: 203, y: 942, width: 769, height: 94 }, // основная зона перевозчика
+        { x: 203, y: 942, width: 769, height: 94 }  // запасная зона перевозчика (та же, как в твоих данных)
+      ],
+      inputRoute: [
+        { x: 218, y: 1106, width: 586, height: 136 }, // основная зона маршрута
+        { x: 217, y: 1107, width: 759, height: 61 }   // запасная зона маршрута
+      ],
+      inputPlate: [
+        { x: 229, y: 1244, width: 371, height: 103 }, // основная зона госномера
+        { x: 230, y: 1174, width: 389, height: 75 }   // запасная зона госномера
+      ],
+      inputFare: [
+        { x: 588, y: 2195, width: 50, height: 54 }    // зона стоимости
+      ]
+    };
+
+    // Функция для распознавания текста из одной зоны
+    async function extractTextFromZone(zone) {
+      const { x, y, width, height } = zone;
+      const imageData = ctx.getImageData(x, y, width, height);
+      const regionCanvas = document.createElement('canvas');
+      regionCanvas.width = width;
+      regionCanvas.height = height;
+      regionCanvas.getContext('2d').putImageData(imageData, 0, 0);
+
+      const { data: { text } } = await Tesseract.recognize(regionCanvas, 'rus+eng');
+      return text.trim().replace(/\s+/g, ' ');
+    }
+
+    // Функция для попытки распознать с запасной зоной
+    async function getTextWithFallback(field) {
+      let result = await extractTextFromZone(zones[field][0]);
+      if ((!result || result.length < 4) && zones[field].length > 1) {
+        result = await extractTextFromZone(zones[field][1]);
+      }
+      return result;
+    }
+
+    try {
+      // Получаем все тексты из зон
+      const carrierText = await getTextWithFallback('inputCarrier');
+      let routeTextRaw = await getTextWithFallback('inputRoute');
+      const plateText = await getTextWithFallback('inputPlate');
+      const fareText = await extractTextFromZone(zones.inputFare[0]);
+
+      // Из маршрута удаляем номер автобуса (число, запятая и пробелы)
+      const matchRoute = routeTextRaw.match(/(?:\d+[,.:])?\s*(.+)/);
+      const routeText = matchRoute ? matchRoute[1] : routeTextRaw;
+
+      // Записываем в поля
+      document.getElementById('inputCarrier').value = carrierText || '';
+      document.getElementById('inputRoute').value = routeText || '';
+      document.getElementById('inputPlate').value = plateText || '';
+      document.getElementById('inputFare').value = fareText || '';
+
+      alert("Распознавание завершено. Проверьте данные.");
+    } catch (error) {
+      alert("Ошибка распознавания: " + error.message);
+    } finally {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+  };
+
+  img.onerror = () => {
+    alert("Не удалось загрузить изображение.");
+    document.getElementById('loadingOverlay').style.display = 'none';
+  };
+  }
+    function updateCountLabel(value) {
+  document.getElementById('sliderValue').textContent = value;
+  document.getElementById('inputCount').value = value;
+}
+
+    window.addEventListener('DOMContentLoaded', () => {
+  const accessGranted = localStorage.getItem('ticket_access_granted');
+  if (accessGranted === 'true') {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('inputScreen').classList.add('active');
+
+    // 👇 Важно: показываем админ-кнопку если надо
+    if (localStorage.getItem('is_admin') === 'true') {
+      document.getElementById('adminButton').style.display = 'inline-block';
+    }
+  }
+});
+
+
+    const adminToken = 'ADMIN-SUPERUSER-g8F2kLm9';
+    
+    let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
+
+    async function checkAccess() {
+  const token = document.getElementById('authToken').value.trim();
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  // Показываем загрузку
+  document.getElementById('loadingOverlay').style.display = 'flex';
+
+  if (token === adminToken) {
+    // Вход как админ — без обращения к таблице
+    localStorage.setItem('ticket_access_granted', 'true');
+    localStorage.setItem('is_admin', 'true');
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('inputScreen').classList.add('active');
+    document.getElementById('adminButton').style.display = 'inline-block';
+    document.getElementById('loadingOverlay').style.display = 'none';
+    return;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({ token })
+    });
+
+    const result = await response.text();
+
+    if (result === 'valid') {
+      localStorage.setItem('ticket_access_granted', 'true');
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('inputScreen').classList.add('active');
+
+      if (localStorage.getItem('is_admin') === 'true') {
+        document.getElementById('adminButton').style.display = 'inline-block';
+      }
+    } else {
+      alert('Доступ запрещён. Неверный или уже использованный токен.');
+    }
+  } catch (error) {
+    console.error('Ошибка запроса:', error);
+    alert('Ошибка соединения. Попробуйте позже.');
+  } finally {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
+    async function addToken() {
+  const token = document.getElementById('newTokenInput').value.trim();
+  if (!token) return alert('Введите токен');
+
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'add',
+        token: token
+      })
+    });
+
+    const result = await res.text();
+    if (result === 'added') {
+      alert('Токен добавлен!');
+      document.getElementById('newTokenInput').value = '';
+    } else {
+      alert('Ошибка при добавлении: ' + result);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка подключения');
+  }
+}
+
+
+async function removeToken() {
+  const token = document.getElementById('removeTokenInput').value.trim();
+  if (!token) return alert('Введите токен для удаления');
+
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'remove',
+        token: token
+      })
+    });
+
+    const result = await res.text();
+    if (result === 'removed') {
+      alert('Токен удалён!');
+      document.getElementById('removeTokenInput').value = '';
+    } else if (result === 'not_found') {
+      alert('Токен не найден.');
+    } else {
+      alert('Ошибка при удалении: ' + result);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка подключения');
+  }
+}
+
+    function toggleAdminMenu() {
+  const panel = document.getElementById('adminPanel');
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+}
+
+async function loadTokens() {
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec?action=list';
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    const list = document.getElementById('tokenList');
+    list.innerHTML = ''; // очищаем список
+
+    data.forEach(row => {
+      const li = document.createElement('li');
+      li.textContent = `🔑 ${row.token} — ${row.status || 'unknown'}`;
+      list.appendChild(li);
+    });
+  } catch (err) {
+    console.error(err);
+    alert('Не удалось загрузить список токенов.');
+  }
+}
+
+document.getElementById('inputCode').addEventListener('input', async function () {
+  const code = this.value.trim();
+  if (!code) return;
+
+  const url = 'https://script.google.com/macros/s/ВАШ_URL/exec';
+  const res = await fetch(url, {
+    method: 'POST',
+    body: new URLSearchParams({
+      action: 'get_code_data',
+      code: code
+    })
+  });
+
+  const result = await res.text();
+  try {
+    const data = JSON.parse(result);
+    if (data.carrier) document.getElementById('inputCarrier').value = data.carrier;
+    if (data.route) document.getElementById('inputRoute').value = data.route;
+    if (data.plate) document.getElementById('inputPlate').value = data.plate;
+  } catch (e) {
+    // Not found or malformed
+  }
+});
+
+async function checkOrSaveCode() {
+  const code = document.getElementById('inputCode').value.trim();
+  if (!code) return alert("Введите код");
+
+  const carrier = document.getElementById('inputCarrier').value.trim();
+  const route = document.getElementById('inputRoute').value.trim();
+  const plate = document.getElementById('inputPlate').value.trim();
+  const loader = document.getElementById('codeLoader');
+
+  loader.style.display = 'inline';
+
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'get_code_data',
+        code: code
+      })
+    });
+
+    const result = await res.text();
+
+    // Если данные найдены — вставим
+    try {
+      const data = JSON.parse(result);
+      if (data.carrier) document.getElementById('inputCarrier').value = data.carrier;
+      if (data.route) document.getElementById('inputRoute').value = data.route;
+      if (data.plate) document.getElementById('inputPlate').value = data.plate;
+
+      alert("Данные успешно подставлены по коду");
+    } catch (e) {
+      // Не найдено — пробуем сохранить, если поля НЕ дефолтные
+      if (
+        carrier && route && plate &&
+        carrier !== defaultData.carrier &&
+        route !== defaultData.route &&
+        plate !== defaultData.plate
+      ) {
+        const saveRes = await fetch(url, {
+          method: 'POST',
+          body: new URLSearchParams({
+            action: 'save_code_data',
+            code: code,
+            carrier: carrier,
+            route: route,
+            plate: plate
+          })
+        });
+        alert("Данные сохранены по коду");
+      } else {
+        alert("Нет данных для сохранения. Заполните поля вручную.");
+      }
+    }
+  } catch (err) {
+    console.error("Ошибка:", err);
+    alert("Ошибка при проверке кода.");
+  } finally {
+    loader.style.display = 'none';
+  }
+}
+
+  </script>
+  
+</div>
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+  <div class="loader"></div>
+</div>
+  
+</body>
+</html>
