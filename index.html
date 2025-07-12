@@ -1095,6 +1095,9 @@ document.getElementById('inputCode').addEventListener('input', async function ()
     }
 
     const data = await response.json();
+    console.log('Ответ от API:', data);
+alert('Ответ получен:\n' + JSON.stringify(data, null, 2));
+
 
     if (!data.basicTripInfo) {
       alert("Код не найден или недействителен");
