@@ -1115,7 +1115,44 @@ document.getElementById('inputCode').addEventListener('input', async function ()
     console.error(error);
     alert("Ошибка при получении данных");
   }
+    if (typeof Telegram === 'undefined' || !Telegram.WebApp || !Telegram.WebApp.initData) {
+  debug("Ошибка: Telegram WebApp не инициализирован");
+  alert("Ошибка: Telegram WebApp не инициализирован");
+  return;
 }
+}
+
+    window.addEventListener('DOMContentLoaded', () => {
+  const debugBox = document.createElement('div');
+  debugBox.id = 'debugBox';
+  debugBox.style.position = 'fixed';
+  debugBox.style.bottom = '10px';
+  debugBox.style.left = '10px';
+  debugBox.style.right = '10px';
+  debugBox.style.background = 'rgba(0,0,0,0.8)';
+  debugBox.style.color = '#0f0';
+  debugBox.style.fontSize = '12px';
+  debugBox.style.padding = '8px';
+  debugBox.style.zIndex = '99999';
+  debugBox.style.maxHeight = '150px';
+  debugBox.style.overflowY = 'auto';
+  debugBox.style.whiteSpace = 'pre-wrap';
+  debugBox.innerText = '[init] Проверка...';
+  document.body.appendChild(debugBox);
+
+  function debug(msg) {
+    debugBox.innerText += '\n' + msg;
+  }
+
+  // Проверка Telegram SDK
+  debug("Telegram SDK: " + (typeof Telegram !== 'undefined' ? "OK ✅" : "❌ Telegram is undefined"));
+  debug("Telegram.WebApp: " + (Telegram?.WebApp ? "OK ✅" : "❌ WebApp is missing"));
+  debug("Telegram.WebApp.initData: " + (Telegram?.WebApp?.initData ? Telegram.WebApp.initData : "❌ Пусто"));
+
+  // Вставь эту функцию в глобальный скрипт
+  window.debug = debug;
+});
+
 
   </script>
   
