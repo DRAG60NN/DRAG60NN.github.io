@@ -1067,66 +1067,53 @@ document.getElementById('inputCode').addEventListener('input', async function ()
   }
 });
 
-async function checkOrSaveCode() {
+    async function fetchTripDataByCode() {
   const code = document.getElementById('inputCode').value.trim();
-  if (!code) return alert("Введите код");
+  if (!code) {
+    alert("Введите код");
+    return;
+  }
 
-  const carrier = document.getElementById('inputCarrier').value.trim();
-  const route = document.getElementById('inputRoute').value.trim();
-  const plate = document.getElementById('inputPlate').value.trim();
-  const loader = document.getElementById('codeLoader');
-
-  loader.style.display = 'inline';
-
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+  // Поддержка Telegram WebApp
+  if (typeof Telegram === 'undefined' || !Telegram.WebApp || !Telegram.WebApp.initData) {
+    alert("Ошибка: Telegram WebApp не инициализирован");
+    return;
+  }
 
   try {
-    const res = await fetch(url, {
+    const response = await fetch(`https://buspaybot.icom24.ru/api/search/qr?botName=buspaybot&scannedCode=${encodeURIComponent(code)}`, {
       method: 'POST',
-      body: new URLSearchParams({
-        action: 'get_code_data',
-        code: code
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Telegram-WebApp-Data': Telegram.WebApp.initData
+      }
     });
 
-    const result = await res.text();
-
-    // Если данные найдены — вставим
-    try {
-      const data = JSON.parse(result);
-      if (data.carrier) document.getElementById('inputCarrier').value = data.carrier;
-      if (data.route) document.getElementById('inputRoute').value = data.route;
-      if (data.plate) document.getElementById('inputPlate').value = data.plate;
-
-      alert("Данные успешно подставлены по коду");
-    } catch (e) {
-      // Не найдено — пробуем сохранить, если поля НЕ дефолтные
-      if (
-        carrier && route && plate &&
-        carrier !== defaultData.carrier &&
-        route !== defaultData.route &&
-        plate !== defaultData.plate
-      ) {
-        const saveRes = await fetch(url, {
-          method: 'POST',
-          body: new URLSearchParams({
-            action: 'save_code_data',
-            code: code,
-            carrier: carrier,
-            route: route,
-            plate: plate
-          })
-        });
-        alert("Данные сохранены по коду");
-      } else {
-        alert("Нет данных для сохранения. Заполните поля вручную.");
-      }
+    if (!response.ok) {
+      throw new Error(`Ошибка запроса: ${response.status}`);
     }
-  } catch (err) {
-    console.error("Ошибка:", err);
-    alert("Ошибка при проверке кода.");
-  } finally {
-    loader.style.display = 'none';
+
+    const data = await response.json();
+
+    if (!data.basicTripInfo) {
+      alert("Код не найден или недействителен");
+      return;
+    }
+
+    // Подстановка данных
+    const trip = data.basicTripInfo;
+    document.getElementById('inputCarrier').value = trip.carrierName || '';
+    document.getElementById('inputRoute').value = trip.routeName || '';
+    document.getElementById('inputPlate').value = trip.vehicleGovNumber || '';
+    document.getElementById('inputFare').value = data.tariffs?.[0]?.tariffValueCent
+      ? (data.tariffs[0].tariffValueCent / 100).toFixed(2)
+      : '';
+
+    alert("Данные успешно подставлены");
+
+  } catch (error) {
+    console.error(error);
+    alert("Ошибка при получении данных");
   }
 }
 
