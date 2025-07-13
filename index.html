@@ -439,7 +439,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div class="screen" id="inputScreen">
     <div class="input-screen">
       <div style="display: flex; gap: 10px; align-items: center;">
-  <input id="inputCode" placeholder="Код (временно не работает)" style="flex: 1; margin-right: 10px;" />
+  <input id="inputCode" placeholder="Код" style="flex: 1; margin-right: 10px;" />
   <button onclick="fetchTripDataByCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
 </div>
 <div id="codeLoaderWrapper" style="text-align: center;">
@@ -1087,9 +1087,10 @@ try {
     {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'X-Telegram-WebApp-Data': Telegram.WebApp.initData
       },
-      body: '' // ← важно, пустое тело для POST
+      body: '{}' // ← отправляем корректный JSON
     }
   );
 
