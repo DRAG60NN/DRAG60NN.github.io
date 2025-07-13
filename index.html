@@ -1069,6 +1069,12 @@ document.getElementById('inputCode').addEventListener('input', async function ()
 });
 
     async function fetchTripDataByCode() {
+
+      window.addEventListener('DOMContentLoaded', () => {
+  const initData = Telegram?.WebApp?.initData || '⛔ initData отсутствует';
+  alert("initData:\n\n" + initData);
+});
+
   const code = document.getElementById('inputCode').value.trim();
   if (!code) {
     alert("Введите код");
