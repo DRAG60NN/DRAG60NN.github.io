@@ -1130,12 +1130,6 @@ try {
   alert("Ошибка при получении данных: " + error.message);
   debug("Ошибка в fetch: " + error.message);
 }
-
-    if (typeof Telegram === 'undefined' || !Telegram.WebApp || !Telegram.WebApp.initData) {
-  debug("Ошибка: Telegram WebApp не инициализирован");
-  alert("Ошибка: Telegram WebApp не инициализирован");
-  return;
-}
 }
 
     window.addEventListener('DOMContentLoaded', () => {
