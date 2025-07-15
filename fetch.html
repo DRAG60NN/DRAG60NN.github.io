@@ -2,58 +2,57 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Загрузка данных...</title>
+  <title>fetch</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body style="background-color:#222; color:#fff; display:flex; align-items:center; justify-content:center; height:100vh;">
+<body style="background-color:#111;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;">
   <div id="status">⏳ Загрузка...</div>
+  <button id="btn" style="display:none;margin-top:20px;" onclick="Telegram.WebApp.close()">🔙 Назад</button>
 
   <script>
-    async function fetchTripData() {
-      const statusEl = document.getElementById('status');
-
-      if (!Telegram || !Telegram.WebApp || !Telegram.WebApp.initData) {
-        statusEl.textContent = "Ошибка: WebApp не инициализирован";
-        return;
-      }
-
-      console.log("initDataUnsafe:", Telegram.WebApp.initDataUnsafe);
-      const code = Telegram.WebApp?.initDataUnsafe?.start_param;
-      if (!code) {
-        statusEl.textContent = "Ошибка: Код не передан";
-        return;
-      }
+    window.addEventListener('DOMContentLoaded', async () => {
+      const status = document.getElementById('status');
+      const btn = document.getElementById('btn');
 
       try {
-        const res = await fetch(`https://buspaybot.icom24.ru/api/search/qr?botName=buspaybot&scannedCode=${encodeURIComponent(code)}`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-Telegram-WebApp-Data': Telegram.WebApp.initData
-  },
-  body: '{}'
-});
+        const initData = Telegram?.WebApp?.initDataUnsafe;
+        console.log("initDataUnsafe:", initData);
+        
+        const code = initData?.start_param;
+        if (!code) {
+          status.textContent = "❌ Код не передан. Запустите через /start=КОД";
+          return;
+        }
 
+        status.textContent = `📦 Код: ${code} — загружаем...`;
 
-        const data = await res.json();
+        // Запрос к защищённому API
+        const apiRes = await fetch(`https://buspaybot.icom24.ru/api/search/qr?botName=buspaybot&scannedCode=${code}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Telegram-WebApp-Data': Telegram.WebApp.initData
+          },
+          body: '{}'
+        });
 
-        // Отправка данных на твой сервер
+        const json = await apiRes.json();
+
+        // Отправка на свой сервер
         await fetch('https://buspay-proxy.onrender.com/store', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ code, result: data })
-});
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, result: json })
+        });
 
-
-        statusEl.textContent = "✅ Данные сохранены";
-        Telegram.WebApp.close();
-      } catch (err) {
-        statusEl.textContent = "❌ Ошибка: " + err.message;
-        console.error(err);
+        status.textContent = "✅ Данные получены и сохранены.";
+        btn.style.display = 'inline-block';
+      } catch (e) {
+        console.error(e);
+        status.textContent = "❌ Ошибка запроса. Подробности в консоли.";
+        btn.style.display = 'inline-block';
       }
-    }
-
-    window.addEventListener('DOMContentLoaded', fetchTripData);
+    });
   </script>
 </body>
 </html>
