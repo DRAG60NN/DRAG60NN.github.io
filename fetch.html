@@ -5,15 +5,21 @@
   <title>Загрузка данных...</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body style="background-color: #222; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh;">
-  <div id="status">Загрузка...</div>
+<body style="background-color:#222; color:#fff; display:flex; align-items:center; justify-content:center; height:100vh;">
+  <div id="status">⏳ Загрузка...</div>
 
   <script>
-    async function fetchTripDataFromAPI(code) {
+    async function fetchTripData() {
       const statusEl = document.getElementById('status');
 
-      if (!window.Telegram || !Telegram.WebApp || !Telegram.WebApp.initData) {
+      if (!Telegram || !Telegram.WebApp || !Telegram.WebApp.initData) {
         statusEl.textContent = "Ошибка: WebApp не инициализирован";
+        return;
+      }
+
+      const code = Telegram.WebApp.initDataUnsafe?.start_param;
+      if (!code) {
+        statusEl.textContent = "Ошибка: Код не передан";
         return;
       }
 
@@ -27,30 +33,24 @@
           body: '{}'
         });
 
-        const raw = await res.text();
+        const data = await res.json();
 
-        try {
-          const data = JSON.parse(raw);
-          Telegram.WebApp.sendData(JSON.stringify({ success: true, data }));
-        } catch (e) {
-          Telegram.WebApp.sendData(JSON.stringify({ success: false, message: 'Ошибка парсинга JSON', raw }));
-        }
+        // Отправка данных на твой сервер
+        await fetch('https://your-proxy-server.com/store', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, result: data })
+        });
 
+        statusEl.textContent = "✅ Данные сохранены";
         Telegram.WebApp.close();
-      } catch (e) {
-        Telegram.WebApp.sendData(JSON.stringify({ success: false, message: e.message }));
-        Telegram.WebApp.close();
+      } catch (err) {
+        statusEl.textContent = "❌ Ошибка: " + err.message;
+        console.error(err);
       }
     }
 
-    const queryParams = new URLSearchParams(window.location.search);
-    const code = queryParams.get('code');
-
-    if (!code) {
-      document.getElementById('status').textContent = "Код не передан";
-    } else {
-      fetchTripDataFromAPI(code);
-    }
+    window.addEventListener('DOMContentLoaded', fetchTripData);
   </script>
 </body>
 </html>
