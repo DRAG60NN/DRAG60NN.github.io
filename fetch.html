@@ -17,6 +17,7 @@
         return;
       }
 
+      console.log("initDataUnsafe:", Telegram.WebApp.initDataUnsafe);
       const code = Telegram.WebApp?.initDataUnsafe?.start_param;
       if (!code) {
         statusEl.textContent = "Ошибка: Код не передан";
