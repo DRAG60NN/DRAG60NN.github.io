@@ -36,7 +36,7 @@
         const data = await res.json();
 
         // Отправка данных на твой сервер
-        await fetch('https://your-proxy-server.com/store', {
+        await fetch('https://buspay-proxy.onrender.com/store', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code, result: data })
