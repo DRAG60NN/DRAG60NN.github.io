@@ -17,7 +17,7 @@
         return;
       }
 
-      const code = Telegram.WebApp.initDataUnsafe?.start_param;
+      const code = Telegram.WebApp?.initDataUnsafe?.start_param;
       if (!code) {
         statusEl.textContent = "Ошибка: Код не передан";
         return;
@@ -25,22 +25,24 @@
 
       try {
         const res = await fetch(`https://buspaybot.icom24.ru/api/search/qr?botName=buspaybot&scannedCode=${encodeURIComponent(code)}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Telegram-WebApp-Data': Telegram.WebApp.initData
-          },
-          body: '{}'
-        });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Telegram-WebApp-Data': Telegram.WebApp.initData
+  },
+  body: '{}'
+});
+
 
         const data = await res.json();
 
         // Отправка данных на твой сервер
         await fetch('https://buspay-proxy.onrender.com/store', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, result: data })
-        });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ code, result: data })
+});
+
 
         statusEl.textContent = "✅ Данные сохранены";
         Telegram.WebApp.close();
