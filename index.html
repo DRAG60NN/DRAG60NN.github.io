@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="
 https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 "></script>
@@ -438,8 +439,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div class="screen" id="inputScreen">
     <div class="input-screen">
       <div style="display: flex; gap: 10px; align-items: center;">
-  <input id="inputCode" placeholder="Код" style="flex: 1; margin-right: 10px;" />
-  <button onclick="fetchDataFromProxyServer()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
+  <input id="inputCode" placeholder="Получить данные через @buspayproxybot" style="flex: 1; margin-right: 10px;" />
+  <button onclick="openProxyBotForCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
 </div>
 <div id="codeLoaderWrapper" style="text-align: center;">
   <span id="codeLoader" style="display: none; font-size: 18px; animation: blink 1s linear infinite;">⏳ Проверка кода...</span>
@@ -677,6 +678,18 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     };
 
     let countdownInterval;
+
+    function openProxyBotForCode() {
+  const code = document.getElementById('inputCode').value.trim();
+  if (!code) {
+    alert("Введите код");
+    return;
+  }
+
+  const url = `https://t.me/buspayproxybot?start=${encodeURIComponent(code)}`;
+  Telegram.WebApp.openTelegramLink(url);
+}
+
 
     // Функция переключения вкладок
     function switchTab(tabName, event) {
