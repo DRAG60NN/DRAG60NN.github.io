@@ -519,7 +519,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 070 124 857</div>
+        <div>1 070 124 858</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -898,12 +898,26 @@ function recognizeFromPhoto() {
 
   // plate: только маленькие русские буквы из ГОСТа + цифры
   const validPlateLetters = ['а','в','е','к','м','н','о','р','с','т','у','х'];
-  plate = plate
-    .toLowerCase()
-    .replace(/[^а-я0-9]/g, '')                   // оставить только буквы и цифры
-    .split('')
-    .filter(ch => validPlateLetters.includes(ch) || /\d/.test(ch))
-    .join('');
+  // plate: английские буквы → русские, фильтр, валидация
+const latinToCyrillicMap = {
+  a: 'а', b: 'в', c: 'с', e: 'е', h: 'н', k: 'к', m: 'м',
+  n: 'н', o: 'о', p: 'р', r: 'р', s: 'с', t: 'т', u: 'у', x: 'х'
+};
+
+plate = plate
+  .toLowerCase()
+  .replace(/[^a-zа-я0-9]/g, '') // убрать всё лишнее, кроме латиницы, кириллицы, цифр
+  .split('')
+  .map(ch => {
+    if (latinToCyrillicMap[ch]) return latinToCyrillicMap[ch]; // латинская → русская
+    return ch; // оставить цифры и кириллицу
+  })
+  .join('');
+
+// Теперь проверим два допустимых варианта:
+const isStandard = /^[авекмнорстух]\d{3}[авекмнорстух]{2}\d{2,3}$/.test(plate);
+const isTrolley = /^\d{4}$/.test(plate);
+plate = (isStandard || isTrolley) ? plate : '';
 
   // fare: оставить только допустимый формат (например: 2.00 или 25)
   fare = fare.replace(/[^\d.,]/g, '');
