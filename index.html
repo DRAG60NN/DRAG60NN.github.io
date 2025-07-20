@@ -486,9 +486,16 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <button class="small-btn" onclick="recognizeFromPhoto()">Распознать (Авто)</button>
   <button class="small-btn" onclick="enterManualMode()">Распознать (Ручной)</button>
 </div>
-      <div id="manualContainer" style="margin-top: 12px; display: none;">
+      <canvas
+  id="manualCanvas"
+  style="width: 100%; max-width: 100%; height: auto; touch-action: none; border: 1px solid #999;"
+></canvas>
   <p><strong>Выделите область:</strong> <span id="manualStepLabel">Перевозчик</span></p>
   <canvas id="manualCanvas" style="width: 100%; max-width: 100%; border: 1px solid #999;"></canvas>
+        <div style="margin-top: 10px; text-align: right;">
+  <button onclick="runManualOCR()" class="small-btn">Завершить выделение</button>
+</div>
+
 </div>
 
     <div id="loader" class="loader" style="display: none;"></div>
@@ -1279,6 +1286,29 @@ const fieldIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare'];
   canvas.ontouchend = endDrawRectMobile;
   canvas.onmousedown = startDrawRect;        // для ПК
   canvas.onmouseup = endDrawRect;
+  canvas.onmousemove = function (e) {
+  if (!rectStart) return;
+  const rect = canvas.getBoundingClientRect();
+  const current = {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+  };
+  const ctx = canvas.getContext('2d');
+  drawLiveRectangle(ctx, rectStart, current);
+};
+
+canvas.ontouchmove = function (e) {
+  if (!rectStart) return;
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const current = {
+    x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+    y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+  };
+  const ctx = canvas.getContext('2d');
+  drawLiveRectangle(ctx, rectStart, current);
+};
+
 }
 
     function startDrawRectMobile(e) {
@@ -1305,7 +1335,9 @@ function endDrawRectMobile(e) {
   drawZoneAndContinue(rectStart, end, ctx, canvas);
 }
 
+    let currentRect = null;
     function drawZoneAndContinue(start, end, ctx, canvas) {
+      currentRect = null; // сбрасываем, чтобы не рисовать лишнего
   const zone = {
     x: Math.min(start.x, end.x),
     y: Math.min(start.y, end.y),
@@ -1368,6 +1400,18 @@ function endDrawRectMobile(e) {
   highlightField('inputFare', /^\d+(\.\d{1,2})?$/.test(cleaned.fare));
 
   alert("Распознавание завершено. Проверьте данные.");
+}
+    function drawLiveRectangle(ctx, start, end) {
+  const x = Math.min(start.x, end.x);
+  const y = Math.min(start.y, end.y);
+  const width = Math.abs(end.x - start.x);
+  const height = Math.abs(end.y - start.y);
+
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.drawImage(manualImage, 0, 0);
+  ctx.strokeStyle = 'blue';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, width, height);
 }
 
 
