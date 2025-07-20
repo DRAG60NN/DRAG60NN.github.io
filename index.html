@@ -798,7 +798,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     // Изначальный вызов
     updateCloseButtonVisibility();
 
-    function recognizeFromPhoto() {
+function recognizeFromPhoto() {
   const fileInput = document.getElementById('photoInput');
   const file = fileInput.files[0];
   document.getElementById('loadingOverlay').style.display = 'flex';
@@ -813,64 +813,86 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   img.src = URL.createObjectURL(file);
 
   img.onload = async () => {
+    const BASE_WIDTH = 1080;
+    const DEBUG = false;
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
 
+    const scale = img.width / BASE_WIDTH;
+
+    // Шаблон координат — оригинальные (для BASE_WIDTH), масштабируем
     const zones = {
       inputCarrier: [
-        { x: 203, y: 942, width: 769, height: 94 }, // основная зона перевозчика
-        { x: 203, y: 942, width: 769, height: 94 }  // запасная зона перевозчика (та же, как в твоих данных)
+        { x: 203, y: 942, width: 769, height: 94 },
+        { x: 203, y: 942, width: 769, height: 94 }
       ],
       inputRoute: [
-        { x: 218, y: 1106, width: 586, height: 136 }, // основная зона маршрута
-        { x: 217, y: 1107, width: 759, height: 61 }   // запасная зона маршрута
+        { x: 218, y: 1106, width: 586, height: 136 },
+        { x: 217, y: 1107, width: 759, height: 61 }
       ],
       inputPlate: [
-        { x: 229, y: 1244, width: 371, height: 103 }, // основная зона госномера
-        { x: 230, y: 1174, width: 389, height: 75 }   // запасная зона госномера
+        { x: 229, y: 1244, width: 371, height: 103 },
+        { x: 230, y: 1174, width: 389, height: 75 }
       ],
       inputFare: [
-        { x: 588, y: 2195, width: 50, height: 54 }    // зона стоимости
+        { x: 588, y: 2195, width: 50, height: 54 }
       ]
     };
 
-    // Функция для распознавания текста из одной зоны
-    async function extractTextFromZone(zone) {
+    // Улучшенный OCR с фильтрами и масштабом
+    async function extractTextFromZone(zone, label = '') {
       const { x, y, width, height } = zone;
-      const imageData = ctx.getImageData(x, y, width, height);
+      const sx = x * scale;
+      const sy = y * scale;
+      const sw = width * scale;
+      const sh = height * scale;
+
       const regionCanvas = document.createElement('canvas');
-      regionCanvas.width = width;
-      regionCanvas.height = height;
-      regionCanvas.getContext('2d').putImageData(imageData, 0, 0);
+      regionCanvas.width = sw;
+      regionCanvas.height = sh;
+      const regionCtx = regionCanvas.getContext('2d');
+
+      // Улучшаем визуальное качество
+      regionCtx.filter = 'grayscale(100%) contrast(150%) brightness(110%)';
+      regionCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      // Отладка — показать вырезку
+      if (DEBUG) {
+        const debugImg = document.createElement('img');
+        debugImg.src = regionCanvas.toDataURL();
+        debugImg.style.border = '1px solid red';
+        debugImg.style.margin = '4px';
+        debugImg.title = label;
+        document.body.appendChild(debugImg);
+      }
 
       const { data: { text } } = await Tesseract.recognize(regionCanvas, 'rus+eng');
       return text.trim().replace(/\s+/g, ' ');
     }
 
-    // Функция для попытки распознать с запасной зоной
+    // Пытаемся получить текст из основной зоны, иначе — из запасной
     async function getTextWithFallback(field) {
-      let result = await extractTextFromZone(zones[field][0]);
-      if ((!result || result.length < 4) && zones[field].length > 1) {
-        result = await extractTextFromZone(zones[field][1]);
+      const primary = await extractTextFromZone(zones[field][0], `${field}-main`);
+      if ((!primary || primary.length < 4) && zones[field].length > 1) {
+        const fallback = await extractTextFromZone(zones[field][1], `${field}-fallback`);
+        return fallback;
       }
-      return result;
+      return primary;
     }
 
     try {
-      // Получаем все тексты из зон
       const carrierText = await getTextWithFallback('inputCarrier');
       let routeTextRaw = await getTextWithFallback('inputRoute');
       const plateText = await getTextWithFallback('inputPlate');
-      const fareText = await extractTextFromZone(zones.inputFare[0]);
+      const fareText = await extractTextFromZone(zones.inputFare[0], 'fare');
 
-      // Из маршрута удаляем номер автобуса (число, запятая и пробелы)
       const matchRoute = routeTextRaw.match(/(?:\d+[,.:])?\s*(.+)/);
       const routeText = matchRoute ? matchRoute[1] : routeTextRaw;
 
-      // Записываем в поля
       document.getElementById('inputCarrier').value = carrierText || '';
       document.getElementById('inputRoute').value = routeText || '';
       document.getElementById('inputPlate').value = plateText || '';
@@ -888,7 +910,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     alert("Не удалось загрузить изображение.");
     document.getElementById('loadingOverlay').style.display = 'none';
   };
-  }
+}
+    
     function updateCountLabel(value) {
   document.getElementById('sliderValue').textContent = value;
   document.getElementById('inputCount').value = value;
