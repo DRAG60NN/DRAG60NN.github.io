@@ -486,6 +486,11 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <button class="small-btn" onclick="recognizeFromPhoto()">Распознать (Авто)</button>
   <button class="small-btn" onclick="enterManualMode()">Распознать (Ручной)</button>
 </div>
+      <div id="manualContainer" style="margin-top: 12px; display: none;">
+  <p><strong>Выделите область:</strong> <span id="manualStepLabel">Перевозчик</span></p>
+  <canvas id="manualCanvas" style="width: 100%; max-width: 100%; border: 1px solid #999;"></canvas>
+</div>
+
     <div id="loader" class="loader" style="display: none;"></div>
     <button onclick="submitForm()" class="submit-button">Продолжить</button>
         <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
@@ -1236,6 +1241,135 @@ async function checkOrSaveCode() {
     loader.style.display = 'none';
   }
 }
+
+let manualZones = {};
+let manualStep = 0;
+let manualImage = null;
+let rectStart = null;
+
+const manualLabels = ['Перевозчик', 'Маршрут', 'Госномер', 'Цена'];
+const fieldIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare'];
+
+    function enterManualMode() {
+  const fileInput = document.getElementById('photoInput');
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("Сначала выберите фото.");
+    return;
+  }
+
+  document.getElementById('manualContainer').style.display = 'block';
+  manualStep = 0;
+  manualZones = {};
+  document.getElementById('manualStepLabel').textContent = manualLabels[manualStep];
+
+  manualImage = new Image();
+  manualImage.src = URL.createObjectURL(file);
+
+  manualImage.onload = () => {
+    const canvas = document.getElementById('manualCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = manualImage.width;
+    canvas.height = manualImage.height;
+    ctx.drawImage(manualImage, 0, 0);
+  };
+
+  const canvas = document.getElementById('manualCanvas');
+  canvas.ontouchstart = startDrawRectMobile; // для мобильных
+  canvas.ontouchend = endDrawRectMobile;
+  canvas.onmousedown = startDrawRect;        // для ПК
+  canvas.onmouseup = endDrawRect;
+}
+
+    function startDrawRectMobile(e) {
+  const canvas = document.getElementById('manualCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  rectStart = {
+    x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+    y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+function endDrawRectMobile(e) {
+  const canvas = document.getElementById('manualCanvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.changedTouches[0];
+
+  const end = {
+    x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+    y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+  };
+
+  drawZoneAndContinue(rectStart, end, ctx, canvas);
+}
+
+    function drawZoneAndContinue(start, end, ctx, canvas) {
+  const zone = {
+    x: Math.min(start.x, end.x),
+    y: Math.min(start.y, end.y),
+    width: Math.abs(end.x - start.x),
+    height: Math.abs(end.y - start.y)
+  };
+
+  const field = fieldIds[manualStep];
+  manualZones[field] = zone;
+
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
+
+  manualStep++;
+  if (manualStep < fieldIds.length) {
+    document.getElementById('manualStepLabel').textContent = manualLabels[manualStep];
+  } else {
+    document.getElementById('manualStepLabel').textContent = 'Готово';
+    canvas.ontouchstart = null;
+    canvas.ontouchend = null;
+    canvas.onmousedown = null;
+    canvas.onmouseup = null;
+    runManualOCR();
+  }
+}
+
+  async function runManualOCR() {
+  const results = {};
+  const canvas = document.getElementById('manualCanvas');
+  const ctx = canvas.getContext('2d');
+
+  for (const key in manualZones) {
+    const zone = manualZones[key];
+    const regionCanvas = document.createElement('canvas');
+    regionCanvas.width = zone.width;
+    regionCanvas.height = zone.height;
+    const regionCtx = regionCanvas.getContext('2d');
+    regionCtx.drawImage(manualImage, zone.x, zone.y, zone.width, zone.height, 0, 0, zone.width, zone.height);
+
+    const { data: { text } } = await Tesseract.recognize(regionCanvas, 'rus+eng');
+    results[key] = text.trim();
+  }
+
+  const cleaned = normalizeRecognizedData(
+    results.inputCarrier || '',
+    results.inputRoute || '',
+    results.inputPlate || '',
+    results.inputFare || ''
+  );
+
+  document.getElementById('inputCarrier').value = cleaned.carrier;
+  document.getElementById('inputRoute').value = cleaned.route;
+  document.getElementById('inputPlate').value = cleaned.plate;
+  document.getElementById('inputFare').value = cleaned.fare;
+
+  highlightField('inputCarrier', cleaned.carrier.length >= 4);
+  highlightField('inputRoute', cleaned.route.includes(' - '));
+  highlightField('inputPlate', cleaned.plate.length >= 4);
+  highlightField('inputFare', /^\d+(\.\d{1,2})?$/.test(cleaned.fare));
+
+  alert("Распознавание завершено. Проверьте данные.");
+}
+
 
   </script>
   
