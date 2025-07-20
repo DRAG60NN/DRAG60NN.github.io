@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="
 https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 "></script>
@@ -420,8 +419,10 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   padding: 0 4px;
   margin-top: 4px;
 }
-
-
+.input-invalid {
+    border: 2px solid red !important;
+    background-color: #ffe6e6;
+  }
   </style>
 </head>
 <body>
@@ -439,8 +440,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div class="screen" id="inputScreen">
     <div class="input-screen">
       <div style="display: flex; gap: 10px; align-items: center;">
-  <input id="inputCode" placeholder="Получить данные через @buspayproxybot" style="flex: 1; margin-right: 10px;" />
-  <button onclick="openProxyBotForCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
+  <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1; margin-right: 10px;" />
+  <button onclick="checkOrSaveCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
 </div>
 <div id="codeLoaderWrapper" style="text-align: center;">
   <span id="codeLoader" style="display: none; font-size: 18px; animation: blink 1s linear infinite;">⏳ Проверка кода...</span>
@@ -520,7 +521,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 070 004 271</div>
+        <div>1 070 124 890</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -679,18 +680,6 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
     let countdownInterval;
 
-    function openProxyBotForCode() {
-  const code = document.getElementById('inputCode').value.trim();
-  if (!code) {
-    alert("Введите код");
-    return;
-  }
-
-  const url = `https://t.me/buspayproxybot?start=${encodeURIComponent(code)}`;
-  Telegram.WebApp.openTelegramLink(url);
-}
-
-
     // Функция переключения вкладок
     function switchTab(tabName, event) {
       tabs.forEach(tab => {
@@ -811,7 +800,18 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     // Изначальный вызов
     updateCloseButtonVisibility();
 
-    function recognizeFromPhoto() {
+    function highlightField(id, isValid) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (isValid) {
+    el.classList.remove('input-invalid');
+  } else {
+    el.classList.add('input-invalid');
+  }
+}
+
+
+function recognizeFromPhoto() {
   const fileInput = document.getElementById('photoInput');
   const file = fileInput.files[0];
   document.getElementById('loadingOverlay').style.display = 'flex';
@@ -826,68 +826,144 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   img.src = URL.createObjectURL(file);
 
   img.onload = async () => {
+    const BASE_WIDTH = 1080;
+    const DEBUG = false;
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
 
+    const scale = img.width / BASE_WIDTH;
+
+    // Шаблон координат — оригинальные (для BASE_WIDTH), масштабируем
     const zones = {
       inputCarrier: [
-        { x: 203, y: 942, width: 769, height: 94 }, // основная зона перевозчика
-        { x: 203, y: 942, width: 769, height: 94 }  // запасная зона перевозчика (та же, как в твоих данных)
+        { x: 203, y: 942, width: 769, height: 94 },
+        { x: 203, y: 942, width: 769, height: 94 }
       ],
       inputRoute: [
-        { x: 218, y: 1106, width: 586, height: 136 }, // основная зона маршрута
-        { x: 217, y: 1107, width: 759, height: 61 }   // запасная зона маршрута
+        { x: 218, y: 1106, width: 586, height: 136 },
+        { x: 217, y: 1107, width: 759, height: 61 }
       ],
       inputPlate: [
-        { x: 229, y: 1244, width: 371, height: 103 }, // основная зона госномера
-        { x: 230, y: 1174, width: 389, height: 75 }   // запасная зона госномера
+        { x: 229, y: 1244, width: 371, height: 103 },
+        { x: 230, y: 1174, width: 389, height: 75 }
       ],
       inputFare: [
-        { x: 588, y: 2195, width: 50, height: 54 }    // зона стоимости
+        { x: 588, y: 2195, width: 50, height: 54 }
       ]
     };
 
-    // Функция для распознавания текста из одной зоны
-    async function extractTextFromZone(zone) {
+    // Улучшенный OCR с фильтрами и масштабом
+    async function extractTextFromZone(zone, label = '') {
       const { x, y, width, height } = zone;
-      const imageData = ctx.getImageData(x, y, width, height);
+      const sx = x * scale;
+      const sy = y * scale;
+      const sw = width * scale;
+      const sh = height * scale;
+
       const regionCanvas = document.createElement('canvas');
-      regionCanvas.width = width;
-      regionCanvas.height = height;
-      regionCanvas.getContext('2d').putImageData(imageData, 0, 0);
+      regionCanvas.width = sw;
+      regionCanvas.height = sh;
+      const regionCtx = regionCanvas.getContext('2d');
+
+      // Улучшаем визуальное качество
+      regionCtx.filter = 'grayscale(100%) contrast(150%) brightness(110%)';
+      regionCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      // Отладка — показать вырезку
+      if (DEBUG) {
+        const debugImg = document.createElement('img');
+        debugImg.src = regionCanvas.toDataURL();
+        debugImg.style.border = '1px solid red';
+        debugImg.style.margin = '4px';
+        debugImg.title = label;
+        document.body.appendChild(debugImg);
+      }
 
       const { data: { text } } = await Tesseract.recognize(regionCanvas, 'rus+eng');
       return text.trim().replace(/\s+/g, ' ');
     }
 
-    // Функция для попытки распознать с запасной зоной
+    // Пытаемся получить текст из основной зоны, иначе — из запасной
     async function getTextWithFallback(field) {
-      let result = await extractTextFromZone(zones[field][0]);
-      if ((!result || result.length < 4) && zones[field].length > 1) {
-        result = await extractTextFromZone(zones[field][1]);
+      const primary = await extractTextFromZone(zones[field][0], `${field}-main`);
+      if ((!primary || primary.length < 4) && zones[field].length > 1) {
+        const fallback = await extractTextFromZone(zones[field][1], `${field}-fallback`);
+        return fallback;
       }
-      return result;
+      return primary;
     }
 
+    function normalizeRecognizedData(carrier, route, plate, fare) {
+  // carrier: ничего не трогаем, кроме пробелов
+  carrier = carrier.trim().replace(/\s+/g, ' ');
+
+  // route: кириллица + тире, только один тире между двумя точками
+  route = route
+    .replace(/[^\p{Script=Cyrillic}\- ]+/gu, '') // убрать всё, кроме кириллицы, пробелов, тире
+    .replace(/—/g, '-')                          // длинное тире → обычное
+    .replace(/\s*-\s*/g, ' - ')                  // нормализовать тире между точками
+    .replace(/\s+/g, ' ')                        // убрать двойные пробелы
+    .trim();
+
+  // plate: только маленькие русские буквы из ГОСТа + цифры
+  const validPlateLetters = ['а','в','е','к','м','н','о','р','с','т','у','х'];
+  // plate: английские буквы → русские, фильтр, валидация
+const latinToCyrillicMap = {
+  a: 'а', b: 'в', c: 'с', e: 'е', h: 'н', k: 'к', m: 'м',
+  n: 'н', o: 'о', p: 'р', r: 'р', s: 'с', t: 'т', u: 'у', x: 'х'
+};
+
+plate = plate
+  .toLowerCase()
+  .replace(/[^a-zа-я0-9]/g, '') // убрать всё лишнее, кроме латиницы, кириллицы, цифр
+  .split('')
+  .map(ch => {
+    if (latinToCyrillicMap[ch]) return latinToCyrillicMap[ch]; // латинская → русская
+    return ch; // оставить цифры и кириллицу
+  })
+  .join('');
+
+// Теперь проверим два допустимых варианта:
+const isStandard = /^[авекмнорстух]\d{3}[авекмнорстух]{2}\d{2,3}$/.test(plate);
+const isTrolley = /^\d{4}$/.test(plate);
+plate = (isStandard || isTrolley) ? plate : '';
+
+  // fare: оставить только допустимый формат (например: 2.00 или 25)
+  fare = fare.replace(/[^\d.,]/g, '');
+
+  // Проверка формата: одно число, возможно с точкой/запятой
+  const match = fare.match(/^\d{1,3}([.,]\d{1,2})?$/);
+  fare = match ? match[0].replace(',', '.') : ''; // если невалидно — пусто
+
+  return { carrier, route, plate, fare };
+}
+
     try {
-      // Получаем все тексты из зон
       const carrierText = await getTextWithFallback('inputCarrier');
       let routeTextRaw = await getTextWithFallback('inputRoute');
       const plateText = await getTextWithFallback('inputPlate');
-      const fareText = await extractTextFromZone(zones.inputFare[0]);
+      const fareText = await extractTextFromZone(zones.inputFare[0], 'fare');
 
-      // Из маршрута удаляем номер автобуса (число, запятая и пробелы)
       const matchRoute = routeTextRaw.match(/(?:\d+[,.:])?\s*(.+)/);
       const routeText = matchRoute ? matchRoute[1] : routeTextRaw;
+      
+      const cleaned = normalizeRecognizedData(carrierText, routeText, plateText, fareText);
 
-      // Записываем в поля
-      document.getElementById('inputCarrier').value = carrierText || '';
-      document.getElementById('inputRoute').value = routeText || '';
-      document.getElementById('inputPlate').value = plateText || '';
-      document.getElementById('inputFare').value = fareText || '';
+      document.getElementById('inputCarrier').value = cleaned.carrier;
+      document.getElementById('inputRoute').value = cleaned.route;
+      document.getElementById('inputPlate').value = cleaned.plate;
+      document.getElementById('inputFare').value = cleaned.fare;
+
+      highlightField('inputCarrier', cleaned.carrier.length >= 4);
+      highlightField('inputRoute', cleaned.route.includes(' - '));
+      highlightField('inputPlate', cleaned.plate.length >= 4); // или 4 для троллейбуса
+      highlightField('inputFare', /^\d+(\.\d{1,2})?$/.test(cleaned.fare));
+
+
 
       alert("Распознавание завершено. Проверьте данные.");
     } catch (error) {
@@ -901,7 +977,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     alert("Не удалось загрузить изображение.");
     document.getElementById('loadingOverlay').style.display = 'none';
   };
-  }
+}
+    
     function updateCountLabel(value) {
   document.getElementById('sliderValue').textContent = value;
   document.getElementById('inputCount').value = value;
@@ -1140,43 +1217,6 @@ async function checkOrSaveCode() {
     alert("Ошибка при проверке кода.");
   } finally {
     loader.style.display = 'none';
-  }
-}
-
-    async function fetchDataFromProxyServer() {
-  const code = document.getElementById('inputCode').value.trim();
-  if (!code) {
-    alert("Введите код");
-    return;
-  }
-
-  try {
-    // Показываем индикатор
-    document.getElementById('codeLoader').style.display = 'inline';
-
-    const res = await fetch(`https://buspay-proxy.onrender.com/get?code=${encodeURIComponent(code)}`);
-    if (!res.ok) {
-      alert("Данные по этому коду ещё не были получены.\nПопробуйте сначала открыть его через @buspaybot.");
-      return;
-    }
-
-    const data = await res.json();
-
-    const trip = data.basicTripInfo;
-    const fare = data.tariffs?.[0]?.tariffValueCent;
-
-    document.getElementById('inputCarrier').value = trip?.carrierName || '';
-    document.getElementById('inputRoute').value = trip?.routeName || '';
-    document.getElementById('inputPlate').value = trip?.vehicleGovNumber || '';
-    document.getElementById('inputFare').value = fare ? (fare / 100).toFixed(2) : '';
-
-    alert("Данные успешно подставлены из сервера");
-  } catch (error) {
-    console.error("Ошибка при получении данных:", error);
-    alert("Ошибка при получении данных с сервера");
-  } finally {
-    // Скрываем индикатор
-    document.getElementById('codeLoader').style.display = 'none';
   }
 }
 
