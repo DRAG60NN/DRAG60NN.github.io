@@ -486,15 +486,28 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <button class="small-btn" onclick="recognizeFromPhoto()">Распознать (Авто)</button>
   <button class="small-btn" onclick="enterManualMode()">Распознать (Ручной)</button>
 </div>
-      <canvas
-  id="manualCanvas"
-  style="width: 100%; max-width: 100%; height: auto; touch-action: none; border: 1px solid #999;"
-></canvas>
-  <p><strong>Выделите область:</strong> <span id="manualStepLabel">Перевозчик</span></p>
-  <canvas id="manualCanvas" style="width: 100%; max-width: 100%; border: 1px solid #999;"></canvas>
-        <div style="margin-top: 10px; text-align: right;">
-  <button onclick="runManualOCR()" class="small-btn">Завершить выделение</button>
+<!-- 📦 Блок ручного режима (canvas + шаг + кнопка завершения) -->
+<div id="manualContainer" style="display: none; margin-top: 16px;">
+  <p style="margin-bottom: 4px;">
+    <strong>Выделите область:</strong>
+    <span id="manualStepLabel">Перевозчик</span>
+  </p>
+  <p style="font-size: 14px; color: #666; margin-top: 0;">
+    Пальцем или мышью выделите зону на изображении
+  </p>
+
+  <div style="width: 100%; max-width: 100%; overflow-x: auto;">
+    <canvas
+      id="manualCanvas"
+      style="width: 100%; max-width: 100%; height: auto; border: 1px solid #999; touch-action: none; display: block;"
+    ></canvas>
+  </div>
+
+  <div id="manualConfirmBtn" style="margin-top: 12px; display: none; text-align: right;">
+    <button class="small-btn" onclick="runManualOCR()">Завершить выделение</button>
+  </div>
 </div>
+
 
 </div>
 
@@ -1309,6 +1322,10 @@ canvas.ontouchmove = function (e) {
   drawLiveRectangle(ctx, rectStart, current);
 };
 
+      document.getElementById('manualContainer').style.display = 'block';
+document.getElementById('manualConfirmBtn').style.display = 'block';
+
+
 }
 
     function startDrawRectMobile(e) {
@@ -1393,6 +1410,10 @@ function endDrawRectMobile(e) {
   document.getElementById('inputRoute').value = cleaned.route;
   document.getElementById('inputPlate').value = cleaned.plate;
   document.getElementById('inputFare').value = cleaned.fare;
+    
+  document.getElementById('manualContainer').style.display = 'none';
+  document.getElementById('manualConfirmBtn').style.display = 'none';
+
 
   highlightField('inputCarrier', cleaned.carrier.length >= 4);
   highlightField('inputRoute', cleaned.route.includes(' - '));
