@@ -423,6 +423,20 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     border: 2px solid red !important;
     background-color: #ffe6e6;
   }
+.small-btn {
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .small-btn:hover {
+    background-color: #0056b3;
+  }
   </style>
 </head>
 <body>
@@ -468,7 +482,10 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       <div class="photo-controls">
     <input type="file" id="photoInput" accept="image/*" />
     <label for="photoInput" class="upload-label">Выбрать фото</label>
-    <button onclick="recognizeFromPhoto()">Распознать с фото</button>
+    <div style="display: flex; gap: 8px;">
+  <button class="small-btn" onclick="recognizeFromPhoto()">Распознать (Авто)</button>
+  <button class="small-btn" onclick="enterManualMode()">Распознать (Ручной)</button>
+</div>
     <div id="loader" class="loader" style="display: none;"></div>
     <button onclick="submitForm()" class="submit-button">Продолжить</button>
         <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
