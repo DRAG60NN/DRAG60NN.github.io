@@ -419,8 +419,10 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   padding: 0 4px;
   margin-top: 4px;
 }
-
-
+.input-invalid {
+    border: 2px solid red !important;
+    background-color: #ffe6e6;
+  }
   </style>
 </head>
 <body>
@@ -519,7 +521,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 070 124 858</div>
+        <div>1 070 124 890</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -798,6 +800,17 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     // Изначальный вызов
     updateCloseButtonVisibility();
 
+    function highlightField(id, isValid) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (isValid) {
+    el.classList.remove('input-invalid');
+  } else {
+    el.classList.add('input-invalid');
+  }
+}
+
+
 function recognizeFromPhoto() {
   const fileInput = document.getElementById('photoInput');
   const file = fileInput.files[0];
@@ -944,6 +957,12 @@ plate = (isStandard || isTrolley) ? plate : '';
       document.getElementById('inputRoute').value = cleaned.route;
       document.getElementById('inputPlate').value = cleaned.plate;
       document.getElementById('inputFare').value = cleaned.fare;
+
+      highlightField('inputCarrier', cleaned.carrier.length >= 4);
+      highlightField('inputRoute', cleaned.route.includes(' - '));
+      highlightField('inputPlate', cleaned.plate.length >= 4); // или 4 для троллейбуса
+      highlightField('inputFare', /^\d+(\.\d{1,2})?$/.test(cleaned.fare));
+
 
 
       alert("Распознавание завершено. Проверьте данные.");
