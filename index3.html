@@ -437,6 +437,12 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   .small-btn:hover {
     background-color: #0056b3;
   }
+
+
+canvas#manualCanvas {
+    max-height: 70vh;
+    background-color: #f0f0f0;
+}
   </style>
 </head>
 <body>
@@ -486,7 +492,6 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <button class="small-btn" onclick="recognizeFromPhoto()">Распознать (Авто)</button>
   <button class="small-btn" onclick="enterManualMode()">Распознать (Ручной)</button>
 </div>
-<!-- 📦 Блок ручного режима (canvas + шаг + кнопка завершения) -->
 <div id="manualContainer" style="display: none; margin-top: 16px;">
   <p style="margin-bottom: 4px;">
     <strong>Выделите область:</strong>
@@ -499,7 +504,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div style="width: 100%; max-width: 100%; overflow-x: auto;">
     <canvas
       id="manualCanvas"
-      style="width: 100%; max-width: 100%; height: auto; border: 1px solid #999; touch-action: none; display: block;"
+      style="display: none; width: 100%; max-width: 100%; height: auto; border: 1px solid #999; background-color: #f0f0f0; touch-action: none;"
     ></canvas>
   </div>
 
@@ -507,6 +512,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     <button class="small-btn" onclick="runManualOCR()">Завершить выделение</button>
   </div>
 </div>
+
 
 
 </div>
@@ -1271,6 +1277,19 @@ const manualLabels = ['Перевозчик', 'Маршрут', 'Госноме�
 const fieldIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare'];
 
     function enterManualMode() {
+    document.getElementById('manualContainer').style.display = 'block';
+document.getElementById('manualConfirmBtn').style.display = 'block';
+const canvas = document.getElementById('manualCanvas');
+canvas.style.display = 'none'; // скрыть до загрузки изображения
+
+manualImage.onload = () => {
+  const ctx = canvas.getContext('2d');
+  canvas.width = manualImage.width;
+  canvas.height = manualImage.height;
+  ctx.drawImage(manualImage, 0, 0);
+  canvas.style.display = 'block'; // показать canvas только после загрузки
+};
+
   const fileInput = document.getElementById('photoInput');
   const file = fileInput.files[0];
   if (!file) {
@@ -1383,6 +1402,10 @@ function endDrawRectMobile(e) {
 }
 
   async function runManualOCR() {
+document.getElementById('manualContainer').style.display = 'none';
+document.getElementById('manualConfirmBtn').style.display = 'none';
+document.getElementById('manualCanvas').style.display = 'none';
+
   const results = {};
   const canvas = document.getElementById('manualCanvas');
   const ctx = canvas.getContext('2d');
