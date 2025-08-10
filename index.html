@@ -423,6 +423,32 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     border: 2px solid red !important;
     background-color: #ffe6e6;
   }
+    /* Полупрозрачная бесконечная загрузка для вкладки Контроль */
+#qrBlockOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.85); /* почти белый, прозрачность 15% */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    pointer-events: all; /* блокируем клики и сканирование */
+}
+
+#qrBlockOverlay .loader {
+    border: 8px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #000;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+/* уже есть @keyframes spin, поэтому новый не нужен */
+
   </style>
 </head>
 <body>
@@ -645,6 +671,10 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=ExampleQRCode" alt="QR Code" />
       </div>
     </div>
+  <div id="qrBlockOverlay">
+    <div class="loader"></div>
+</div>
+
 </div>
 
   </div>
@@ -701,6 +731,14 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
         document.getElementById('ticket').classList.remove('active');
         document.getElementById('control').classList.add('active');
       }
+      if (tabName === 'controlTab') {
+    // Всегда показываем overlay при заходе на вкладку Контроль
+    document.getElementById('qrBlockOverlay').style.display = 'flex';
+} else {
+    // Если ушли с вкладки Контроль, можно скрыть overlay (если нужно)
+    document.getElementById('qrBlockOverlay').style.display = 'none';
+}
+
     }
 
     // Запуск обратного отсчета
