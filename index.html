@@ -448,6 +448,113 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 }
 
 /* уже есть @keyframes spin, поэтому новый не нужен */
+    /* === Меню выбора транспорта (оверлей сверху) === */
+.transport-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10002; /* выше админ-меню и прочего */
+  display: none;  /* по умолчанию скрыто */
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+}
+
+.transport-menu {
+  width: 100%;
+  max-width: 520px;
+  background: #1f1f1f;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  padding: 14px 14px 18px;
+}
+
+/* заголовок + крестик */
+.transport-menu__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.transport-menu__title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.transport-menu__close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* табы */
+.transport-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.transport-tabs button {
+  background: #2b2b2b;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px 8px;
+  color: #ddd;
+  font-size: 14px;
+  cursor: pointer;
+}
+.transport-tabs button.active {
+  background: #e21a1a;
+  color: #fff;
+  border-color: #e21a1a;
+}
+
+/* контейнер кнопок-номеров маршрутов */
+.route-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  max-height: 50vh;
+  overflow: auto;
+  padding-right: 2px;
+}
+.route-buttons button {
+  padding: 12px 8px;
+  border: none;
+  border-radius: 10px;
+  background: #2b2b2b;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #3a3a3a;
+}
+.route-buttons button:hover {
+  transform: translateY(-1px);
+}
+
+/* кнопка-триггер над полями */
+.transport-trigger {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* подпись под сеткой (подсказка) */
+.transport-hint {
+  margin-top: 10px;
+  color: #aaa;
+  font-size: 12px;
+  text-align: center;
+}
 
   </style>
 </head>
@@ -466,6 +573,9 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   <div class="screen" id="inputScreen">
     <div class="input-screen">
       <div style="display: flex; gap: 10px; align-items: center;">
+    <button type="button" class="transport-trigger" onclick="openTransportMenu()">
+  Выбрать номер транспорта
+</button>
   <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1; margin-right: 10px;" />
   <button onclick="checkOrSaveCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
 </div>
@@ -501,6 +611,29 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
       </div>
 </div>
+  <!-- === Меню выбора транспорта (оверлей) === -->
+<div id="transportMenuOverlay" class="transport-menu-overlay">
+  <div class="transport-menu">
+    <div class="transport-menu__header">
+      <div class="transport-menu__title">Выбор маршрута</div>
+      <button class="transport-menu__close" onclick="closeTransportMenu()">×</button>
+    </div>
+
+    <!-- Табы -->
+    <div class="transport-tabs">
+      <button id="tab-buses"        class="active" onclick="switchTransportTab('buses')">Автобусы</button>
+      <button id="tab-trolleybuses"            onclick="switchTransportTab('trolleybuses')">Троллейбусы</button>
+      <button id="tab-trams"                  onclick="switchTransportTab('trams')">Трамваи</button>
+      <button id="tab-eBuses"                 onclick="switchTransportTab('eBuses')">Электробусы</button>
+    </div>
+
+    <!-- Список маршрутов (кнопки) -->
+    <div id="routesButtons" class="route-buttons"></div>
+
+    <div class="transport-hint">Нажмите на номер — перевозчик и маршрут подставятся автоматически</div>
+  </div>
+</div>
+
   
   <div id="adminPanel" class="admin-modal" style="display: none;">
   <div class="admin-content">
@@ -1259,6 +1392,140 @@ async function checkOrSaveCode() {
     loader.style.display = 'none';
   }
 }
+    /* === Локальные данные маршрутов === */
+const routesData = {
+  buses: [
+    { number: "2",  carrier: "ИП Багаев Д.Б.", route: "Автовокзал \"Восточный\" - Дом Учёных" },
+    { number: "3",  carrier: "ООО \"СТК\"", route: "Академгородок - Автовокзал «Восточный»" },
+    { number: "5",  carrier: "ИП Долгушина Г.И.", route: "Спорткомплекс «Радуга» - ОАО «Красфарма»" },
+    { number: "6",  carrier: "ИП Тагачаков В.Г.", route: "ДК «Кировский» - Кардиоцентр" },
+    { number: "7",  carrier: "ООО «Экипаж-ГО»", route: "ДК \"Кировский\" - Агротерминал" },
+    { number: "8",  carrier: "ООО \"Перевозчик\"", route: "пос. Водников - Кардиоцентр" },
+    { number: "9",  carrier: "ООО \"СКАД\"", route: "Верхняя Базаиха - Междугородный автовокзал" },
+    { number: "10", carrier: "КПАТП-7", route: "пос. Энергетиков - ОАО «Красфарма»" },
+    { number: "11", carrier: "КПАТП-5", route: "ул. 3-я Дальневосточная - Молодежная" },
+    { number: "12", carrier: "КПАТП-7", route: "совхоз Удачный - ст.Красноярск-Северный" },
+    { number: "14", carrier: "КПАТП-5", route: "пос. Овинный - Железнодорожная больница" },
+    { number: "18", carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - Техникум транспорта и сервиса" },
+    { number: "18c",carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - ОАО «Красфарма»" },
+    { number: "19", carrier: "КПАТП-7", route: "Причал - Стела" },
+    { number: "21", carrier: "ООО \"СТК\"", route: "Парк «Прищепка» - Спортзал" },
+    { number: "22", carrier: "КПАТП-7", route: "ИТК - Жилой комплекс «Ясный»" },
+    { number: "23", carrier: "ООО \"Ветеран\"", route: "ЛДК - мкрн. Солнечный" },
+    { number: "26", carrier: "КПАТП-5", route: "Плодово-ягодная станция - Железнодорожная больница" },
+    { number: "27", carrier: "ИП Ялтонский А.М.", route: "мкрн. Преображенский - Полигон" },
+    { number: "30", carrier: "КПАТП-5", route: "мкрн. Тихие зори - Спортзал" },
+    { number: "31", carrier: "КПАТП-7", route: "Академия биатлона - ЛДК" },
+    { number: "37", carrier: "КПАТП-7", route: "Оздоровительный комплекс «Гренада» - Железнодорожный вокзал" },
+    { number: "38", carrier: "АО \"СТК\"", route: "Дом ученых - пос. Таймыр" },
+    { number: "40", carrier: "КПАТП-7", route: "Полигон - Техникум транспорта и сервиса" },
+    { number: "40a",carrier: "КПАТП-7", route: "Полигон - Автовокзал «Восточный»" },
+    { number: "40с",carrier: "КПАТП-7", route: "Полигон - ул. Московская, 32/2" },
+    { number: "43", carrier: "ООО \"Вавулин-К\"", route: "Сельхозкомплекс - Автовокзал «Восточный»" },
+    { number: "49", carrier: "КПАТП-5", route: "Спорткомплекс «Радуга» - Кардиоцентр" },
+    { number: "50", carrier: "ИП Читашвили Н. С.", route: "мкрн. Солнечный - Стела" },
+    { number: "52", carrier: "КПАТП-5", route: "Озеро-парк - мкрн. Тихие зори" },
+    { number: "55", carrier: "КПАТП-7", route: "Железнодорожный вокзал - пос. Цементников" },
+    { number: "56", carrier: "КПАТП-7", route: "Железнодорожный вокзал - пос. Шинников" },
+    { number: "58", carrier: "ИП Кривоногов И. Г.", route: "Спортзал - Поликлиника" },
+    { number: "60", carrier: "ИП Цугленок М.М.", route: "мкрн. Солнечный - Автовокзал «Восточный»" },
+    { number: "61", carrier: "КПАТП", route: "пос. Шинников - мкрн. Солнечный" },
+    { number: "63", carrier: "КПАТП", route: "Академгородок - мкрн. Солнечный" },
+    { number: "64", carrier: "КПАТП-5", route: "мкрн. Солнечный - мкрн. Тихие зори" },
+    { number: "65", carrier: "ИП Ялтонский А.М.", route: "ДК «Кировский» - Агротерминал" },
+    { number: "69", carrier: "КПАТП-7", route: "ИТК - мкрн. Солнечный" },
+    { number: "71", carrier: "ООО \"Экипаж-ГО\"", route: "пос. Таймыр - Спортзал" },
+    { number: "77", carrier: "ООО \"Практик\"", route: "Железнодорожная больница - д. Песчанка" },
+    { number: "78", carrier: "ИП Бронников А. И.", route: "Стела - Контейнерный двор" },
+    { number: "80", carrier: "ИП Долгушин Д.Г.", route: "мкрн. Тихие зори - пос. Таймыр" },
+    { number: "81", carrier: "ООО \"Сирена\"", route: "ОАО «РУСАЛ» - Железнодорожная больница" },
+    { number: "83", carrier: "ИП Цугленок М.М.", route: "Дом ученых - Профилакторий з-да КраМЗ" },
+    { number: "85", carrier: "ООО \"СКАД\"", route: "Даурская - Сельхозкомплекс" },
+    { number: "87", carrier: "КПАТП-5", route: "Молодежная - мкрн. Солнечный" },
+    { number: "88", carrier: "ИП Тагачаков В.Г.", route: "Академия биатлона - Спортзал" },
+    { number: "90", carrier: "ИП Патрин Н.Н.", route: "мкрн Верхняя Базаиха - Академия биатлона" },
+    { number: "92", carrier: "ИП Патрин Н.Н.", route: "Химкомбинат «Енисей» - ОАО «Красфарма»" },
+    { number: "94", carrier: "ООО \"Практик\"", route: "ТЭЦ-3 - ЛДК" },
+    { number: "95", carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - ЛДК" },
+    { number: "98", carrier: "ИП Гнетов Ю. Н.", route: "ОАО «РУСАЛ» - ЛДК" },
+    { number: "99", carrier: "ООО \"СТК\"", route: "ул. Цимлянская - ст.Красноярск-Северный" }
+  ],
+  trolleybuses: [
+    { number: "4т",  carrier: "МП Городской транспорт", route: "Северо-западный район - Железнодорожный вокзал" },
+    { number: "5т",  carrier: "МП Городской транспорт", route: "ст.Красноярск-Северный - Экопарк Гремячая грива" },
+    { number: "6т",  carrier: "МП Городской транспорт", route: "Утиный плёс - Студгородок" },
+    { number: "13т", carrier: "МП Городской транспорт", route: "Северо-западный район - Железнодорожный вокзал" },
+    { number: "15т", carrier: "МП Городской транспорт", route: "ОАО «РУСАЛ» - Сельхозкомплекс" }
+  ],
+  trams: [
+    { number: "2тр", carrier: "МП \"Гортранс\"", route: "пос. Энергетиков - КрасТЭЦ" },
+    { number: "4тр", carrier: "МП \"Горэлектротранс\"", route: "Предмостная площадь - КрасТЭЦ" },
+    { number: "5тр", carrier: "МП \"Горэлектротранс\"", route: "пос. Энергетиков - Предмостная площадь" },
+    { number: "6тр", carrier: "МП \"Горэлектротранс\"", route: "пос. Энергетиков - Предмостная площадь" },
+    { number: "7тр", carrier: "МП \"Горэлектротранс\"", route: "Предмостная площадь - КрасТЭЦ" }
+  ],
+  eBuses: [
+    { number: "1", carrier: "МП \"Городской транспорт\"", route: "мкрн. Тихие зори - ст.Красноярск-Северный" }
+  ]
+};
+
+/* Служебные элементы */
+const transportMenuOverlay = document.getElementById('transportMenuOverlay');
+const routesButtonsEl       = document.getElementById('routesButtons');
+
+/* Открыть / закрыть меню */
+function openTransportMenu() {
+  renderRouteButtons('buses');
+  setActiveTab('buses');
+  transportMenuOverlay.style.display = 'flex';
+}
+
+function closeTransportMenu() {
+  transportMenuOverlay.style.display = 'none';
+}
+
+/* Переключение вкладки */
+function switchTransportTab(type) {
+  renderRouteButtons(type);
+  setActiveTab(type);
+}
+
+function setActiveTab(type) {
+  ['buses','trolleybuses','trams','eBuses'].forEach(t => {
+    const btn = document.getElementById('tab-' + t);
+    if (btn) btn.classList.toggle('active', t === type);
+  });
+}
+
+/* Рендер кнопок с номерами */
+function renderRouteButtons(type) {
+  const list = routesData[type] || [];
+  routesButtonsEl.innerHTML = list.map((r, idx) => {
+    // data- атрибуты для быстрого выбора
+    return `<button type="button" data-type="${type}" data-index="${idx}" onclick="selectRoute('${type}', ${idx})">${r.number}</button>`;
+  }).join('');
+}
+
+/* Подстановка значений в поля */
+function selectRoute(type, index) {
+  const item = (routesData[type] || [])[index];
+  if (!item) return;
+
+  const carrierInput = document.getElementById('inputCarrier');
+  const routeInput   = document.getElementById('inputRoute');
+
+  carrierInput.value = item.carrier;
+  routeInput.value   = item.route;
+
+  // Подсветка валидности, если у тебя уже есть функция highlightField
+  if (typeof highlightField === 'function') {
+    highlightField('inputCarrier', carrierInput.value.length >= 4);
+    highlightField('inputRoute', routeInput.value.includes(' - '));
+  }
+
+  closeTransportMenu();
+}
+
 
   </script>
   
