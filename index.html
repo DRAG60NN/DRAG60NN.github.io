@@ -555,6 +555,21 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   font-size: 12px;
   text-align: center;
 }
+    /* компактная кнопка выбора транспорта (вместо input) */
+.transport-trigger.inline-trigger {
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  background: #2b2b2b;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: left;
+}
+.transport-trigger.inline-trigger:hover {
+  background: #3a3a3a;
+}
 
   </style>
 </head>
@@ -575,9 +590,6 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       <div style="display: flex; gap: 10px; align-items: center;">
     <button type="button" class="transport-trigger" onclick="openTransportMenu()">
   Выбрать номер транспорта
-</button>
-  <input id="inputCode" placeholder="Код (необязательно)" style="flex: 1; margin-right: 10px;" />
-  <button onclick="checkOrSaveCode()" style="flex-shrink: 0; width: 48px; height: 48px; font-size: 20px; border-radius: 8px; background-color: #e21a1a; color: white; border: none; display: flex; align-items: center; justify-content: center;">🔍</button>
 </div>
 <div id="codeLoaderWrapper" style="text-align: center;">
   <span id="codeLoader" style="display: none; font-size: 18px; animation: blink 1s linear infinite;">⏳ Проверка кода...</span>
