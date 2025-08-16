@@ -570,7 +570,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 .transport-trigger.inline-trigger:hover {
   background: #3a3a3a;
 }
-    .transport-toggle {
+  .transport-toggle {
   display: flex;
   justify-content: center;
   gap: 10px; /* расстояние между кнопками */
@@ -580,21 +580,21 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
 .transport-option {
   flex: 1;
-  max-width: 50%;
-  height: 38px; /* как у input */
+  max-width: 150px; /* ограничиваем ширину, чтобы не растягивались */
+  height: 38px; 
   font-size: 14px;
   font-weight: bold;
   text-align: center;
-  background: #2b2b2b;   /* фон как у остальных полей */
+  background: #666;   /* серый фон */
   color: #fff;
-  border: 1px solid #fff; /* белая обводка */
+  border: 1px solid #fff; /* белая рамка */
   border-radius: 6px;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 
 .transport-option.active {
-  border: 2px solid #d9534f; /* красная рамка для выбранного */
+  border: 2px solid #d9534f; /* красная рамка у выбранного */
 }
 
 .transport-option:disabled {
@@ -603,7 +603,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 }
 
 .transport-option.active:disabled {
-  border: 2px solid #a66; /* серо-красный оттенок */
+  border: 2px solid #a66; /* серо-красная рамка */
 }
 
   </style>
@@ -632,8 +632,8 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в747рр124)" />
       <div class="transport-toggle">
-  <button type="button" class="transport-option active" data-type="bus">Автобус (44₽)</button>
-  <button type="button" class="transport-option" data-type="other">Троллейбус / Трамвай / Электробус (40₽)</button>
+  <button type="button" class="transport-option active" data-type="bus">Автобус</button>
+  <button type="button" class="transport-option" data-type="other">Троллейбус и др.</button>
 </div>
 <input type="hidden" id="transportType" value="bus" />
       <div class="custom-slider-wrapper">
@@ -945,8 +945,12 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
   const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
   const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
-  const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
-  const count = document.getElementById('inputCount').value.trim() || defaultData.count;
+  const count = parseInt(document.getElementById('inputCount').value, 10) || defaultData.count;
+
+  // Определяем тариф
+  const selectedType = document.getElementById('transportType').value;
+  const pricePerTicket = selectedType === 'bus' ? 44 : 40;
+  const fare = count * pricePerTicket;
 
   // Заполняем данные на основном экране
   carrierOutput.textContent = carrier;
@@ -966,6 +970,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   // Запускаем таймер
   startCountdown();
 }
+
 
 
     // Функция "Закрыть" - просто сбрасывает к экрану ввода
