@@ -909,25 +909,6 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
   const count = document.getElementById('inputCount').value.trim() || defaultData.count;
 
-  // 🔁 Отправка в Google Таблицу, если указан код
-  if (code) {
-    try {
-      const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-      await fetch(url, {
-        method: 'POST',
-        body: new URLSearchParams({
-          action: 'save_code_data',
-          code: code,
-          carrier: carrier,
-          route: route,
-          plate: plate
-        })
-      });
-    } catch (err) {
-      console.error("Ошибка сохранения кода:", err);
-    }
-  }
-
   // Заполняем данные на основном экране
   carrierOutput.textContent = carrier;
   routeOutput.textContent = route;
