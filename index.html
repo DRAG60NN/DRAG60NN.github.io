@@ -570,6 +570,37 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 .transport-trigger.inline-trigger:hover {
   background: #3a3a3a;
 }
+    .transport-toggle {
+  display: flex;
+  width: 100%;
+  margin: 5px 0 15px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #444;
+}
+
+.transport-option {
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  text-align: center;
+  background: #2b2b2b;
+  color: #aaa;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.transport-option.active {
+  background: #4caf50;
+  color: #fff;
+  font-weight: bold;
+}
+
+.transport-option:not(.active):hover {
+  background: #3a3a3a;
+  color: #fff;
+}
 
   </style>
 </head>
@@ -595,8 +626,12 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
-      <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
-      <input id="inputFare" placeholder="Стоимость (например: 44.00)" />
+      <input id="inputPlate" placeholder="Госномер (например: в747рр124)" />
+      <div class="transport-toggle">
+  <button type="button" class="transport-option active" data-type="bus">Автобус (44₽)</button>
+  <button type="button" class="transport-option" data-type="other">Троллейбус / Трамвай / Электробус (40₽)</button>
+</div>
+<input type="hidden" id="transportType" value="bus" />
       <div class="custom-slider-wrapper">
   <label for="inputCountRange">Количество билетов</label>
   <div class="slider-display">
@@ -1428,7 +1463,13 @@ function selectRoute(type, index) {
 
   closeTransportMenu();
 }
-
+    document.querySelectorAll('.transport-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('transportType').value = btn.dataset.type;
+  });
+});
 
   </script>
   
