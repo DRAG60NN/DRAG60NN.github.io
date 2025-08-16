@@ -584,32 +584,45 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
 
   
-  <!-- Экран ввода данных -->
-  <div class="screen" id="inputScreen">
-    <div class="input-screen">
-      <div style="display: flex; gap: 10px; align-items: center;">
-  </div>
-    <button type="button" class="transport-trigger" onclick="openTransportMenu()">
-  Выбрать номер транспорта
-</button>
+<!-- Экран ввода данных -->
+<div class="screen" id="inputScreen">
+  <div class="input-screen">
+    <div style="display: flex; gap: 10px; align-items: center;">
+    </div>
 
-      <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
-      <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
-      <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
-      <input id="inputFare" placeholder="Стоимость (например: 44.00)" />
-      <div class="custom-slider-wrapper">
-  <label for="inputCountRange">Количество билетов</label>
-  <div class="slider-display">
-    <div id="sliderValueBox"><span id="sliderValue">1</span></div>
-    <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" oninput="updateCountLabel(this.value)" />
-<div class="slider-labels">
-</div>      
-      
-  </div>
-  <input type="hidden" id="inputCount" value="1" />
+    <!-- Кнопка выбора маршрута -->
+    <button type="button" class="transport-trigger" onclick="openTransportMenu()">
+      🚍 Выбрать номер транспорта
+    </button>
+
+    <!-- Поля перевозчика, маршрута и госномера -->
+    <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
+    <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
+    <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
+
+    <!-- Выбор типа транспорта -->
+    <div class="input-group">
+      <label>Тип транспорта:</label>
+      <div class="transport-type">
+        <label><input type="radio" name="transportType" value="bus" checked> Автобус (44₽)</label><br>
+        <label><input type="radio" name="transportType" value="other"> Троллейбус / Трамвай / Электробус (40₽)</label>
+      </div>
+    </div>
+
+    <!-- Количество билетов -->
+    <div class="custom-slider-wrapper">
+      <label for="inputCountRange">Количество билетов</label>
+      <div class="slider-display">
+        <div id="sliderValueBox"><span id="sliderValue">1</span></div>
+        <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" 
+               oninput="updateCountLabel(this.value)" />
+        <div class="slider-labels"></div>
+      </div>
+      <input type="hidden" id="inputCount" value="1" />
+    </div>
+  </div>
 </div>
 
-    </div>
     
       <div class="photo-controls">
     <input type="file" id="photoInput" accept="image/*" />
@@ -901,13 +914,17 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     }
 
 
-    async function submitForm() {
-  // Считываем значения из инпутов
+async function submitForm() {
   const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
-  const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
-  const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
-  const fare = document.getElementById('inputFare').value.trim() || defaultData.fare;
-  const count = document.getElementById('inputCount').value.trim() || defaultData.count;
+  const route   = document.getElementById('inputRoute').value.trim()   || defaultData.route;
+  const plate   = document.getElementById('inputPlate').value.trim()   || defaultData.plate;
+  const count   = parseInt(document.getElementById('inputCount').value.trim()) || defaultData.count;
+
+  // Определяем цену в зависимости от типа транспорта
+  const selectedType = document.querySelector('input[name="transportType"]:checked').value;
+  const pricePerTicket = selectedType === 'bus' ? 44 : 40;
+  const fare = count * pricePerTicket;
+
 
   // Заполняем данные на основном экране
   carrierOutput.textContent = carrier;
@@ -1411,23 +1428,30 @@ function renderRouteButtons(type) {
 
 /* Подстановка значений в поля */
 function selectRoute(type, index) {
-  const item = (routesData[type] || [])[index];
-  if (!item) return;
+  let selectedRoute;
+  switch(type) {
+    case 'buses': selectedRoute = routesData.buses[index]; break;
+    case 'trolleybuses': selectedRoute = routesData.trolleybuses[index]; break;
+    case 'trams': selectedRoute = routesData.trams[index]; break;
+    case 'eBuses': selectedRoute = routesData.eBuses[index]; break;
+  }
 
-  const carrierInput = document.getElementById('inputCarrier');
-  const routeInput   = document.getElementById('inputRoute');
+  if (selectedRoute) {
+    document.getElementById('inputCarrier').value = selectedRoute.carrier;
+    document.getElementById('inputRoute').value = selectedRoute.route;
 
-  carrierInput.value = item.carrier;
-  routeInput.value   = item.route;
-
-  // Подсветка валидности, если у тебя уже есть функция highlightField
-  if (typeof highlightField === 'function') {
-    highlightField('inputCarrier', carrierInput.value.length >= 4);
-    highlightField('inputRoute', routeInput.value.includes(' - '));
+    // Автоматически выставляем тип и блокируем выбор
+    if (type === 'buses') {
+      document.querySelector('input[name="transportType"][value="bus"]').checked = true;
+    } else {
+      document.querySelector('input[name="transportType"][value="other"]').checked = true;
+    }
+    document.querySelectorAll('input[name="transportType"]').forEach(r => r.disabled = true);
   }
 
   closeTransportMenu();
 }
+
 
 
   </script>
