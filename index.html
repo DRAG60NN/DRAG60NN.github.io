@@ -570,42 +570,51 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 .transport-trigger.inline-trigger:hover {
   background: #3a3a3a;
 }
-  .transport-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 10px; /* расстояние между кнопками */
-  width: 100%;
-  margin: 10px 0 15px 0;
+/* ==== Transport toggle (переписано) ==== */
+.transport-toggle{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  width:100%;
+  margin:8px 0 14px 0; /* как у остальных полей */
 }
 
-.transport-option {
-  flex: 1;
-  max-width: 150px; /* ограничиваем ширину, чтобы не растягивались */
-  height: 38px; 
-  font-size: 14px;
-  font-weight: bold;
-  text-align: center;
-  background: #666;   /* серый фон */
-  color: #fff;
-  border: 1px solid #fff; /* белая рамка */
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+.transport-option,
+.transport-option:hover,
+.transport-option:active,
+.transport-option:focus{
+  /* переопределяем любые глобальные кнопки */
+  background:#2b2b2b !important; /* серый фон как у инпутов */
+  color:#fff !important;          /* белый текст */
+  border:1px solid #fff !important; /* белая обводка всегда */
+  box-shadow:none !important;
+  outline:none !important;
+
+  display:flex;
+  align-items:center;   /* идеальная вертикальная центровка */
+  justify-content:center;
+  height:44px;          /* под размер строки/инпута */
+  padding:0 12px;
+  font-size:14px;
+  font-weight:700;      /* текст всегда жирный */
+  border-radius:8px;
+  cursor:pointer;
+  white-space:nowrap;   /* чтобы не ломалось на 2 строки */
 }
 
-.transport-option.active {
-  border: 2px solid #d9534f; /* красная рамка у выбранного */
+/* выбранная — тонкая красная рамка */
+.transport-option.active{
+  border:2px solid #d32f2f !important; /* красный акцент */
 }
 
-.transport-option:disabled {
-  cursor: not-allowed;
-  opacity: 0.8;
+/* при блокировке показываем, что выбранная заблокирована */
+.transport-option:disabled{
+  cursor:not-allowed;
+  opacity:0.95;
 }
-
-.transport-option.active:disabled {
-  border: 2px solid #a66; /* серо-красная рамка */
+.transport-option.active:disabled{
+  border-color:#9a5a5a !important; /* серо-красная рамка при блокировке */
 }
-
   </style>
 </head>
 <body>
@@ -1522,7 +1531,7 @@ function selectRoute(type, index) {
     document.getElementById('inputCarrier').value = selectedRoute.carrier;
     document.getElementById('inputRoute').value = selectedRoute.route;
 
-    // Автоустановка типа
+    // Автоустановка и блокировка выбора транспорта
     if (type === 'buses') {
       setTransportType('bus');
     } else {
@@ -1532,6 +1541,7 @@ function selectRoute(type, index) {
 
   closeTransportMenu();
 }
+
 
 function setTransportType(type) {
   const buttons = document.querySelectorAll('.transport-option');
@@ -1544,7 +1554,28 @@ function setTransportType(type) {
   });
   document.getElementById('transportType').value = type;
 }
+    // Навешиваем обработчики после загрузки DOM
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.transport-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('transportType').value = btn.dataset.type;
+    });
+  });
+});
 
+// Вызывай это из selectRoute, чтобы автоустановить тип и заблокировать выбор
+function setTransportType(type){
+  const buttons = document.querySelectorAll('.transport-option');
+  buttons.forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+    // блокируем обе, чтобы было понятно, что выбор сделан
+    b.disabled = true;
+  });
+  document.getElementById('transportType').value = type;
+}
 
     
   </script>
