@@ -570,36 +570,37 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 .transport-trigger.inline-trigger:hover {
   background: #3a3a3a;
 }
+
     .transport-toggle {
   display: flex;
   width: 100%;
-  margin: 5px 0 15px 0;
-  border-radius: 8px;
+  margin: 8px 0 15px 0;
+  border-radius: 6px;
   overflow: hidden;
-  border: 1px solid #444;
+  border: 1px solid #666;
+  height: 38px; /* как обычное input */
 }
 
 .transport-option {
   flex: 1;
-  padding: 12px;
   font-size: 14px;
   text-align: center;
-  background: #2b2b2b;
-  color: #aaa;
+  background: #f0f0f0;
+  color: #333;
   border: none;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
 
 .transport-option.active {
-  background: #4caf50;
-  color: #fff;
-  font-weight: bold;
+  background: #ddd;
+  font-weight: 500;
 }
 
-.transport-option:not(.active):hover {
-  background: #3a3a3a;
-  color: #fff;
+.transport-option:disabled {
+  background: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
 }
 
   </style>
@@ -1463,13 +1464,53 @@ function selectRoute(type, index) {
 
   closeTransportMenu();
 }
-    document.querySelectorAll('.transport-option').forEach(btn => {
+  // Переключение вручную
+document.querySelectorAll('.transport-option').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (btn.disabled) return; // если заблокировано, ничего не делаем
     document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('transportType').value = btn.dataset.type;
   });
 });
+
+// Автоподстановка и блокировка при выборе маршрута
+function selectRoute(type, index) {
+  let selectedRoute;
+  switch(type) {
+    case 'buses': selectedRoute = routesData.buses[index]; break;
+    case 'trolleybuses': selectedRoute = routesData.trolleybuses[index]; break;
+    case 'trams': selectedRoute = routesData.trams[index]; break;
+    case 'eBuses': selectedRoute = routesData.eBuses[index]; break;
+  }
+
+  if (selectedRoute) {
+    document.getElementById('inputCarrier').value = selectedRoute.carrier;
+    document.getElementById('inputRoute').value = selectedRoute.route;
+
+    // Автоустановка типа
+    if (type === 'buses') {
+      setTransportType('bus');
+    } else {
+      setTransportType('other');
+    }
+  }
+
+  closeTransportMenu();
+}
+
+function setTransportType(type) {
+  const buttons = document.querySelectorAll('.transport-option');
+  buttons.forEach(b => {
+    b.classList.remove('active');
+    if (b.dataset.type === type) {
+      b.classList.add('active');
+    }
+    // Блокируем все кнопки
+    b.disabled = true;
+  });
+  document.getElementById('transportType').value = type;
+}
 
   </script>
   
