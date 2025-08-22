@@ -542,7 +542,7 @@ async function loadTokens() {
 }
 
 async function loadTokens() {
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec?action=list';
+  const url = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=list';
 
   try {
     const res = await fetch(url);
