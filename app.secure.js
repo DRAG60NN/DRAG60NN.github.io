@@ -2,7 +2,32 @@
 // --- Lightweight self-integrity check (best-effort) ---
 (async function selfIntegrity() {
   try {
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzFLl9MtcDjnPrBs3drfetxNuCMpyR9ezQJFqYc9yH3Fv2OnxFPyJ-_gcPyeELVHrkSUA/exec';
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec"; // твой URL
+
+async function loginWithToken(token, username="") {
+  try {
+    const resp = await fetch(GAS_URL, {
+      method: "POST",
+      body: new URLSearchParams({
+        action: "login",
+        token: token,
+        username: username
+      })
+    });
+    const data = await resp.json();
+    console.log("Ответ от GAS:", data);
+    if (data.status === "valid") {
+      localStorage.setItem("sessionId", data.sessionId);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (err) {
+    console.error("Ошибка соединения:", err);
+    return false;
+  }
+}
+
     const meta = document.querySelector('meta[name="x-app-code-sha256"]');
     if (!meta) return;
     const expected = meta.getAttribute('content');
