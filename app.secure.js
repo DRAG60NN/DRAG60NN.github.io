@@ -3,17 +3,6 @@
 (async function selfIntegrity() {
   try {
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec"; // твой URL
-
-async function loginWithToken(token, username="") {
-  try {
-    const resp = await fetch(GAS_URL, {
-      method: "POST",
-      body: new URLSearchParams({
-        action: "login",
-        token: token,
-        username: username
-      })
-    });
     const data = await resp.json();
     console.log("Ответ от GAS:", data);
     if (data.status === "valid") {
