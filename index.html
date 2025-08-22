@@ -932,21 +932,35 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
     }
 
-    // Запуск обратного отсчета
-    function startCountdown() {
-      let time = 15;
+   // Запуск обратного отсчета
+function startCountdown() {
+  let time = 15;
+  countdownEl.textContent = time;
+
+  // Получаем кнопку "Закрыть"
+  const closeBtn = document.getElementById('closeButton');
+  if (closeBtn) {
+    closeBtn.disabled = true; // блокируем её сразу
+    closeBtn.classList.add('disabled');
+  }
+
+  countdownInterval = setInterval(() => {
+    time--;
+    if (time <= 0) {
+      clearInterval(countdownInterval);
+      countdownEl.textContent = '0';
+
+      // Разблокируем кнопку "Закрыть"
+      if (closeBtn) {
+        closeBtn.disabled = false;
+        closeBtn.classList.remove('disabled');
+      }
+    } else {
       countdownEl.textContent = time;
-      countdownInterval = setInterval(() => {
-        time--;
-        if (time <= 0) {
-          clearInterval(countdownInterval);
-          countdownEl.textContent = '0';
-          // Можно добавить действие по окончании отсчета, если нужно
-        } else {
-          countdownEl.textContent = time;
-        }
-      }, 1000);
     }
+  }, 1000);
+}
+
 
 
     async function submitForm() {
