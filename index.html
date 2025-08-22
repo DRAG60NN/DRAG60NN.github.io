@@ -738,7 +738,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 080 124 890</div>
+        <div>1 081 124 890</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -932,16 +932,14 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
     }
 
-   // Запуск обратного отсчета
-function startCountdown() {
+   function startCountdown() {
   let time = 15;
   countdownEl.textContent = time;
 
-  // Получаем кнопку "Закрыть"
   const closeBtn = document.getElementById('closeButton');
   if (closeBtn) {
-    closeBtn.disabled = true; // блокируем её сразу
-    closeBtn.classList.add('disabled');
+    closeBtn.classList.add('disabled'); // блокируем через CSS
+    closeBtn.onclick = null; // временно убираем действие
   }
 
   countdownInterval = setInterval(() => {
@@ -950,16 +948,16 @@ function startCountdown() {
       clearInterval(countdownInterval);
       countdownEl.textContent = '0';
 
-      // Разблокируем кнопку "Закрыть"
       if (closeBtn) {
-        closeBtn.disabled = false;
-        closeBtn.classList.remove('disabled');
+        closeBtn.classList.remove('disabled'); 
+        closeBtn.onclick = closeApp; // возвращаем функцию
       }
     } else {
       countdownEl.textContent = time;
     }
   }, 1000);
 }
+
 
 
 
