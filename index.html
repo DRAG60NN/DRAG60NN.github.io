@@ -738,7 +738,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 080 124 890</div>
+        <div>1 081 124 890</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -932,21 +932,32 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
     }
 
-    // Запуск обратного отсчета
     function startCountdown() {
-      let time = 15;
-      countdownEl.textContent = time;
-      countdownInterval = setInterval(() => {
-        time--;
-        if (time <= 0) {
-          clearInterval(countdownInterval);
-          countdownEl.textContent = '0';
-          // Можно добавить действие по окончании отсчета, если нужно
-        } else {
-          countdownEl.textContent = time;
-        }
-      }, 1000);
+  let timeLeft = 15;
+  timerOutput.textContent = timeLeft;
+
+  // блокируем кнопку "Закрыть"
+  const closeBtn = document.getElementById('closeButton');
+  if (closeBtn) {
+    closeBtn.disabled = true;
+    closeBtn.classList.add('disabled');
+  }
+
+  const countdown = setInterval(() => {
+    timeLeft--;
+    timerOutput.textContent = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(countdown);
+      // разблокируем кнопку "Закрыть"
+      if (closeBtn) {
+        closeBtn.disabled = false;
+        closeBtn.classList.remove('disabled');
+      }
     }
+  }, 1000);
+}
+
 
 
     async function submitForm() {
