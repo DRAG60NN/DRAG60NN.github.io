@@ -2,6 +2,7 @@
 // --- Lightweight self-integrity check (best-effort) ---
 (async function selfIntegrity() {
   try {
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzFLl9MtcDjnPrBs3drfetxNuCMpyR9ezQJFqYc9yH3Fv2OnxFPyJ-_gcPyeELVHrkSUA/exec';
     const meta = document.querySelector('meta[name="x-app-code-sha256"]');
     if (!meta) return;
     const expected = meta.getAttribute('content');
@@ -387,98 +388,128 @@ plate = (isStandard || isTrolley) ? plate : '';
   }
 });
 
-    async function checkAccess() {
+async function checkAccess() {
   const token = document.getElementById('authToken').value.trim();
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+  if (!token) return alert('Введите токен');
 
-  // Показываем загрузку
+  // Показываем лоадер, у тебя есть overlay с id loadingOverlay
   document.getElementById('loadingOverlay').style.display = 'flex';
-try {
-    const response = await fetch(url, {
+
+  try {
+    const res = await fetch(GAS_URL, {
       method: 'POST',
-      body: new URLSearchParams({ token })
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'login',
+        token: token,
+        username: navigator.userAgent.slice(0, 80) // опционально
+      })
     });
 
-    const result = await response.text();
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { /* не JSON — старый ответ */ }
 
-    if (result === 'valid') {
-      sessionStorage.setItem('ticket_access_granted', 'true');
+    if (data && data.status === 'valid' && data.sessionId) {
+      // сохраняем сессию — «запомнить пользователя»
+      localStorage.setItem('sessionId', data.sessionId);
+
+      // показываем приложение
       document.getElementById('authScreen').style.display = 'none';
       document.getElementById('inputScreen').classList.add('active');
 
-      if (sessionStorage.getItem('is_admin') === 'true') {
-        document.getElementById('adminButton').style.display = 'inline-block';
-      }
+      // админ-кнопку теперь можно показывать всегда — действия в ней всё равно защищены adminKey
+      const btn = document.getElementById('adminButton');
+      if (btn) btn.style.display = 'inline-block';
+
+    } else if (text === 'already_used') {
+      alert('Токен уже был использован.');
     } else {
-      alert('Доступ запрещён. Неверный или уже использованный токен.');
+      alert('Доступ запрещён. Неверный токен.');
     }
-  } catch (error) {
-    console.error('Ошибка запроса:', error);
+  } catch (e) {
+    console.error(e);
     alert('Ошибка соединения. Попробуйте позже.');
   } finally {
     document.getElementById('loadingOverlay').style.display = 'none';
   }
 }
+
     async function addToken() {
+  const adminKey = document.getElementById('adminKeyInput').value.trim();
   const token = document.getElementById('newTokenInput').value.trim();
+  if (!adminKey) return alert('Введите Admin ключ');
   if (!token) return alert('Введите токен');
 
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        action: 'add',
-        token: token
-      })
+      body: new URLSearchParams({ action: 'add', token, adminKey })
     });
-
     const result = await res.text();
     if (result === 'added') {
-      alert('Токен добавлен!');
+      alert('Токен добавлен');
       document.getElementById('newTokenInput').value = '';
+      loadTokens(); // обновим список
+    } else if (result === 'forbidden') {
+      alert('Неверный Admin ключ');
     } else {
-      alert('Ошибка при добавлении: ' + result);
+      alert('Ошибка: ' + result);
     }
-  } catch (err) {
-    console.error(err);
+  } catch (e) {
     alert('Ошибка подключения');
   }
 }
-
 
 async function removeToken() {
+  const adminKey = document.getElementById('adminKeyInput').value.trim();
   const token = document.getElementById('removeTokenInput').value.trim();
+  if (!adminKey) return alert('Введите Admin ключ');
   if (!token) return alert('Введите токен для удаления');
 
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        action: 'remove',
-        token: token
-      })
+      body: new URLSearchParams({ action: 'remove', token, adminKey })
     });
-
     const result = await res.text();
     if (result === 'removed') {
-      alert('Токен удалён!');
+      alert('Токен удалён');
       document.getElementById('removeTokenInput').value = '';
+      loadTokens();
     } else if (result === 'not_found') {
-      alert('Токен не найден.');
+      alert('Токен не найден');
+    } else if (result === 'forbidden') {
+      alert('Неверный Admin ключ');
     } else {
-      alert('Ошибка при удалении: ' + result);
+      alert('Ошибка: ' + result);
     }
-  } catch (err) {
-    console.error(err);
+  } catch (e) {
     alert('Ошибка подключения');
   }
 }
+
+async function loadTokens() {
+  const adminKey = document.getElementById('adminKeyInput').value.trim();
+  if (!adminKey) return alert('Введите Admin ключ');
+
+  try {
+    const res = await fetch(GAS_URL + '?action=list&adminKey=' + encodeURIComponent(adminKey));
+    const data = await res.json();
+    const list = document.getElementById('tokenList');
+    list.innerHTML = '';
+    data.forEach(row => {
+      const li = document.createElement('li');
+      li.textContent = `🔑 ${row.token} — ${row.status || 'unknown'}`;
+      list.appendChild(li);
+    });
+  } catch (e) {
+    alert('Не удалось загрузить список токенов');
+  }
+}
+
 
     function toggleAdminMenu() {
   const panel = document.getElementById('adminPanel');
@@ -711,17 +742,33 @@ function setTransportType(type) {
   });
   document.getElementById('transportType').value = type;
 }
-    // Навешиваем обработчики после загрузки DOM
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.transport-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('transportType').value = btn.dataset.type;
+window.addEventListener('DOMContentLoaded', async () => {
+  const sessionId = localStorage.getItem('sessionId');
+  if (!sessionId) return;
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ action: 'verify_session', sessionId })
     });
-  });
+    const data = await res.json();
+
+    if (data.ok) {
+      // авто-вход
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('inputScreen').classList.add('active');
+      const btn = document.getElementById('adminButton');
+      if (btn) btn.style.display = 'inline-block';
+    } else {
+      // сессия невалидна — очищаем
+      localStorage.removeItem('sessionId');
+    }
+  } catch (e) {
+    console.warn('Verify failed', e);
+  }
 });
+
 
 // Вызывай это из selectRoute, чтобы автоустановить тип и заблокировать выбор
 function setTransportType(type){
