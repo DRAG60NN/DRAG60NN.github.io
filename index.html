@@ -615,6 +615,80 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 .transport-option.active:disabled{
   border-color:#9a5a5a !important; /* серо-красная рамка при блокировке */
 }
+    /* === LIVE: стили онлайн-блока (KGT) === */
+.live-box {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #1f1f1f;        /* тёмно-серый, как фон приложения */
+  border: 1px solid #2A2A2A;  /* тонкая рамка */
+}
+
+.live-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.live-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
+
+.live-upd {
+  font-size: 12px;
+  color: #c9c9c9;
+}
+
+.live-direction {
+  margin-top: 10px;
+}
+
+.live-direction .dir-caption {
+  font-weight: 600;
+  font-size: 13px;
+  color: #eaeaea;
+  margin-bottom: 6px;
+}
+
+.live-stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.live-stops li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #242424;
+  border: 1px solid #2d2d2d;
+  margin-bottom: 6px;
+}
+
+.live-stops .stop-name {
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 68%;
+}
+
+.live-stops .stop-time {
+  font-weight: 600;
+  color: #ff5252; /* акцентное время (красный) */
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: right;
+}
+/* === /LIVE === */
+
   </style>
 </head>
 <body>
@@ -660,6 +734,20 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
     </div>
     
       <div class="photo-controls">
+        <!-- === LIVE: блок онлайн-данных по маршруту (KGT) === -->
+<div id="liveBox" class="live-box" style="display:none;">
+  <div class="live-head">
+    <div class="live-title">
+      Онлайн по маршруту: <span id="liveRouteTitle">—</span>
+    </div>
+    <div class="live-upd">
+      Обновлено: <span id="liveForecast">—</span>
+    </div>
+  </div>
+  <div id="liveDirections"></div>
+</div>
+<!-- === /LIVE === -->
+
     <button onclick="submitForm()" class="submit-button">Продолжить</button>
         <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
 
@@ -1270,6 +1358,160 @@ plate = (isStandard || isTrolley) ? plate : '';
     document.getElementById('loadingOverlay').style.display = 'none';
   }
 }
+    /* === LIVE: KGT – глобальные переменные и утилиты === */
+const KGT_BASE = 'https://mu-kgt.ru/informing/wap/marsh/';
+let kgtRouteMap = new Map();      // title(normalized) -> id (m)
+let selectedKgtId = null;         // текущий id маршрута для онлайн
+let kgtRefreshTimer = null;       // таймер автообновления онлайн-блока
+let kgtReady = false;             // флаг, что карта маршрутов загружена
+let kgtInitPromise = null;        // чтобы не дергать init многократно
+
+// Нормализация номера маршрута ("40с", "40c", " 40 С " -> "40с")
+function normalizeRouteTitle(s) {
+  return String(s || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    // латинскую "c" приводим к кириллической "с"
+    .replace(/c/g, 'с');
+}
+
+// Загрузка списка маршрутов KGT -> карта {normalizedTitle -> m}
+async function kgtLoadRouteMap() {
+  const url = `${KGT_BASE}?action=getListRoute`;
+  const txt = await fetch(url, { credentials: 'omit' }).then(r => r.text());
+  let data;
+  try {
+    data = JSON.parse(txt);
+  } catch (e) {
+    console.warn('KGT:getListRoute не JSON', txt);
+    data = null;
+  }
+  const items = Array.isArray(data) ? data : (data?.data || data?.routes || []);
+  kgtRouteMap.clear();
+  for (const it of items) {
+    const title = normalizeRouteTitle(it?.title || it?.marsh_title || it?.route_title || it?.m || '');
+    const id = String(it?.m || it?.id || it?.marsh_id || it?.route_id || '').trim();
+    if (title && id) kgtRouteMap.set(title, id);
+  }
+  kgtReady = true;
+}
+
+function kgtEnsureReady() {
+  if (kgtReady) return Promise.resolve();
+  if (!kgtInitPromise) kgtInitPromise = kgtLoadRouteMap();
+  return kgtInitPromise;
+}
+
+// Находим id маршрута по его «кнопочному» номеру из твоего меню
+function kgtFindIdByNumber(num) {
+  if (!num) return null;
+  const key = normalizeRouteTitle(num);
+  let id = kgtRouteMap.get(key);
+  if (!id) {
+    // пробуем альтернативу: заменить кириллическую "с" на латинскую и наоборот
+    const alt = key.replace(/с/g, 'c');
+    id = kgtRouteMap.get(alt) || null;
+  }
+  return id || null;
+}
+/* === /LIVE === */
+
+    /* === LIVE: загрузка и отрисовка онлайн-данных по маршруту === */
+async function kgtFetchMarshData(mId) {
+  const url = `${KGT_BASE}?m=${encodeURIComponent(mId)}&action=getMarshData`;
+  const txt = await fetch(url, { credentials: 'omit' }).then(r => r.text());
+  try {
+    return JSON.parse(txt);
+  } catch (e) {
+    console.warn('KGT:getMarshData не JSON', txt);
+    return null;
+  }
+}
+
+function renderKgt(data) {
+  const box = document.getElementById('liveBox');
+  const titleEl = document.getElementById('liveRouteTitle');
+  const updEl = document.getElementById('liveForecast');
+  const dirsWrap = document.getElementById('liveDirections');
+
+  if (!data) {
+    box.style.display = 'none';
+    return;
+  }
+
+  titleEl.textContent = data.marsh_title || (selectedKgtId ?? '—');
+  updEl.textContent = data.forecast || '—';
+  dirsWrap.innerHTML = '';
+
+  // Встречаются структуры с directions: { A: {...}, B: {...} }
+  if (data.directions) {
+    ['A', 'B'].forEach(dirKey => {
+      const dir = data.directions[dirKey];
+      if (!dir) return;
+
+      // Заголовок направления
+      const dirBox = document.createElement('div');
+      dirBox.className = 'live-direction';
+
+      const cap = document.createElement('div');
+      cap.className = 'dir-caption';
+      if (dir.first && dir.last) {
+        cap.textContent = `${dir.first} → ${dir.last}`;
+      } else {
+        cap.textContent = (dir.title || `Направление ${dirKey}`);
+      }
+      dirBox.appendChild(cap);
+
+      // Ищем массив остановок в самых типичных полях
+      const stops = dir.stations || dir.stops || dir.items || [];
+      if (Array.isArray(stops) && stops.length) {
+        const ul = document.createElement('ul');
+        ul.className = 'live-stops';
+        stops.forEach(s => {
+          const li = document.createElement('li');
+          const name = s.title || s.name || s.stop || '—';
+          const time =
+            s.time ||
+            s.arrival ||
+            s.forecast_time ||
+            s.forecast ||
+            s.next ||
+            '—';
+          li.innerHTML =
+            `<span class="stop-name">${name}</span>` +
+            `<span class="stop-time">${time}</span>`;
+          ul.appendChild(li);
+        });
+        dirBox.appendChild(ul);
+      }
+
+      dirsWrap.appendChild(dirBox);
+    });
+  }
+
+  box.style.display = 'block';
+}
+
+async function refreshKgtLiveOnce() {
+  if (!selectedKgtId) return;
+  const data = await kgtFetchMarshData(selectedKgtId);
+  renderKgt(data);
+}
+
+function startKgtLive() {
+  stopKgtLive();
+  refreshKgtLiveOnce();                 // сразу показали
+  kgtRefreshTimer = setInterval(refreshKgtLiveOnce, 15000); // автообновление каждые 15с
+}
+
+function stopKgtLive() {
+  if (kgtRefreshTimer) clearInterval(kgtRefreshTimer);
+  kgtRefreshTimer = null;
+}
+/* === /LIVE === */
+
+  
     async function addToken() {
   const token = document.getElementById('newTokenInput').value.trim();
   if (!token) return alert('Введите токен');
@@ -1500,6 +1742,21 @@ function selectRoute(type, index) {
     case 'trams': selectedRoute = routesData.trams[index]; break;
     case 'eBuses': selectedRoute = routesData.eBuses[index]; break;
   }
+  // === LIVE: привязка выбранного маршрута к KGT ===
+kgtEnsureReady().then(() => {
+  // предполагаю, что у твоего selectedRoute есть поле с «номером» (который показывается на кнопке)
+  // если оно у тебя называется иначе – подставь верное (например, selectedRoute.num или selectedRoute.title)
+  const guessNum = selectedRoute?.num || selectedRoute?.title || selectedRoute?.id || '';
+  const kgtId = kgtFindIdByNumber(guessNum);
+  selectedKgtId = kgtId;
+
+  if (kgtId) {
+    startKgtLive();     // включаем онлайн-обновления
+  } else {
+    stopKgtLive();      // на всякий случай, если не нашли id
+  }
+});
+
 
   if (selectedRoute) {
     document.getElementById('inputCarrier').value = selectedRoute.carrier;
@@ -1585,7 +1842,6 @@ function setTransportType(type){
   document.getElementById('transportType').value = type;
 }
 
-    
   </script>
   
 </div>
