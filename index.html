@@ -1927,7 +1927,7 @@ async function kgtRefreshNow() {
   
   console.log('KGT: Showing mock data for route', routeNumber);
   
-  const mockData = getMockKgtData(routeNumber, routeText);
+ const mockData = await getMockKgtData(routeNumber, routeText);
   body.innerHTML = renderKgtData(mockData) + 
     '<div style="color:#ffa726;font-size:12px;margin-top:10px;">📊 Демонстрационные данные</div>';
   
@@ -2055,57 +2055,111 @@ if (originalSelectRoute) {
   };
 }
 
-    function getMockKgtData(routeNumber, fullRoute) {
-  // Более реалистичные данные для разных маршрутов
-  const routeConfigs = {
+// === НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ С САЙТА ===
+async function getMockKgtData(routeNumber, fullRoute) {
+  try {
+    // Пытаемся получить данные с mu-kgt.ru
+    const url = `https://mu-kgt.ru/informing/wap/marsh/?m=${routeNumber}&action=getMarshData`;
+    console.log('Загружаем данные маршрута с:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'no-cors' // Обходим CORS
+    });
+    
+    // Если получили ответ - пробуем распарсить
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Получены данные с сайта:', data);
+      
+      // Преобразуем данные в нужный формат
+      if (data && data.stations) {
+        return {
+          direction_A: {
+            name: fullRoute || `Маршрут ${routeNumber}`,
+            stops: data.stations.map(station => ({
+              name: station.title || station.name,
+              time: station.forecast || station.time || "расчёт..."
+            }))
+          },
+          vehicles: data.transport || []
+        };
+      }
+    }
+  } catch (error) {
+    console.log('Не удалось загрузить с сайта, используем локальные данные:', error);
+  }
+  
+  // РЕЗЕРВНЫЕ ДАННЫЕ (если сайт недоступен)
+  const localRoutes = {
     '11': {
-      stops: [
-        {name: "3-я Дальневосточная", time: "2 мин"},
-        {name: "ул. Маерчака", time: "5 мин"}, 
-        {name: "Театр Пушкина", time: "8 мин"},
-        {name: "пл. Революции", time: "11 мин"},
-        {name: "ул. Ленина", time: "14 мин"},
-        {name: "Молодежная", time: "17 мин"}
-      ],
-      vehicles: [
-        {id: "1147", location: "пл. Революции", time: "3 мин назад"},
-        {id: "1203", location: "ул. Маерчака", time: "1 мин назад"}
-      ]
+      direction_A: {
+        name: "3-я Дальневосточная → Молодежная",
+        stops: [
+          {name: "3-я Дальневосточная", time: "0 мин"},
+          {name: "Солнечная", time: "2 мин"},
+          {name: "1-я Хабаровская", time: "3 мин"},
+          {name: "2-я Хабаровская", time: "4 мин"},
+          {name: "Свердловская", time: "5 мин"},
+          {name: "Дом Советов", time: "6 мин"},
+          {name: "Дубровинского", time: "7 мин"},
+          {name: "ул. Маерчака", time: "8 мин"},
+          {name: "Дом быта (Мемориал)", time: "9 мин"},
+          {name: "Музыкальный театр", time: "10 мин"},
+          {name: "Театр Пушкина", time: "11 мин"},
+          {name: "Филармония", time: "12 мин"},
+          {name: "пл. Революции", time: "13 мин"},
+          {name: "КИЦ", time: "14 мин"},
+          {name: "ул. Сурикова", time: "15 мин"},
+          {name: "Главпочтамт", time: "16 мин"},
+          {name: "ул. Ленина", time: "17 мин"},
+          {name: "Театр оперы и балета", time: "18 мин"},
+          {name: "Молодежная", time: "20 мин"}
+        ]
+      },
+      vehicles: []
     },
     '5': {
-      stops: [
-        {name: "Спорткомплекс «Радуга»", time: "1 мин"},
-        {name: "ул. Свердловская", time: "4 мин"},
-        {name: "ул. Кирова", time: "7 мин"},
-        {name: "ОАО «Красфарма»", time: "10 мин"}
-      ],
-      vehicles: [
-        {id: "0589", location: "ул. Кирова", time: "2 мин назад"}
-      ]
+      direction_A: {
+        name: "Спорткомплекс «Радуга» → ОАО «Красфарма»",
+        stops: [
+          {name: "Спорткомплекс «Радуга»", time: "0 мин"},
+          {name: "ул. Чайковского", time: "2 мин"},
+          {name: "ул. Свердловская", time: "3 мин"},
+          {name: "ул. Копылова", time: "4 мин"},
+          {name: "Автопарк", time: "5 мин"},
+          {name: "Дом Советов", time: "6 мин"},
+          {name: "Дубровинского", time: "7 мин"},
+          {name: "ул. Маерчака", time: "8 мин"},
+          {name: "Дом быта", time: "9 мин"},
+          {name: "ул. Горького", time: "10 мин"},
+          {name: "Театр Пушкина", time: "11 мин"},
+          {name: "Филармония", time: "12 мин"},
+          {name: "пл. Революции", time: "13 мин"},
+          {name: "КИЦ", time: "14 мин"},
+          {name: "ул. Сурикова", time: "15 мин"},
+          {name: "Цирк", time: "16 мин"},
+          {name: "Поликлиника", time: "17 мин"},
+          {name: "ул. Профсоюзов", time: "18 мин"},
+          {name: "ул. Кирова", time: "19 мин"},
+          {name: "Краевая больница", time: "20 мин"},
+          {name: "ОАО «Красфарма»", time: "22 мин"}
+        ]
+      },
+      vehicles: []
     }
   };
   
-  // Берем конфиг для конкретного маршрута или дефолтный
-  const config = routeConfigs[routeNumber] || {
-    stops: [
-      {name: "Начальная остановка", time: "1 мин"},
-      {name: "Промежуточная 1", time: "4 мин"},
-      {name: "Промежуточная 2", time: "7 мин"}, 
-      {name: "Конечная остановка", time: "10 мин"}
-    ],
-    vehicles: [
-      {id: "0001", location: "Промежуточная 1", time: "5 мин назад"}
-    ]
-  };
-  
-  return {
-    directions: [
-      {
-        name: fullRoute || `Маршрут ${routeNumber}`,
-        stops: config.stops,
-        vehicles: config.vehicles
-      }
-    ]
+  // Возвращаем локальные данные или пустой маршрут
+  return localRoutes[routeNumber] || {
+    direction_A: {
+      name: fullRoute || `Маршрут ${routeNumber}`,
+      stops: [
+        {name: "Данные временно недоступны", time: "—"},
+        {name: "Попробуйте позже", time: "—"}
+      ]
+    },
+    vehicles: []
   };
 }
     document.addEventListener('DOMContentLoaded', function() {
@@ -2306,50 +2360,85 @@ function extractRouteNumber(routeString) {
   return '';
 }
 
-/* 2. Функция рендера данных маршрута */
 function renderKgtData(data) {
-  if (!data || !data.directions) return 'Нет данных о маршруте';
+  if (!data) return '<div style="color:#ff6b6b;">Нет данных о маршруте</div>';
   
   let html = '';
   
-  data.directions.forEach((dir, idx) => {
-    html += `<div class="kgt-direction">`;
-    html += `<div class="kgt-dir-title">📍 ${dir.name || `Направление ${idx + 1}`}</div>`;
+  // Проверяем есть ли данные
+  const directions = [];
+  if (data.direction_A) directions.push(data.direction_A);
+  if (data.direction_B) directions.push(data.direction_B);
+  
+  // Старый формат совместимости
+  if (directions.length === 0 && data.directions) {
+    directions.push(...data.directions);
+  }
+  
+  if (directions.length === 0) {
+    return '<div style="color:#ff6b6b;">Нет данных о направлениях маршрута</div>';
+  }
+  
+  directions.forEach((dir, idx) => {
+    const dirLabel = idx === 0 ? 'Прямое направление' : 'Обратное направление';
+    const iconLabel = idx === 0 ? '→' : '←';
+    
+    html += `<div class="kgt-direction" style="margin-bottom: 20px;">`;
+    html += `<div class="kgt-dir-title" style="background: #1a1a1a; padding: 10px; border-radius: 8px; margin-bottom: 10px;">`;
+    html += `<strong style="color: #e21a1a;">${iconLabel}</strong> ${dir.name || dirLabel}`;
+    html += `</div>`;
     
     // Остановки
     const stops = dir.stops || [];
     if (stops.length > 0) {
-      html += `<ul class="kgt-stops">`;
-      stops.forEach(stop => {
-        const name = stop.name || stop.stop_name || 'Остановка';
-        const time = stop.time || stop.arrival_time || 'н/д';
-        html += `<li>`;
-        html += `<div class="kgt-stop-name">${name}</div>`;
-        html += `<div class="kgt-stop-time">${time}</div>`;
+      const maxHeight = stops.length > 10 ? 'max-height: 400px; overflow-y: auto;' : '';
+      html += `<ul class="kgt-stops" style="list-style: none; padding: 0; margin: 0; ${maxHeight}">`;
+      
+      stops.forEach((stop, stopIdx) => {
+        const name = stop.name || 'Остановка';
+        const time = stop.time || '—';
+        
+        const isTerminal = stopIdx === 0 || stopIdx === stops.length - 1;
+        const bgColor = isTerminal ? '#2a2a2a' : '#1d1d1d';
+        const borderColor = isTerminal ? '#e21a1a' : '#262626';
+        
+        html += `<li style="display: flex; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 8px; background: ${bgColor}; border: 1px solid ${borderColor}; margin-bottom: 6px;">`;
+        html += `<div class="kgt-stop-name" style="color: #fff; font-weight: ${isTerminal ? '700' : '600'};">`;
+        
+        if (isTerminal) {
+          html += stopIdx === 0 ? '🚩 ' : '🏁 ';
+        }
+        
+        html += `${name}</div>`;
+        html += `<div class="kgt-stop-time" style="color: #ff6b6b; font-weight: 700;">${time}</div>`;
         html += `</li>`;
       });
       html += `</ul>`;
-    }
-    
-    // Транспортные средства
-    const vehicles = dir.vehicles || [];
-    if (vehicles.length > 0) {
-      html += `<div class="kgt-vehicles">`;
-      html += `<div style="font-weight:700; margin-bottom:6px;">🚌 Транспорт на маршруте:</div>`;
-      vehicles.forEach(vehicle => {
-        const id = vehicle.id || vehicle.vehicle_id || 'н/д';
-        const location = vehicle.location || vehicle.current_stop || 'Неизвестно';
-        const time = vehicle.time || 'сейчас';
-        html += `<div class="kgt-vehicle">`;
-        html += `<div class="v-left">ТС №${id}</div>`;
-        html += `<div class="v-right">${location} (${time})</div>`;
-        html += `</div>`;
-      });
-      html += `</div>`;
+    } else {
+      html += '<div style="color:#aaa; padding: 10px;">Список остановок недоступен</div>';
     }
     
     html += `</div>`;
   });
+  
+  // Транспорт на линии
+  const vehicles = data.vehicles || [];
+  if (vehicles.length > 0) {
+    html += `<div class="kgt-vehicles" style="margin-top: 15px; padding: 12px; background: #151515; border: 1px dashed #333; border-radius: 8px;">`;
+    html += `<div style="font-weight: 700; margin-bottom: 8px; color: #fff;">🚌 Транспорт на линии:</div>`;
+    
+    vehicles.forEach(vehicle => {
+      const id = vehicle.id || vehicle.v || vehicle.title || 'н/д';
+      const location = vehicle.stop || vehicle.location || 'Неизвестно';
+      const time = vehicle.time || 'сейчас';
+      
+      html += `<div style="display: flex; justify-content: space-between; padding: 8px 0;">`;
+      html += `<div style="color: #fff; font-weight: 700;">Автобус ${id}</div>`;
+      html += `<div style="color: #ff8b8b;">${location} • ${time}</div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
   
   return html;
 }
