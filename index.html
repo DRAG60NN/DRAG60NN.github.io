@@ -822,7 +822,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 081 124 890</div>
+        <div>1 081 124 899</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -1675,19 +1675,31 @@ const routesData = {
   ]
 };
 
-/* Служебные элементы */
-const transportMenuOverlay = document.getElementById('transportMenuOverlay');
-const routesButtonsEl       = document.getElementById('routesButtons');
+/* Служебные элементы — лениво получаем DOM-узлы при необходимости */
+function getTransportMenuOverlay() {
+  return document.getElementById('transportMenuOverlay');
+}
+function getRoutesButtonsEl() {
+  return document.getElementById('routesButtons');
+}
 
 /* Открыть / закрыть меню */
 function openTransportMenu() {
+  // рендерим список (задаём вкладку "Автобусы" по-умолчанию)
   renderRouteButtons('buses');
   setActiveTab('buses');
-  transportMenuOverlay.style.display = 'flex';
+
+  const overlay = getTransportMenuOverlay();
+  if (!overlay) {
+    console.warn('openTransportMenu: transportMenuOverlay not found');
+    return;
+  }
+  overlay.style.display = 'flex';
 }
 
 function closeTransportMenu() {
-  transportMenuOverlay.style.display = 'none';
+  const overlay = getTransportMenuOverlay();
+  if (overlay) overlay.style.display = 'none';
 }
 
 /* Переключение вкладки */
@@ -1703,14 +1715,27 @@ function setActiveTab(type) {
   });
 }
 
-/* Рендер кнопок с номерами */
+/* Рендер кнопок с номерами — безопасно и с логированием */
 function renderRouteButtons(type) {
   const list = routesData[type] || [];
-  routesButtonsEl.innerHTML = list.map((r, idx) => {
+  const el = getRoutesButtonsEl();
+  if (!el) {
+    console.warn('renderRouteButtons: routesButtons container not found');
+    return;
+  }
+
+  if (!Array.isArray(list) || list.length === 0) {
+    el.innerHTML = '<div style="padding:12px;color:#aaa">Список маршрутов пуст</div>';
+    return;
+  }
+
+  el.innerHTML = list.map((r, idx) => {
     // data- атрибуты для быстрого выбора
-    return `<button type="button" data-type="${type}" data-index="${idx}" onclick="selectRoute('${type}', ${idx})">${r.number}</button>`;
+    const num = String(r.number ?? '').replace(/</g, '&lt;'); // минимальная защита
+    return `<button type="button" data-type="${type}" data-index="${idx}" onclick="selectRoute('${type}', ${idx})" aria-label="Маршрут ${num}">${num}</button>`;
   }).join('');
 }
+
 
 /* Подстановка значений в поля */
 function selectRoute(type, index) {
