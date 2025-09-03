@@ -687,7 +687,65 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   min-width: 72px;
   text-align: right;
 }
-/* === /LIVE === */
+    /* KGT: стили кнопки и модалки */
+.small-btn {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  background: #2b2b2b;
+  color: #fff;
+  border: 1px solid #444;
+  cursor: pointer;
+  font-weight:700;
+}
+
+.kgt-modal {
+  position: fixed;
+  inset: 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,0.6);
+  z-index: 11000;
+}
+
+.kgt-modal-content {
+  width: 92%;
+  max-width: 760px;
+  max-height: 80vh;
+  overflow:auto;
+  background: #131313;
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid #2b2b2b;
+  color: #eaeaea;
+}
+
+.kgt-modal-close {
+  float:right;
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
+
+#kgtModalTitle { margin: 0 0 8px 0; font-size:16px; font-weight:800; color:#fff;}
+#kgtModalBody { margin-top:8px; }
+
+.kgt-direction { margin-top:12px; }
+.kgt-dir-title { font-weight:700; color:#fff; margin-bottom:6px; }
+.kgt-stops { list-style:none; padding:0; margin:0; }
+.kgt-stops li { display:flex; justify-content:space-between; gap:10px; padding:8px; border-radius:8px; background:#1d1d1d; border:1px solid #262626; margin-bottom:6px; }
+.kgt-stop-name { color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:72%; font-weight:700; }
+.kgt-stop-time { color:#ff6b6b; font-weight:700; min-width:72px; text-align:right; }
+
+.kgt-vehicles { margin-top:10px; padding:8px; background:#151515; border:1px dashed #333; border-radius:8px; color:#ddd; }
+.kgt-vehicle { display:flex; gap:10px; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #222; }
+.kgt-vehicle:last-child { border-bottom: none; }
+.kgt-vehicle .v-left { color:#fff; font-weight:700; }
+.kgt-vehicle .v-right { color:#ff8b8b; min-width:120px; text-align:right; }
+
 
   </style>
 </head>
@@ -714,6 +772,25 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
       <input id="inputPlate" placeholder="Госномер (например: в747рр124)" />
+      <!-- === KGT: контрол & модал для просмотра прибытия === -->
+<div id="kgtControls" style="margin-top:8px;">
+  <button id="kgtViewBtn" class="small-btn" style="display:none;" onclick="openKgtModal()">Посмотреть прибытие автобуса</button>
+</div>
+
+<!-- Модальное окно KGT -->
+<div id="kgtModal" class="kgt-modal" style="display:none;">
+  <div class="kgt-modal-content">
+    <button class="kgt-modal-close" onclick="closeKgtModal()" aria-label="Закрыть">×</button>
+    <h3 id="kgtModalTitle">Онлайн — маршрут <span id="kgtModalRoute">—</span></h3>
+    <div id="kgtModalBody">Загрузка...</div>
+    <div class="kgt-modal-footer">
+      <button id="kgtRefreshBtn" onclick="kgtRefreshNow()">Обновить</button>
+      <span id="kgtModalUpdated" style="margin-left:12px;color:#bbb"></span>
+    </div>
+  </div>
+</div>
+<!-- === /KGT === -->
+
       <div class="transport-toggle">
   <button type="button" class="transport-option active" data-type="bus">Автобус</button>
   <button type="button" class="transport-option" data-type="other">Троллейбус и др.</button>
@@ -822,7 +899,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </g>
 </svg>
 </div>
-        <div>1 081 124 899</div>
+        <div>1 081 124 924</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
   <div class="icon">
@@ -1358,160 +1435,8 @@ plate = (isStandard || isTrolley) ? plate : '';
     document.getElementById('loadingOverlay').style.display = 'none';
   }
 }
-    /* === LIVE: KGT – глобальные переменные и утилиты === */
-const KGT_BASE = 'https://mu-kgt.ru/informing/wap/marsh/';
-let kgtRouteMap = new Map();      // title(normalized) -> id (m)
-let selectedKgtId = null;         // текущий id маршрута для онлайн
-let kgtRefreshTimer = null;       // таймер автообновления онлайн-блока
-let kgtReady = false;             // флаг, что карта маршрутов загружена
-let kgtInitPromise = null;        // чтобы не дергать init многократно
 
-// Нормализация номера маршрута ("40с", "40c", " 40 С " -> "40с")
-function normalizeRouteTitle(s) {
-  return String(s || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '')
-    // латинскую "c" приводим к кириллической "с"
-    .replace(/c/g, 'с');
-}
 
-// Загрузка списка маршрутов KGT -> карта {normalizedTitle -> m}
-async function kgtLoadRouteMap() {
-  const url = `${KGT_BASE}?action=getListRoute`;
-  const txt = await fetch(url, { credentials: 'omit' }).then(r => r.text());
-  let data;
-  try {
-    data = JSON.parse(txt);
-  } catch (e) {
-    console.warn('KGT:getListRoute не JSON', txt);
-    data = null;
-  }
-  const items = Array.isArray(data) ? data : (data?.data || data?.routes || []);
-  kgtRouteMap.clear();
-  for (const it of items) {
-    const title = normalizeRouteTitle(it?.title || it?.marsh_title || it?.route_title || it?.m || '');
-    const id = String(it?.m || it?.id || it?.marsh_id || it?.route_id || '').trim();
-    if (title && id) kgtRouteMap.set(title, id);
-  }
-  kgtReady = true;
-}
-
-function kgtEnsureReady() {
-  if (kgtReady) return Promise.resolve();
-  if (!kgtInitPromise) kgtInitPromise = kgtLoadRouteMap();
-  return kgtInitPromise;
-}
-
-// Находим id маршрута по его «кнопочному» номеру из твоего меню
-function kgtFindIdByNumber(num) {
-  if (!num) return null;
-  const key = normalizeRouteTitle(num);
-  let id = kgtRouteMap.get(key);
-  if (!id) {
-    // пробуем альтернативу: заменить кириллическую "с" на латинскую и наоборот
-    const alt = key.replace(/с/g, 'c');
-    id = kgtRouteMap.get(alt) || null;
-  }
-  return id || null;
-}
-/* === /LIVE === */
-
-    /* === LIVE: загрузка и отрисовка онлайн-данных по маршруту === */
-async function kgtFetchMarshData(mId) {
-  const url = `${KGT_BASE}?m=${encodeURIComponent(mId)}&action=getMarshData`;
-  const txt = await fetch(url, { credentials: 'omit' }).then(r => r.text());
-  try {
-    return JSON.parse(txt);
-  } catch (e) {
-    console.warn('KGT:getMarshData не JSON', txt);
-    return null;
-  }
-}
-
-function renderKgt(data) {
-  const box = document.getElementById('liveBox');
-  const titleEl = document.getElementById('liveRouteTitle');
-  const updEl = document.getElementById('liveForecast');
-  const dirsWrap = document.getElementById('liveDirections');
-
-  if (!data) {
-    box.style.display = 'none';
-    return;
-  }
-
-  titleEl.textContent = data.marsh_title || (selectedKgtId ?? '—');
-  updEl.textContent = data.forecast || '—';
-  dirsWrap.innerHTML = '';
-
-  // Встречаются структуры с directions: { A: {...}, B: {...} }
-  if (data.directions) {
-    ['A', 'B'].forEach(dirKey => {
-      const dir = data.directions[dirKey];
-      if (!dir) return;
-
-      // Заголовок направления
-      const dirBox = document.createElement('div');
-      dirBox.className = 'live-direction';
-
-      const cap = document.createElement('div');
-      cap.className = 'dir-caption';
-      if (dir.first && dir.last) {
-        cap.textContent = `${dir.first} → ${dir.last}`;
-      } else {
-        cap.textContent = (dir.title || `Направление ${dirKey}`);
-      }
-      dirBox.appendChild(cap);
-
-      // Ищем массив остановок в самых типичных полях
-      const stops = dir.stations || dir.stops || dir.items || [];
-      if (Array.isArray(stops) && stops.length) {
-        const ul = document.createElement('ul');
-        ul.className = 'live-stops';
-        stops.forEach(s => {
-          const li = document.createElement('li');
-          const name = s.title || s.name || s.stop || '—';
-          const time =
-            s.time ||
-            s.arrival ||
-            s.forecast_time ||
-            s.forecast ||
-            s.next ||
-            '—';
-          li.innerHTML =
-            `<span class="stop-name">${name}</span>` +
-            `<span class="stop-time">${time}</span>`;
-          ul.appendChild(li);
-        });
-        dirBox.appendChild(ul);
-      }
-
-      dirsWrap.appendChild(dirBox);
-    });
-  }
-
-  box.style.display = 'block';
-}
-
-async function refreshKgtLiveOnce() {
-  if (!selectedKgtId) return;
-  const data = await kgtFetchMarshData(selectedKgtId);
-  renderKgt(data);
-}
-
-function startKgtLive() {
-  stopKgtLive();
-  refreshKgtLiveOnce();                 // сразу показали
-  kgtRefreshTimer = setInterval(refreshKgtLiveOnce, 15000); // автообновление каждые 15с
-}
-
-function stopKgtLive() {
-  if (kgtRefreshTimer) clearInterval(kgtRefreshTimer);
-  kgtRefreshTimer = null;
-}
-/* === /LIVE === */
-
-  
     async function addToken() {
   const token = document.getElementById('newTokenInput').value.trim();
   if (!token) return alert('Введите токен');
@@ -1737,66 +1662,35 @@ function renderRouteButtons(type) {
 }
 
 
-/* Подстановка значений в поля */
-function selectRoute(type, index) {
-  const item = (routesData[type] || [])[index];
-  if (!item) return;
-
-  const carrierInput = document.getElementById('inputCarrier');
-  const routeInput   = document.getElementById('inputRoute');
-
-  carrierInput.value = item.carrier;
-  routeInput.value   = item.route;
-
-  // Подсветка валидности, если у тебя уже есть функция highlightField
-  if (typeof highlightField === 'function') {
-    highlightField('inputCarrier', carrierInput.value.length >= 4);
-    highlightField('inputRoute', routeInput.value.includes(' - '));
-  }
-
-  closeTransportMenu();
-}
-  // Переключение вручную
-
 // Автоподстановка и блокировка при выборе маршрута
 function selectRoute(type, index) {
   let selectedRoute;
   switch(type) {
-    case 'buses': selectedRoute = routesData.buses[index]; break;
+    case 'buses':        selectedRoute = routesData.buses[index]; break;
     case 'trolleybuses': selectedRoute = routesData.trolleybuses[index]; break;
-    case 'trams': selectedRoute = routesData.trams[index]; break;
-    case 'eBuses': selectedRoute = routesData.eBuses[index]; break;
+    case 'trams':        selectedRoute = routesData.trams[index]; break;
+    case 'eBuses':       selectedRoute = routesData.eBuses[index]; break;
   }
-  // === LIVE: привязка выбранного маршрута к KGT ===
-kgtEnsureReady().then(() => {
-  // предполагаю, что у твоего selectedRoute есть поле с «номером» (который показывается на кнопке)
-  // если оно у тебя называется иначе – подставь верное (например, selectedRoute.num или selectedRoute.title)
-  const guessNum = selectedRoute?.num || selectedRoute?.title || selectedRoute?.id || '';
-  const kgtId = kgtFindIdByNumber(guessNum);
-  selectedKgtId = kgtId;
-
-  if (kgtId) {
-    startKgtLive();     // включаем онлайн-обновления
-  } else {
-    stopKgtLive();      // на всякий случай, если не нашли id
-  }
-});
-
 
   if (selectedRoute) {
     document.getElementById('inputCarrier').value = selectedRoute.carrier;
-    document.getElementById('inputRoute').value = selectedRoute.route;
+    document.getElementById('inputRoute').value   = selectedRoute.route;
 
-    // Автоустановка типа
+    // Автоустановка типа транспорта
     if (type === 'buses') {
       setTransportType('bus');
     } else {
       setTransportType('other');
     }
+
+    // === LIVE: привязка выбранного маршрута к KGT ===
+    const guessNum = selectedRoute?.num || selectedRoute?.title || selectedRoute?.route || '';
+    __kgtSetupForNumber(guessNum); 
   }
 
   closeTransportMenu();
 }
+
     // Переключение вручную
 document.querySelectorAll('.transport-option').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1866,6 +1760,238 @@ function setTransportType(type){
   });
   document.getElementById('transportType').value = type;
 }
+    /* === KGT: интеграция mu-kgt.ru === */
+const KGT_BASE = 'https://mu-kgt.ru/informing/wap/marsh/';
+let __kgtRouteMap = new Map();   // normalized number => m id
+let __kgtReady = false;
+let __kgtInitPromise = null;
+let selectedKgtId = null;
+let __kgtModalTimer = null;
+
+// нормализация номера: trim, toLower, заменяем латинскую c на кириллическую с и убираем пробелы
+function __kgtNormalize(s) {
+  return String(s||'').trim().toLowerCase().replace(/\s+/g,'').replace(/c/g,'с');
+}
+
+// загрузка списка маршрутов KGT (getListRoute)
+async function __kgtLoadRouteMap() {
+  if (__kgtReady) return;
+  if (__kgtInitPromise) return __kgtInitPromise;
+  __kgtInitPromise = (async () => {
+    try {
+      const url = `${KGT_BASE}?action=getListRoute`;
+      const txt = await fetch(url, { credentials: 'omit' }).then(r => r.text());
+      let data;
+      try { data = JSON.parse(txt); } catch(e) { console.warn('KGT getListRoute parse fail', txt); data = null; }
+      // data may be array or object with array at data.routes / .list
+      let items = [];
+      if (Array.isArray(data)) items = data;
+      else if (Array.isArray(data?.data)) items = data.data;
+      else if (Array.isArray(data?.routes)) items = data.routes;
+      else if (Array.isArray(data?.list)) items = data.list;
+      else if (data && typeof data === 'object') {
+        // try to extract objects with marsh_title or m
+        for (const k in data) {
+          if (Array.isArray(data[k])) {
+            items = items.concat(data[k]);
+          }
+        }
+      }
+      __kgtRouteMap.clear();
+      items.forEach(it => {
+        const title = __kgtNormalize(it?.marsh_title || it?.title || it?.route_title || it?.number || '');
+        const id = String(it?.m || it?.id || it?.marsh_id || it?.route_id || '').trim();
+        if (title && id) __kgtRouteMap.set(title, id);
+      });
+      __kgtReady = true;
+      console.log('KGT route map loaded, items:', __kgtRouteMap.size);
+    } catch (err) {
+      console.error('KGT load error', err);
+      __kgtReady = false;
+    }
+  })();
+  return __kgtInitPromise;
+}
+
+function __kgtFindIdByNumber(num) {
+  if (!num) return null;
+  const key = __kgtNormalize(num);
+  if (__kgtRouteMap.has(key)) return __kgtRouteMap.get(key);
+  // try alternative replacing с->c and vice versa
+  const alt = key.replace(/с/g,'c');
+  if (__kgtRouteMap.has(alt)) return __kgtRouteMap.get(alt);
+  return null;
+}
+
+/* показать/скрыть кнопку просмотра KGT */
+function __kgtShowButton(show) {
+  const btn = document.getElementById('kgtViewBtn');
+  if (!btn) return;
+  btn.style.display = show ? 'inline-block' : 'none';
+}
+
+/* Вызывается, когда пользователь в UI выбрал маршрут (или мы можем вызывать из selectRoute) */
+async function __kgtSetupForNumber(num) {
+  if (!num) {
+    selectedKgtId = null;
+    __kgtShowButton(false);
+    return;
+  }
+  await __kgtLoadRouteMap();
+  const id = __kgtFindIdByNumber(num);
+  if (id) {
+    selectedKgtId = id;
+    __kgtShowButton(true);
+    console.log('KGT: found id', id, 'for', num);
+  } else {
+    selectedKgtId = null;
+    __kgtShowButton(false);
+    console.log('KGT: no id found for', num);
+  }
+}
+
+/* Получить данные маршрута по id (m) */
+async function __kgtFetchMarshData(m) {
+  if (!m) return null;
+  try {
+    const url = `${KGT_BASE}?m=${encodeURIComponent(m)}&action=getMarshData`;
+    const txt = await fetch(url, { credentials: 'omit' }).then(r => r.text());
+    try { return JSON.parse(txt); } catch (e) { console.warn('KGT marsh parse fail', txt.slice(0,200)); return null; }
+  } catch (err) {
+    console.error('KGT fetch error', err);
+    return null;
+  }
+}
+
+/* Открытие модалки — показывает и запускает автообновление */
+async function openKgtModal() {
+  if (!selectedKgtId) {
+    alert('Не найден ID маршрута на сервере KGT.');
+    return;
+  }
+  const modal = document.getElementById('kgtModal');
+  const title = document.getElementById('kgtModalRoute');
+  title.textContent = document.getElementById('inputRoute')?.value || selectedKgtId;
+  modal.style.display = 'flex';
+
+  await __kgtRefreshModal();
+  if (__kgtModalTimer) clearInterval(__kgtModalTimer);
+  __kgtModalTimer = setInterval(__kgtRefreshModal, 15000);
+}
+
+function closeKgtModal() {
+  const modal = document.getElementById('kgtModal');
+  if (modal) modal.style.display = 'none';
+  if (__kgtModalTimer) {
+    clearInterval(__kgtModalTimer);
+    __kgtModalTimer = null;
+  }
+}
+
+/* ручной триггер */
+function kgtRefreshNow() {
+  __kgtRefreshModal();
+}
+
+/* обновление содержимого модалки */
+async function __kgtRefreshModal() {
+  const body = document.getElementById('kgtModalBody');
+  const updated = document.getElementById('kgtModalUpdated');
+  if (!selectedKgtId) {
+    body.innerHTML = 'ID маршрута не установлен';
+    return;
+  }
+  body.innerHTML = 'Загрузка...';
+  const data = await __kgtFetchMarshData(selectedKgtId);
+  if (!data) {
+    body.innerHTML = '<div style="color:#f88">Ошибка загрузки данных</div>';
+    updated.textContent = '';
+    return;
+  }
+
+  // отрисовка
+  const sb = [];
+  // directions A/B
+  if (data.directions) {
+    ['A','B'].forEach(dirKey => {
+      const dir = data.directions[dirKey];
+      if (!dir) return;
+      sb.push(`<div class="kgt-direction">`);
+      sb.push(`<div class="kgt-dir-title">${(dir.first||dir.title||'Направление '+dirKey)} → ${(dir.last||'—')}</div>`);
+
+      // остановки — ищем массив в нескольких вариантах
+      const stops = dir.stations || dir.stops || dir.items || dir.list || [];
+      if (Array.isArray(stops) && stops.length>0) {
+        sb.push('<ul class="kgt-stops">');
+        stops.forEach(s => {
+          const name = s.title || s.name || s.stop || s.station || '—';
+          const time = s.time || s.arrival || s.forecast || s.forecast_time || s.next || '—';
+          sb.push(`<li><span class="kgt-stop-name">${escapeHtml(name)}</span><span class="kgt-stop-time">${escapeHtml(String(time))}</span></li>`);
+        });
+        sb.push('</ul>');
+      } else {
+        sb.push('<div style="color:#aaa">Остановки не найдены в данных</div>');
+      }
+      sb.push('</div>');
+    });
+  } else {
+    // попытка найти stops в корне
+    const stops = data.stations || data.stops || data.items || [];
+    if (Array.isArray(stops) && stops.length) {
+      sb.push('<div class="kgt-direction"><div class="kgt-dir-title">Остановки</div><ul class="kgt-stops">');
+      stops.forEach(s => {
+        const name = s.title || s.name || s.stop || '—';
+        const time = s.time || s.arrival || s.forecast || s.next || '—';
+        sb.push(`<li><span class="kgt-stop-name">${escapeHtml(name)}</span><span class="kgt-stop-time">${escapeHtml(String(time))}</span></li>`);
+      });
+      sb.push('</ul></div>');
+    } else {
+      sb.push('<div style="color:#aaa">Направления/остановки не найдены</div>');
+    }
+  }
+
+  // Поищем список ТС (vehicles)
+  let vehicles = data.transport || data.transport_list || data.vehicles || data.ts || data.transport_on_route || [];
+  // если vehicles пуст, попробуем найти массив объектов с ключами 'num' или 'ts_guid' – грубый рекурсивный поиск первого подходящего массива
+  if ((!vehicles || vehicles.length===0) && typeof data === 'object') {
+    vehicles = findFirstArrayWithObjects(data) || [];
+  }
+
+  if (Array.isArray(vehicles) && vehicles.length>0) {
+    sb.push('<div class="kgt-vehicles"><div style="font-weight:700;margin-bottom:6px">Автобусы на линии</div>');
+    vehicles.forEach(v=>{
+      const left = (v.number||v.title||v.v || v.name || v.id) ;
+      // попытаемся взять целевую остановку или ближайшую
+      const right = v.stop || v.stop_title || v.next_stop || v.to_stop || v.arrival || v.next || v.target || '—';
+      sb.push(`<div class="kgt-vehicle"><div class="v-left">${escapeHtml(String(left||'—'))}</div><div class="v-right">${escapeHtml(String(right))}</div></div>`);
+    });
+    sb.push('</div>');
+  }
+
+  body.innerHTML = sb.join('');
+  updated.textContent = 'обновлено ' + (data.forecast||new Date().toLocaleTimeString());
+}
+
+/* утилиты: найти первый массив объектов в структуре (глубокий обход, ограничение) */
+function findFirstArrayWithObjects(obj, depth=0) {
+  if (!obj || depth>6) return null;
+  if (Array.isArray(obj) && obj.length>0 && typeof obj[0] === 'object') return obj;
+  if (typeof obj !== 'object') return null;
+  for (const k in obj) {
+    try {
+      const res = findFirstArrayWithObjects(obj[k], depth+1);
+      if (res) return res;
+    } catch(e){}
+  }
+  return null;
+}
+
+/* простая HTML-escape */
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+}
+
+/* конец блока KGT */
 
   </script>
   
