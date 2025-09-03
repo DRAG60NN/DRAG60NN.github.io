@@ -2055,42 +2055,116 @@ if (originalSelectRoute) {
   };
 }
 
-// === НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ С САЙТА ===
+// === ИСПРАВЛЕННАЯ ФУНКЦИЯ С CORS ПРОКСИ ===
 async function getMockKgtData(routeNumber, fullRoute) {
   try {
-    // Пытаемся получить данные с mu-kgt.ru
-    const url = `https://mu-kgt.ru/informing/wap/marsh/?m=${routeNumber}&action=getMarshData`;
-    console.log('Загружаем данные маршрута с:', url);
+    // Используем публичный CORS прокси для обхода ограничений
+    const CORS_PROXY = 'https://corsproxy.io/?';
+    const BASE_URL = 'https://mu-kgt.ru/informing/wap/marsh/';
     
-    const response = await fetch(url, {
-      method: 'GET',
-      mode: 'no-cors' // Обходим CORS
-    });
+    console.log(`Загружаем данные маршрута ${routeNumber}...`);
     
-    // Если получили ответ - пробуем распарсить
-    if (response.ok) {
-      const data = await response.json();
-      console.log('Получены данные с сайта:', data);
-      
-      // Преобразуем данные в нужный формат
-      if (data && data.stations) {
-        return {
-          direction_A: {
-            name: fullRoute || `Маршрут ${routeNumber}`,
-            stops: data.stations.map(station => ({
-              name: station.title || station.name,
-              time: station.forecast || station.time || "расчёт..."
-            }))
-          },
-          vehicles: data.transport || []
-        };
+    // Сначала получаем список всех маршрутов чтобы найти ID
+    const listUrl = `${CORS_PROXY}${encodeURIComponent(BASE_URL + '?action=getListRoute')}`;
+    const listResponse = await fetch(listUrl);
+    
+    if (!listResponse.ok) {
+      throw new Error('Не удалось получить список маршрутов');
+    }
+    
+    const routesList = await listResponse.json();
+    console.log('Список маршрутов получен:', routesList);
+    
+    // Ищем ID маршрута по номеру
+    let routeId = null;
+    if (Array.isArray(routesList)) {
+      const route = routesList.find(r => 
+        r.marsh_title === routeNumber || 
+        r.title === routeNumber ||
+        r.marsh_title === `${routeNumber}а` ||
+        r.marsh_title === `${routeNumber}с`
+      );
+      if (route) {
+        routeId = route.m || route.marsh_id;
       }
     }
+    
+    if (!routeId) {
+      console.log(`ID для маршрута ${routeNumber} не найден, используем номер как ID`);
+      routeId = routeNumber;
+    }
+    
+    // Теперь получаем данные конкретного маршрута
+    const dataUrl = `${CORS_PROXY}${encodeURIComponent(BASE_URL + '?m=' + routeId + '&action=getMarshData')}`;
+    console.log('Запрашиваем данные маршрута:', dataUrl);
+    
+    const dataResponse = await fetch(dataUrl);
+    
+    if (!dataResponse.ok) {
+      throw new Error('Не удалось получить данные маршрута');
+    }
+    
+    const routeData = await dataResponse.json();
+    console.log('Данные маршрута получены:', routeData);
+    
+    // Преобразуем данные в нужный формат
+    if (routeData) {
+      const result = {
+        direction_A: null,
+        direction_B: null,
+        vehicles: []
+      };
+      
+      // Обрабатываем направления
+      if (routeData.A) {
+        result.direction_A = {
+          name: `${routeData.A.first || 'Начальная'} → ${routeData.A.last || 'Конечная'}`,
+          stops: []
+        };
+        
+        // Добавляем остановки направления A
+        if (routeData.A.stations && Array.isArray(routeData.A.stations)) {
+          result.direction_A.stops = routeData.A.stations.map(station => ({
+            name: station.title || station.name || 'Остановка',
+            time: station.forecast || station.arival || '—'
+          }));
+        }
+      }
+      
+      if (routeData.B) {
+        result.direction_B = {
+          name: `${routeData.B.first || 'Начальная'} → ${routeData.B.last || 'Конечная'}`,
+          stops: []
+        };
+        
+        // Добавляем остановки направления B
+        if (routeData.B.stations && Array.isArray(routeData.B.stations)) {
+          result.direction_B.stops = routeData.B.stations.map(station => ({
+            name: station.title || station.name || 'Остановка',
+            time: station.forecast || station.arival || '—'
+          }));
+        }
+      }
+      
+      // Добавляем информацию о транспорте на линии
+      if (routeData.ts && Array.isArray(routeData.ts)) {
+        result.vehicles = routeData.ts.map(vehicle => ({
+          id: vehicle.v || vehicle.title || vehicle.num || 'н/д',
+          location: vehicle.stop || vehicle.station || 'в пути',
+          time: vehicle.arival || 'расчёт...'
+        }));
+      }
+      
+      console.log('Обработанные данные:', result);
+      return result;
+    }
+    
   } catch (error) {
-    console.log('Не удалось загрузить с сайта, используем локальные данные:', error);
+    console.error('Ошибка при загрузке данных с сайта:', error);
+    console.log('Используем локальные данные как резерв');
   }
   
-  // РЕЗЕРВНЫЕ ДАННЫЕ (если сайт недоступен)
+  // === РЕЗЕРВНЫЕ ЛОКАЛЬНЫЕ ДАННЫЕ (если сайт недоступен) ===
   const localRoutes = {
     '11': {
       direction_A: {
@@ -2117,46 +2191,40 @@ async function getMockKgtData(routeNumber, fullRoute) {
           {name: "Молодежная", time: "20 мин"}
         ]
       },
-      vehicles: []
-    },
-    '5': {
-      direction_A: {
-        name: "Спорткомплекс «Радуга» → ОАО «Красфарма»",
+      direction_B: {
+        name: "Молодежная → 3-я Дальневосточная", 
         stops: [
-          {name: "Спорткомплекс «Радуга»", time: "0 мин"},
-          {name: "ул. Чайковского", time: "2 мин"},
-          {name: "ул. Свердловская", time: "3 мин"},
-          {name: "ул. Копылова", time: "4 мин"},
-          {name: "Автопарк", time: "5 мин"},
-          {name: "Дом Советов", time: "6 мин"},
-          {name: "Дубровинского", time: "7 мин"},
-          {name: "ул. Маерчака", time: "8 мин"},
-          {name: "Дом быта", time: "9 мин"},
-          {name: "ул. Горького", time: "10 мин"},
-          {name: "Театр Пушкина", time: "11 мин"},
-          {name: "Филармония", time: "12 мин"},
-          {name: "пл. Революции", time: "13 мин"},
-          {name: "КИЦ", time: "14 мин"},
-          {name: "ул. Сурикова", time: "15 мин"},
-          {name: "Цирк", time: "16 мин"},
-          {name: "Поликлиника", time: "17 мин"},
-          {name: "ул. Профсоюзов", time: "18 мин"},
-          {name: "ул. Кирова", time: "19 мин"},
-          {name: "Краевая больница", time: "20 мин"},
-          {name: "ОАО «Красфарма»", time: "22 мин"}
+          {name: "Молодежная", time: "0 мин"},
+          {name: "Театр оперы и балета", time: "2 мин"},
+          {name: "ул. Ленина", time: "3 мин"},
+          {name: "Главпочтамт", time: "4 мин"},
+          {name: "ул. Сурикова", time: "5 мин"},
+          {name: "КИЦ", time: "6 мин"},
+          {name: "пл. Революции", time: "7 мин"},
+          {name: "Филармония", time: "8 мин"},
+          {name: "Театр Пушкина", time: "9 мин"},
+          {name: "Музыкальный театр", time: "10 мин"},
+          {name: "Дом быта (Мемориал)", time: "11 мин"},
+          {name: "ул. Маерчака", time: "12 мин"},
+          {name: "Дубровинского", time: "13 мин"},
+          {name: "Дом Советов", time: "14 мин"},
+          {name: "Свердловская", time: "15 мин"},
+          {name: "2-я Хабаровская", time: "16 мин"},
+          {name: "1-я Хабаровская", time: "17 мин"},
+          {name: "Солнечная", time: "18 мин"},
+          {name: "3-я Дальневосточная", time: "20 мин"}
         ]
       },
       vehicles: []
     }
   };
   
-  // Возвращаем локальные данные или пустой маршрут
   return localRoutes[routeNumber] || {
     direction_A: {
       name: fullRoute || `Маршрут ${routeNumber}`,
       stops: [
-        {name: "Данные временно недоступны", time: "—"},
-        {name: "Попробуйте позже", time: "—"}
+        {name: "Не удалось загрузить остановки", time: "—"},
+        {name: "Проверьте подключение к интернету", time: "—"}
       ]
     },
     vehicles: []
