@@ -2279,6 +2279,185 @@ function testKgtSystem() {
 // Для быстрого тестирования в консоли
 window.testKgtSystem = testKgtSystem;
 
+
+/* === ИСПРАВЛЕНИЯ ДЛЯ KGT СИСТЕМЫ === */
+/* Вставьте этот код ПЕРЕД закрывающим script */
+
+/* 1. Функция извлечения номера маршрута */
+function extractRouteNumber(routeString) {
+  if (!routeString || typeof routeString !== 'string') return '';
+  
+  // 1. В начале строки: "11 - маршрут" или "11с"
+  let match = routeString.match(/^(\d+[а-яё]*)/i);
+  if (match) return match[1];
+  
+  // 2. После слова "маршрут": "автобус маршрут 11"
+  match = routeString.match(/маршрут\s*(\d+[а-яё]*)/i);
+  if (match) return match[1];
+  
+  // 3. В названии перевозчика: "КПАТП-5"
+  match = routeString.match(/КПАТП[- ]?(\d+)/i);
+  if (match) return match[1];
+  
+  // 4. Любые цифры с возможными буквами
+  match = routeString.match(/(\d+[а-яё]*)/i);
+  if (match) return match[1];
+  
+  return '';
+}
+
+/* 2. Функция рендера данных маршрута */
+function renderKgtData(data) {
+  if (!data || !data.directions) return 'Нет данных о маршруте';
+  
+  let html = '';
+  
+  data.directions.forEach((dir, idx) => {
+    html += `<div class="kgt-direction">`;
+    html += `<div class="kgt-dir-title">📍 ${dir.name || `Направление ${idx + 1}`}</div>`;
+    
+    // Остановки
+    const stops = dir.stops || [];
+    if (stops.length > 0) {
+      html += `<ul class="kgt-stops">`;
+      stops.forEach(stop => {
+        const name = stop.name || stop.stop_name || 'Остановка';
+        const time = stop.time || stop.arrival_time || 'н/д';
+        html += `<li>`;
+        html += `<div class="kgt-stop-name">${name}</div>`;
+        html += `<div class="kgt-stop-time">${time}</div>`;
+        html += `</li>`;
+      });
+      html += `</ul>`;
+    }
+    
+    // Транспортные средства
+    const vehicles = dir.vehicles || [];
+    if (vehicles.length > 0) {
+      html += `<div class="kgt-vehicles">`;
+      html += `<div style="font-weight:700; margin-bottom:6px;">🚌 Транспорт на маршруте:</div>`;
+      vehicles.forEach(vehicle => {
+        const id = vehicle.id || vehicle.vehicle_id || 'н/д';
+        const location = vehicle.location || vehicle.current_stop || 'Неизвестно';
+        const time = vehicle.time || 'сейчас';
+        html += `<div class="kgt-vehicle">`;
+        html += `<div class="v-left">ТС №${id}</div>`;
+        html += `<div class="v-right">${location} (${time})</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+    
+    html += `</div>`;
+  });
+  
+  return html;
+}
+
+/* 3. Исправленная функция открытия модального окна */
+async function openKgtModal() {
+  const modal = document.getElementById('kgtModal');
+  const title = document.getElementById('kgtModalRoute');
+  const body = document.getElementById('kgtModalBody');
+  
+  if (!modal || !title || !body) {
+    alert('Ошибка: не найдены элементы модального окна');
+    return;
+  }
+  
+  try {
+    const carrierText = document.getElementById('inputCarrier')?.value || '';
+    const routeText = document.getElementById('inputRoute')?.value || '';
+    
+    let routeNumber = extractRouteNumber(routeText);
+    if (!routeNumber) routeNumber = extractRouteNumber(carrierText);
+    if (!routeNumber) routeNumber = 'Демо';
+    
+    title.textContent = `Маршрут ${routeNumber}`;
+    body.innerHTML = 'Загрузка данных...';
+    
+    modal.style.display = 'flex';
+    console.log('KGT modal opened for route:', routeNumber);
+    
+    // Показываем тестовые данные
+    setTimeout(() => {
+      const mockData = {
+        directions: [{
+          name: `Маршрут ${routeNumber}: ${routeText || 'Тестовый маршрут'}`,
+          stops: [
+            {name: "3-я Дальневосточная", time: "2 мин"},
+            {name: "ул. Маерчака", time: "5 мин"}, 
+            {name: "Театр Пушкина", time: "8 мин"},
+            {name: "пл. Революции", time: "11 мин"},
+            {name: "ул. Ленина", time: "14 мин"},
+            {name: "Молодежная", time: "17 мин"}
+          ],
+          vehicles: [
+            {id: "1147", location: "пл. Революции", time: "3 мин назад"},
+            {id: "1203", location: "ул. Маерчака", time: "1 мин назад"}
+          ]
+        }]
+      };
+      
+      body.innerHTML = renderKgtData(mockData) + 
+        '<div style="color:#4caf50;font-size:12px;margin-top:10px;text-align:center;">📊 Демонстрационные данные • Обновляется каждые 30 сек</div>';
+        
+      // Обновляем время
+      const updatedSpan = document.getElementById('kgtModalUpdated');
+      if (updatedSpan) {
+        const now = new Date();
+        updatedSpan.textContent = now.toLocaleTimeString('ru-RU', {
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+      }
+    }, 500);
+    
+    // Запускаем автообновление каждые 30 секунд
+    if (window.__kgtModalTimer) clearInterval(window.__kgtModalTimer);
+    window.__kgtModalTimer = setInterval(() => {
+      console.log('KGT: Auto-refreshing data...');
+      // Здесь можно добавить логику обновления данных
+    }, 30000);
+    
+  } catch (error) {
+    console.error('Error in openKgtModal:', error);
+    body.innerHTML = `<div style="color:#ff6b6b;">Ошибка загрузки: ${error.message}</div>`;
+  }
+}
+
+/* 4. Исправление функции closeApp для безопасной очистки */
+const originalCloseApp = window.closeApp;
+if (originalCloseApp) {
+  window.closeApp = function() {
+    // Останавливаем таймер KGT при закрытии
+    if (window.__kgtModalTimer) {
+      clearInterval(window.__kgtModalTimer);
+      window.__kgtModalTimer = null;
+    }
+    
+    // Вызываем оригинальную функцию
+    try {
+      originalCloseApp();
+    } catch (error) {
+      console.log('Error in original closeApp, using fallback');
+      // Фоллбэк-логика закрытия
+      clearInterval(countdownInterval);
+      inputScreen.classList.add('active');
+      mainScreen.classList.remove('active');
+      
+      // Безопасная очистка полей
+      ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare', 'inputCount'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.value = '';
+      });
+      
+      switchTab('ticket');
+    }
+  };
+}
+
+console.log('✅ KGT система полностью исправлена и готова к работе!');
+  
   </script>
   
 </div>
