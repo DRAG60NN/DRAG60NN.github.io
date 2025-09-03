@@ -1155,20 +1155,27 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
 
 
 
-    // Функция "Закрыть" - просто сбрасывает к экрану ввода
-    function closeApp() {
-      clearInterval(countdownInterval);
-      inputScreen.classList.add('active');
-      mainScreen.classList.remove('active');
+function closeApp() {
+  clearInterval(countdownInterval);
+  inputScreen.classList.add('active');
+  mainScreen.classList.remove('active');
 
-      // Очищаем инпуты
-      ['inputCarrier','inputRoute','inputPlate','inputFare','inputCount'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-
-      // Сброс вкладок к первой
-      switchTab('ticket');
+  // Безопасная очистка инпутов - проверяем существование элементов
+  const inputIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare', 'inputCount'];
+  inputIds.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {  // ← ДОБАВИЛИ ПРОВЕРКУ
+      element.value = '';
     }
+  });
+
+  // Сброс вкладок к первой
+  switchTab('ticket');
+  
+  // Скрыть KGT кнопку при закрытии
+  __kgtShowButton(false);
+  selectedKgtId = null;
+}
 
     // Инициализация: отображаем вкладку "1 070 004 271" и активируем кнопку "ЗАКРЫТЬ"
     switchTab('ticket');
@@ -1865,18 +1872,33 @@ async function __kgtFetchMarshData(m) {
 
 /* Открытие модалки — показывает и запускает автообновление */
 async function openKgtModal() {
-  if (!selectedKgtId) {
-    alert('Не найден ID маршрута на сервере KGT.');
-    return;
-  }
   const modal = document.getElementById('kgtModal');
   const title = document.getElementById('kgtModalRoute');
-  title.textContent = document.getElementById('inputRoute')?.value || selectedKgtId;
+  const body = document.getElementById('kgtModalBody');
+  
+  if (!modal || !title || !body) {
+    console.error('KGT modal elements not found');
+    alert('Ошибка: не найдены элементы модального окна');
+    return;
+  }
+  
+  // Находим номер маршрута для отображения
+  const carrierText = document.getElementById('inputCarrier').value || '';
+  const routeText = document.getElementById('inputRoute').value || '';
+  const routeNumber = extractRouteNumber(routeText) || extractRouteNumber(carrierText) || 'Неизвестный';
+  
+  title.textContent = `Маршрут ${routeNumber}`;
+  body.innerHTML = 'Загрузка данных...';
+  
   modal.style.display = 'flex';
-
-  await __kgtRefreshModal();
+  console.log('KGT modal opened for route:', routeNumber);
+  
+  // Сразу загружаем тестовые данные
+  await kgtRefreshNow();
+  
+  // Запускаем автообновление каждые 30 секунд
   if (__kgtModalTimer) clearInterval(__kgtModalTimer);
-  __kgtModalTimer = setInterval(__kgtRefreshModal, 15000);
+  __kgtModalTimer = setInterval(kgtRefreshNow, 15000);
 }
 
 function closeKgtModal() {
@@ -1889,8 +1911,33 @@ function closeKgtModal() {
 }
 
 /* ручной триггер */
-function kgtRefreshNow() {
-  __kgtRefreshModal();
+async function kgtRefreshNow() {
+  const body = document.getElementById('kgtModalBody');
+  const updatedSpan = document.getElementById('kgtModalUpdated');
+  
+  if (!body) {
+    console.error('KGT modal body not found');
+    return;
+  }
+  
+  // ВСЕГДА показываем тестовые данные (пока CORS не решён)
+  const routeText = document.getElementById('inputRoute').value || 'Тестовый маршрут';
+  const carrierText = document.getElementById('inputCarrier').value || 'КПАТП-5';
+  const routeNumber = extractRouteNumber(routeText) || extractRouteNumber(carrierText) || '11';
+  
+  console.log('KGT: Showing mock data for route', routeNumber);
+  
+  const mockData = getMockKgtData(routeNumber, routeText);
+  body.innerHTML = renderKgtData(mockData) + 
+    '<div style="color:#ffa726;font-size:12px;margin-top:10px;">📊 Демонстрационные данные</div>';
+  
+  // Обновляем время
+  const now = new Date();
+  if (updatedSpan) {
+    updatedSpan.textContent = now.toLocaleTimeString('ru-RU', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  }
 }
 
 /* обновление содержимого модалки */
@@ -1993,6 +2040,88 @@ function escapeHtml(s) {
 
 /* конец блока KGT */
 
+    const originalSelectRoute = window.selectRoute;
+if (originalSelectRoute) {
+  window.selectRoute = function(type, index) {
+    // Вызываем оригинальную функцию
+    originalSelectRoute(type, index);
+    
+    // Показываем кнопку KGT после выбора любого маршрута
+    setTimeout(() => {
+      __kgtShowButton(true);
+      selectedKgtId = 'demo'; // устанавливаем demo ID
+      console.log('KGT button activated for route selection');
+    }, 100);
+  };
+}
+
+    function getMockKgtData(routeNumber, fullRoute) {
+  // Более реалистичные данные для разных маршрутов
+  const routeConfigs = {
+    '11': {
+      stops: [
+        {name: "3-я Дальневосточная", time: "2 мин"},
+        {name: "ул. Маерчака", time: "5 мин"}, 
+        {name: "Театр Пушкина", time: "8 мин"},
+        {name: "пл. Революции", time: "11 мин"},
+        {name: "ул. Ленина", time: "14 мин"},
+        {name: "Молодежная", time: "17 мин"}
+      ],
+      vehicles: [
+        {id: "1147", location: "пл. Революции", time: "3 мин назад"},
+        {id: "1203", location: "ул. Маерчака", time: "1 мин назад"}
+      ]
+    },
+    '5': {
+      stops: [
+        {name: "Спорткомплекс «Радуга»", time: "1 мин"},
+        {name: "ул. Свердловская", time: "4 мин"},
+        {name: "ул. Кирова", time: "7 мин"},
+        {name: "ОАО «Красфарма»", time: "10 мин"}
+      ],
+      vehicles: [
+        {id: "0589", location: "ул. Кирова", time: "2 мин назад"}
+      ]
+    }
+  };
+  
+  // Берем конфиг для конкретного маршрута или дефолтный
+  const config = routeConfigs[routeNumber] || {
+    stops: [
+      {name: "Начальная остановка", time: "1 мин"},
+      {name: "Промежуточная 1", time: "4 мин"},
+      {name: "Промежуточная 2", time: "7 мин"}, 
+      {name: "Конечная остановка", time: "10 мин"}
+    ],
+    vehicles: [
+      {id: "0001", location: "Промежуточная 1", time: "5 мин назад"}
+    ]
+  };
+  
+  return {
+    directions: [
+      {
+        name: fullRoute || `Маршрут ${routeNumber}`,
+        stops: config.stops,
+        vehicles: config.vehicles
+      }
+    ]
+  };
+}
+    document.addEventListener('DOMContentLoaded', function() {
+  console.log('KGT system initialized');
+  
+  // Проверяем, что все элементы на месте
+  const requiredElements = ['kgtModal', 'kgtModalRoute', 'kgtModalBody', 'kgtViewBtn'];
+  const missing = requiredElements.filter(id => !document.getElementById(id));
+  
+  if (missing.length > 0) {
+    console.warn('Missing KGT elements:', missing);
+  } else {
+    console.log('All KGT elements found ✓');
+  }
+});
+    
   </script>
   
 </div>
