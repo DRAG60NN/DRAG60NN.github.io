@@ -2759,32 +2759,83 @@ if (originalCloseApp) {
 console.log('✅ KGT система полностью исправлена и готова к работе!');
 
     // Функция для отправки данных боту
-function sendTicketDataToBot() {
-    // Собираем данные из формы
+// === TELEGRAM INTEGRATION ===
+
+// Переключатель режима
+function toggleTelegramMode() {
+    const toggle = document.getElementById('sendToTelegram');
+    const button = document.getElementById('sendToBot');
+    
+    if (toggle && toggle.checked) {
+        button.style.display = 'block';
+    } else {
+        button.style.display = 'none';
+    }
+}
+
+// Правильная функция отправки с нужными ID
+function sendDataToTelegramBot() {
+    // Собираем данные из ПРАВИЛЬНЫХ полей
     const ticketData = {
-        carrier: document.getElementById('carrier')?.value || 'ООО "СКАД"',
-        routeNumber: document.getElementById('routeNumber')?.value || '85',
-        routeName: document.getElementById('routeName')?.value || 'Даурская - Сельхозкомплекс',
-        busNumber: document.getElementById('busNumber')?.value || generateBusNumber(),
-        tariff: document.getElementById('tariff')?.value || 'Полный',
-        price: document.getElementById('price')?.value || '44,00'
+        carrier: document.getElementById('inputCarrier').value || 'КПАТП-5',
+        routeNumber: extractRouteNumberForBot(),
+        routeName: document.getElementById('inputRoute').value || '3-я Дальневосточная - Молодежная',
+        busNumber: document.getElementById('inputPlate').value || generateRandomPlate(),
+        price: calculatePrice(),
+        count: document.getElementById('inputCount').value || '1',
+        transportType: document.getElementById('transportType').value
     };
     
-    // Проверяем, что приложение запущено в Telegram
+    console.log('Отправляем данные:', ticketData);
+    
+    // Проверяем, что мы в Telegram
     if (window.Telegram && window.Telegram.WebApp) {
-        // Отправляем данные боту
-        window.Telegram.WebApp.sendData(JSON.stringify(ticketData));
-        
-        // Показываем уведомление
-        window.Telegram.WebApp.showAlert('Билет отправлен в чат!');
-        
-        // Закрываем веб-приложение
-        setTimeout(() => {
-            window.Telegram.WebApp.close();
-        }, 1000);
+        try {
+            // Отправляем данные боту
+            window.Telegram.WebApp.sendData(JSON.stringify(ticketData));
+            
+            // Показываем уведомление
+            window.Telegram.WebApp.showAlert('✅ Данные отправлены в чат!');
+            
+            // Сбрасываем тумблер
+            document.getElementById('sendToTelegram').checked = false;
+            toggleTelegramMode();
+            
+        } catch (error) {
+            console.error('Ошибка отправки:', error);
+            alert('Ошибка при отправке данных');
+        }
     } else {
-        alert('Это приложение работает только в Telegram!');
+        // Для тестирования вне Telegram
+        console.log('Тестовый режим. Данные:', ticketData);
+        alert('Это работает только в Telegram!\nТестовые данные:\n' + JSON.stringify(ticketData, null, 2));
     }
+}
+
+// Вспомогательные функции
+function extractRouteNumberForBot() {
+    const route = document.getElementById('inputRoute').value;
+    let match = route.match(/^(\d+[а-яa-z]*)/i);
+    if (match) return match[1];
+    match = route.match(/(\d+)/);
+    return match ? match[1] : '85';
+}
+
+function generateRandomPlate() {
+    const letters = 'авекмнорстух';
+    const l1 = letters[Math.floor(Math.random() * letters.length)];
+    const nums = Math.floor(Math.random() * 900) + 100;
+    const l2 = letters[Math.floor(Math.random() * letters.length)];
+    const l3 = letters[Math.floor(Math.random() * letters.length)];
+    const region = ['124', '24', '125', '724'][Math.floor(Math.random() * 4)];
+    return `${l1}${nums}${l2}${l3}${region}`;
+}
+
+function calculatePrice() {
+    const count = parseInt(document.getElementById('inputCount').value) || 1;
+    const type = document.getElementById('transportType').value;
+    const pricePerTicket = type === 'bus' ? 48 : 40;
+    return (count * pricePerTicket).toFixed(2);
 }
 
 // Генератор случайного госномера
