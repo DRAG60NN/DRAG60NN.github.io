@@ -2895,23 +2895,24 @@ document.addEventListener('DOMContentLoaded', handleTicketMode);
         }
         
         // Отправка данных боту
-        function sendDataToBot() {
+
+      //    function sendDataToBot() {
             // Собираем данные
-            const data = {
-                carrier: document.getElementById('carrier').value,
-                routeNumber: document.getElementById('routeNumber').value,
-                routeName: document.getElementById('routeName').value,
-                busNumber: document.getElementById('busNumber').value,
-                price: document.getElementById('price').value
-            };
+        //    const data = {
+           //     carrier: document.getElementById('carrier').value,
+         //       routeNumber: document.getElementById('routeNumber').value,
+           //     routeName: document.getElementById('routeName').value,
+           //     busNumber: document.getElementById('busNumber').value,
+           //     price: document.getElementById('price').value
+       //     };
             
             // Отправляем боту
-            tg.sendData(JSON.stringify(data));
-            
+      //      tg.sendData(JSON.stringify(data));
+     //       
             // Показываем уведомление
-            tg.showAlert('Данные отправлены! Проверьте чат.');
-        }
-        
+   //         tg.showAlert('Данные отправлены! Проверьте чат.');
+//        }
+
         // Проверка хэша для отображения билета
         function checkForTicket() {
             const hash = window.location.hash;
