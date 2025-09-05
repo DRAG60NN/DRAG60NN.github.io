@@ -16,6 +16,138 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
       background-color: #2b2b2b;
       color: #fff;
     }
+    }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        /* Тумблер */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        
+        .toggle-label {
+            font-weight: 500;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 28px;
+        }
+        
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--tg-theme-button-color, #3390ec);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        
+        /* Кнопка отправки */
+        .send-button {
+            width: 100%;
+            padding: 15px;
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .send-button.active {
+            display: block;
+        }
+        
+        /* Билет */
+        .ticket-view {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .ticket-view.active {
+            display: block;
+        }
+        
+        .ticket-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .ticket-info {
+            text-align: left;
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+        }
+        
+        .ticket-info div {
+            margin: 8px 0;
+        }
     .container {
       padding: 20px;
       padding-bottom: 80px; /* Отступ снизу для кнопки */
@@ -807,7 +939,18 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
   </div>
   <input type="hidden" id="inputCount" value="1" />
 </div>
-
+      <div class="toggle-container">
+                <span class="toggle-label">Отправить в Telegram</span>
+                <label class="toggle">
+                    <input type="checkbox" id="sendToBot" onchange="toggleSendButton()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <!-- Кнопка отправки -->
+            <button class="send-button" id="sendButton" onclick="sendDataToBot()">
+                📤 Отправить данные боту
+            </button>
     </div>
     
       <div class="photo-controls">
@@ -2682,6 +2825,87 @@ window.Telegram.WebApp.expand();
 
 // Проверяем режим при загрузке
 document.addEventListener('DOMContentLoaded', handleTicketMode);
+
+    // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        
+        // Показать/скрыть кнопку отправки
+        function toggleSendButton() {
+            const toggle = document.getElementById('sendToBot');
+            const button = document.getElementById('sendButton');
+            
+            if (toggle.checked) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        }
+        
+        // Отправка данных боту
+        function sendDataToBot() {
+            // Собираем данные
+            const data = {
+                carrier: document.getElementById('carrier').value,
+                routeNumber: document.getElementById('routeNumber').value,
+                routeName: document.getElementById('routeName').value,
+                busNumber: document.getElementById('busNumber').value,
+                price: document.getElementById('price').value
+            };
+            
+            // Отправляем боту
+            tg.sendData(JSON.stringify(data));
+            
+            // Показываем уведомление
+            tg.showAlert('Данные отправлены! Проверьте чат.');
+        }
+        
+        // Проверка хэша для отображения билета
+        function checkForTicket() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#ticket=')) {
+                // Декодируем данные
+                const encodedData = hash.substring(8);
+                try {
+                    const decodedData = atob(encodedData);
+                    const ticketData = JSON.parse(decodedData);
+                    
+                    // Показываем билет
+                    showTicket(ticketData);
+                } catch (e) {
+                    console.error('Ошибка декодирования:', e);
+                }
+            }
+        }
+        
+        // Показать билет
+        function showTicket(data) {
+            document.getElementById('formView').style.display = 'none';
+            document.getElementById('ticketView').classList.add('active');
+            
+            document.getElementById('ticketNumber').textContent = `Билет №${data.ticketNumber}`;
+            document.getElementById('ticketCarrier').textContent = `🏢 ${data.carrier}`;
+            document.getElementById('ticketRoute').textContent = `🚏 ${data.routeNumber} ${data.routeName}`;
+            document.getElementById('ticketBus').textContent = `🚌 ${data.busNumber}`;
+            document.getElementById('ticketPrice').textContent = `💰 Полный ${data.price} ₽`;
+        }
+        
+        // Проверяем при загрузке
+        window.addEventListener('load', checkForTicket);
+        
+        // Генератор случайного госномера (если поле пустое)
+        document.getElementById('busNumber').addEventListener('blur', function() {
+            if (!this.value) {
+                const letters = 'АВЕКМНОРСТУХ';
+                const l1 = letters[Math.floor(Math.random() * letters.length)];
+                const nums = Math.floor(Math.random() * 900) + 100;
+                const l2 = letters[Math.floor(Math.random() * letters.length)];
+                const l3 = letters[Math.floor(Math.random() * letters.length)];
+                const region = Math.floor(Math.random() * 90) + 10;
+                this.value = `${l1}${nums}${l2}${l3}${region}`;
+            }
+        });
   </script>
   
 </div>
