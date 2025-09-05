@@ -948,7 +948,7 @@ https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js
             </div>
             
             <!-- Кнопка отправки -->
-            <button class="send-button" id="sendButton" onclick="sendDataToBot()">
+            <button class="send-button" id="sendButton" onclick="sendDataToTelegramBot()">
                 📤 Отправить данные боту
             </button>
     </div>
@@ -2895,7 +2895,7 @@ document.addEventListener('DOMContentLoaded', handleTicketMode);
         }
         
         // Отправка данных боту
-        function sendDataToBot() {
+        function () {
             // Собираем данные
             const data = {
                 carrier: document.getElementById('carrier').value,
