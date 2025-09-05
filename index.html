@@ -2773,42 +2773,40 @@ function toggleTelegramMode() {
     }
 }
 
-// Правильная функция отправки с нужными ID
 function sendDataToTelegramBot() {
-    // Собираем данные из ПРАВИЛЬНЫХ полей
-    const ticketData = {
-        carrier: document.getElementById('inputCarrier').value || 'КПАТП-5',
-        routeNumber: extractRouteNumberForBot(),
-        routeName: document.getElementById('inputRoute').value || '3-я Дальневосточная - Молодежная',
-        busNumber: document.getElementById('inputPlate').value || generateRandomPlate(),
-        price: calculatePrice(),
-        count: document.getElementById('inputCount').value || '1',
-        transportType: document.getElementById('transportType').value
-    };
-    
-    console.log('Отправляем данные:', ticketData);
-    
-    // Проверяем, что мы в Telegram
-    if (window.Telegram && window.Telegram.WebApp) {
-        try {
-            // Отправляем данные боту
-            window.Telegram.WebApp.sendData(JSON.stringify(ticketData));
-            
-            // Показываем уведомление
-            window.Telegram.WebApp.showAlert('✅ Данные отправлены в чат!');
-            
-            // Сбрасываем тумблер
-            document.getElementById('sendToTelegram').checked = false;
-            toggleTelegramMode();
-            
-        } catch (error) {
-            console.error('Ошибка отправки:', error);
-            alert('Ошибка при отправке данных');
+    try {
+        console.log("Начинаем отправку данных в Telegram...");
+        
+        // Проверяем доступность Telegram API
+        if (typeof window.Telegram !== 'undefined') {
+            console.log("Telegram объект найден:", window.Telegram);
+        } else {
+            console.error("Telegram объект не найден");
+            alert("Telegram WebApp не обнаружен!");
+            return;
         }
-    } else {
-        // Для тестирования вне Telegram
-        console.log('Тестовый режим. Данные:', ticketData);
-        alert('Это работает только в Telegram!\nТестовые данные:\n' + JSON.stringify(ticketData, null, 2));
+        
+        // Собираем данные
+        const ticketData = {
+            carrier: document.getElementById('inputCarrier').value || 'КПАТП-5',
+            routeNumber: extractRouteNumber(document.getElementById('inputRoute').value || ''),
+            routeName: document.getElementById('inputRoute').value || '3-я Дальневосточная - Молодежная',
+            busNumber: document.getElementById('inputPlate').value || generateBusNumber(),
+            price: calculatePrice(),
+            count: document.getElementById('inputCount').value || '1',
+            transportType: document.getElementById('transportType').value || 'bus',
+            timestamp: Date.now()
+        };
+        
+        console.log("Подготовлены данные для отправки:", ticketData);
+        
+        // Отправляем данные напрямую через window.Telegram
+        window.Telegram.WebApp.sendData(JSON.stringify(ticketData));
+        
+        console.log("Данные отправлены успешно");
+    } catch (error) {
+        console.error("Ошибка при отправке данных:", error);
+        alert(`Ошибка отправки: ${error.message}`);
     }
 }
 
