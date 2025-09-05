@@ -2614,7 +2614,74 @@ if (originalCloseApp) {
 }
 
 console.log('✅ KGT система полностью исправлена и готова к работе!');
-  
+
+    // Функция для отправки данных боту
+function sendTicketDataToBot() {
+    // Собираем данные из формы
+    const ticketData = {
+        carrier: document.getElementById('carrier')?.value || 'ООО "СКАД"',
+        routeNumber: document.getElementById('routeNumber')?.value || '85',
+        routeName: document.getElementById('routeName')?.value || 'Даурская - Сельхозкомплекс',
+        busNumber: document.getElementById('busNumber')?.value || generateBusNumber(),
+        tariff: document.getElementById('tariff')?.value || 'Полный',
+        price: document.getElementById('price')?.value || '44,00'
+    };
+    
+    // Проверяем, что приложение запущено в Telegram
+    if (window.Telegram && window.Telegram.WebApp) {
+        // Отправляем данные боту
+        window.Telegram.WebApp.sendData(JSON.stringify(ticketData));
+        
+        // Показываем уведомление
+        window.Telegram.WebApp.showAlert('Билет отправлен в чат!');
+        
+        // Закрываем веб-приложение
+        setTimeout(() => {
+            window.Telegram.WebApp.close();
+        }, 1000);
+    } else {
+        alert('Это приложение работает только в Telegram!');
+    }
+}
+
+// Генератор случайного госномера
+function generateBusNumber() {
+    const letters = ['у', 'а', 'м', 'к', 'е', 'т', 'о', 'р', 'н', 'х', 'с'];
+    const regions = ['124', '24', '125', '724'];
+    
+    const letter1 = letters[Math.floor(Math.random() * letters.length)];
+    const numbers = Math.floor(Math.random() * 900) + 100;
+    const letter2 = letters[Math.floor(Math.random() * letters.length)];
+    const letter3 = letters[Math.floor(Math.random() * letters.length)];
+    const region = regions[Math.floor(Math.random() * regions.length)];
+    
+    return `${letter1}${numbers}${letter2}${letter3}${region}`;
+}
+
+// Обработка параметров URL (для режима показа билета)
+function handleTicketMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('mode') === 'ticket') {
+        // Заполняем данные билета из URL
+        document.getElementById('ticketNumber').textContent = urlParams.get('ticketNumber');
+        document.getElementById('carrier').textContent = urlParams.get('carrier');
+        document.getElementById('route').textContent = `${urlParams.get('routeNumber')} ${urlParams.get('routeName')}`;
+        document.getElementById('busNumber').textContent = urlParams.get('busNumber');
+        document.getElementById('price').textContent = `${urlParams.get('tariff')} ${urlParams.get('price')} ₽`;
+        document.getElementById('purchaseTime').textContent = urlParams.get('purchaseTime');
+        
+        // Показываем билет
+        showTicketView();
+    }
+}
+
+// Инициализация Telegram Web App
+window.Telegram.WebApp.ready();
+window.Telegram.WebApp.expand();
+
+// Проверяем режим при загрузке
+document.addEventListener('DOMContentLoaded', handleTicketMode);
   </script>
   
 </div>
