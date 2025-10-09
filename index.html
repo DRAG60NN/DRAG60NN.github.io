@@ -794,7 +794,113 @@ https://telegram.org/js/telegram-web-app.js
 }
 
 /* 5) На всякий случай отключаем авто-ужатие текста Safari */
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; }\
+
+    /* === Ticket count slider (как на макете) === */
+#countSlider{
+  --accent:#e21a1a;      /* красный цвет из твоей темы */
+  --muted:#8a8a8a;       /* серые подписи/точки */
+  --track:#3a3a3a;       /* фон трека */
+  --h:6px;               /* толщина трека */
+  --thumbSize:20px;      /* диаметр бегунка */
+  --thumbRing:3px;       /* толщина красного кольца */
+
+  display:grid;
+  grid-template-columns:auto 1fr;
+  grid-template-areas:
+    "title  title"
+    "badge  slider"
+    "badge  scale";
+  column-gap:12px;
+  row-gap:8px;
+  align-items:center;
+  color:#ddd;
+  margin: 12px 0;
+}
+#countSlider .title { grid-area:title; opacity:.95; }
+
+#countSlider .badge{
+  grid-area:badge;
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:28px; height:28px; padding:0 6px;
+  border:2px solid #fff; border-radius:6px;
+  font-weight:700; color:#fff; background:transparent;
+}
+
+#countSlider .slider-wrap{ grid-area:slider; position:relative; height:36px; }
+#countSlider .slider-wrap input#inputCountRange{
+  position:relative; z-index:1; width:100%; height:36px;
+  -webkit-appearance:none; appearance:none;
+  background:transparent !important; margin:0; cursor:pointer; outline: none;
+}
+
+/* Серый трек + серые точки на 0/25/50/75/100% */
+#countSlider .slider-wrap::before,
+#countSlider .slider-wrap::after{
+  content:""; position:absolute; left:0; right:0; top:50%;
+  height:var(--h); transform:translateY(-50%); border-radius:999px;
+}
+#countSlider .slider-wrap::before{
+  background:
+    radial-gradient(circle 3px at 0%   50%, var(--muted) 99%, transparent 100%),
+    radial-gradient(circle 3px at 25%  50%, var(--muted) 99%, transparent 100%),
+    radial-gradient(circle 3px at 50%  50%, var(--muted) 99%, transparent 100%),
+    radial-gradient(circle 3px at 75%  50%, var(--muted) 99%, transparent 100%),
+    radial-gradient(circle 3px at 100% 50%, var(--muted) 99%, transparent 100%),
+    linear-gradient(var(--track), var(--track));
+}
+/* Красная заливка + красные точки до текущего значения */
+#countSlider .slider-wrap::after{
+  width:var(--pct, 0%); border-radius:999px 0 0 999px;
+  background:
+    radial-gradient(circle 3px at 0%   50%, var(--accent) 99%, transparent 100%),
+    radial-gradient(circle 3px at 25%  50%, var(--accent) 99%, transparent 100%),
+    radial-gradient(circle 3px at 50%  50%, var(--accent) 99%, transparent 100%),
+    radial-gradient(circle 3px at 75%  50%, var(--accent) 99%, transparent 100%),
+    radial-gradient(circle 3px at 100% 50%, var(--accent) 99%, transparent 100%),
+    linear-gradient(var(--accent), var(--accent));
+}
+
+/* Прячем системный трек и рисуем бегунок-кольцо с небольшим свечением */
+#countSlider input#inputCountRange::-webkit-slider-runnable-track{ height:var(--h); background:transparent; border:none; }
+#countSlider input#inputCountRange::-moz-range-track{ height:var(--h); background:transparent; border:none; }
+
+#countSlider input#inputCountRange::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:var(--thumbSize); height:var(--thumbSize);
+  background:#1b1b1b; border:var(--thumbRing) solid var(--accent); border-radius:50%;
+  margin-top:calc((var(--thumbSize) - var(--h))/ -2);
+  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+#countSlider input#inputCountRange:active::-webkit-slider-thumb{
+  box-shadow:0 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+#countSlider input#inputCountRange::-moz-range-thumb{
+  width:var(--thumbSize); height:var(--thumbSize);
+  background:#1b1b1b; border:var(--thumbRing) solid var(--accent); border-radius:50%;
+  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+#countSlider input#inputCountRange:active::-moz-range-thumb{
+  box-shadow:0 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* Цифры под треком */
+#countSlider .scale{
+  grid-area:scale;
+  display:grid; grid-template-columns:repeat(5, 1fr);
+  font-size:14px; color:var(--muted);
+}
+#countSlider .scale span{ text-align:center; }
+
+/* Подсветка пройденных чисел */
+#countSlider[data-val="1"] .scale span:nth-child(-n+1),
+#countSlider[data-val="2"] .scale span:nth-child(-n+2),
+#countSlider[data-val="3"] .scale span:nth-child(-n+3),
+#countSlider[data-val="4"] .scale span:nth-child(-n+4),
+#countSlider[data-val="5"] .scale span:nth-child(-n+5){ color:var(--accent); }
+
+/* (опционально) уберём старые отступы, если остались прежние классы */
+.custom-slider-wrapper, .slider-display, .slider-labels { display:none !important; }
     
   </style>
 </head>
@@ -839,16 +945,22 @@ html { -webkit-text-size-adjust: 100%; }
   <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
   <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
 </div>
-      <div class="custom-slider-wrapper">
-  <label for="inputCountRange">Количество билетов</label>
-  <div class="slider-display">
-    <div id="sliderValueBox"><span id="sliderValue">1</span></div>
-    <input type="range" id="inputCountRange" min="1" max="5" step="1" value="1" oninput="updateCountLabel(this.value)" />
-<div class="slider-labels">
-</div>      
-      
-  </div>
-  <input type="hidden" id="inputCount" value="1" />
+<!-- Количество билетов -->
+<div class="tickets" id="countSlider" data-val="1">
+  <label class="title" for="inputCountRange">Количество билетов</label>
+
+  <div class="badge" aria-hidden="true"><span id="sliderValue">1</span></div>
+
+  <div class="slider-wrap">
+    <input id="inputCountRange" type="range" min="1" max="5" step="1" value="1"
+           aria-label="Количество билетов" oninput="updateCountLabel(this.value)">
+  </div>
+
+  <div class="scale" aria-hidden="true">
+    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+  </div>
+
+  <input type="hidden" id="inputCount" value="1">
 </div>
 
 <!-- === /FREEZE TIME === -->         
@@ -1402,10 +1514,34 @@ plate = (isStandard || isTrolley) ? plate : '';
   };
 }
     
-    function updateCountLabel(value) {
-  document.getElementById('sliderValue').textContent = value;
-  document.getElementById('inputCount').value = value;
+<script>
+  function updateCountLabel(value){
+  const val = Number(value);
+  const root  = document.getElementById('countSlider');
+  const range = document.getElementById('inputCountRange');
+
+  // бейдж + hidden
+  const badge = document.getElementById('sliderValue');
+  if (badge) badge.textContent = val;
+  const hidden = document.getElementById('inputCount');
+  if (hidden) hidden.value = String(val);
+
+  // заливка и подсветка цифр
+  if (range && root){
+    const min = +range.min || 1;
+    const max = +range.max || 5;
+    const pct = (val - min) * 100 / (max - min);
+    root.style.setProperty('--pct', pct + '%');
+    root.dataset.val = String(val);
+  }
 }
+
+// первичная инициализация
+document.addEventListener('DOMContentLoaded', () => {
+  const r = document.getElementById('inputCountRange');
+  if (r) updateCountLabel(r.value);
+});
+</script>
 
     window.addEventListener('DOMContentLoaded', () => {
   const accessGranted = localStorage.getItem('ticket_access_granted');
