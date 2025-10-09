@@ -1142,10 +1142,7 @@ function closeApp() {
 
   // Сброс вкладок к первой
   switchTab('ticket');
-  
-  // Скрыть KGT кнопку при закрытии
-  __kgtShowButton(false);
-  selectedKgtId = null;
+
 }
 
     // Инициализация: отображаем вкладку "1 070 004 271" и активируем кнопку "ЗАКРЫТЬ"
@@ -1661,9 +1658,7 @@ function selectRoute(type, index) {
       setTransportType('other');
     }
 
-    // === LIVE: привязка выбранного маршрута к KGT ===
-    const guessNum = selectedRoute?.num || selectedRoute?.title || selectedRoute?.route || '';
-    __kgtSetupForNumber(guessNum); 
+  
   }
 
   closeTransportMenu();
