@@ -795,108 +795,135 @@ https://telegram.org/js/telegram-web-app.js
 /* 5) На всякий случай отключаем авто-ужатие текста Safari */
 html { -webkit-text-size-adjust: 100%; }\
 
-    /* === Ticket count slider (как на макете) === */
-#countSlider{
-  --accent:#e21a1a;      /* красный цвет из твоей темы */
-  --muted:#8a8a8a;       /* серые подписи/точки */
-  --track:#3a3a3a;       /* фон трека */
-  --h:6px;               /* толщина трека */
-  --thumbSize:20px;      /* диаметр бегунка */
-  --thumbRing:3px;       /* толщина красного кольца */
-
-  display:grid;
-  grid-template-columns:auto 1fr;
+/* === Ticket count slider (упрощённый и рабочий) === */
+#countSlider {
+  display: grid;
+  grid-template-columns: auto 1fr;
   grid-template-areas:
     "title  title"
     "badge  slider"
-    "badge  scale";
-  column-gap:12px;
-  row-gap:8px;
-  align-items:center;
-  color:#ddd;
+    "labels labels";
+  column-gap: 12px;
+  row-gap: 6px;
+  align-items: center;
   margin: 12px 0;
-}
-#countSlider .title { grid-area:title; opacity:.95; }
-
-#countSlider .badge{
-  grid-area:badge;
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:28px; height:28px; padding:0 6px;
-  border:2px solid #fff; border-radius:6px;
-  font-weight:700; color:#fff; background:transparent;
+  color: #ddd;
 }
 
-#countSlider .slider-wrap{ grid-area:slider; position:relative; height:36px; }
-#countSlider .slider-wrap input#inputCountRange{
-  position:relative; z-index:1; width:100%; height:36px;
-  -webkit-appearance:none; appearance:none;
-  background:transparent !important; margin:0; cursor:pointer; outline: none;
+#countSlider .title { 
+  grid-area: title; 
+  font-size: 14px;
+  color: #b0b0b0;
+  margin-bottom: 4px;
 }
 
-/* Серый трек + серые точки на 0/25/50/75/100% */
-#countSlider .slider-wrap::before,
-#countSlider .slider-wrap::after{
-  content:""; position:absolute; left:0; right:0; top:50%;
-  height:var(--h); transform:translateY(-50%); border-radius:999px;
-}
-#countSlider .slider-wrap::before{
-  background:
-    radial-gradient(circle 3px at 0%   50%, var(--muted) 99%, transparent 100%),
-    radial-gradient(circle 3px at 25%  50%, var(--muted) 99%, transparent 100%),
-    radial-gradient(circle 3px at 50%  50%, var(--muted) 99%, transparent 100%),
-    radial-gradient(circle 3px at 75%  50%, var(--muted) 99%, transparent 100%),
-    radial-gradient(circle 3px at 100% 50%, var(--muted) 99%, transparent 100%),
-    linear-gradient(var(--track), var(--track));
-}
-/* Красная заливка + красные точки до текущего значения */
-#countSlider .slider-wrap::after{
-  width:var(--pct, 0%); border-radius:999px 0 0 999px;
-  background:
-    radial-gradient(circle 3px at 0%   50%, var(--accent) 99%, transparent 100%),
-    radial-gradient(circle 3px at 25%  50%, var(--accent) 99%, transparent 100%),
-    radial-gradient(circle 3px at 50%  50%, var(--accent) 99%, transparent 100%),
-    radial-gradient(circle 3px at 75%  50%, var(--accent) 99%, transparent 100%),
-    radial-gradient(circle 3px at 100% 50%, var(--accent) 99%, transparent 100%),
-    linear-gradient(var(--accent), var(--accent));
+#countSlider .badge {
+  grid-area: badge;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  background: transparent;
 }
 
-/* Прячем системный трек и рисуем бегунок-кольцо с небольшим свечением */
-#countSlider input#inputCountRange::-webkit-slider-runnable-track{ height:var(--h); background:transparent; border:none; }
-#countSlider input#inputCountRange::-moz-range-track{ height:var(--h); background:transparent; border:none; }
-
-#countSlider input#inputCountRange::-webkit-slider-thumb{
-  -webkit-appearance:none; appearance:none;
-  width:var(--thumbSize); height:var(--thumbSize);
-  background:#1b1b1b; border:var(--thumbRing) solid var(--accent); border-radius:50%;
-  margin-top:calc((var(--thumbSize) - var(--h))/ -2);
-  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-#countSlider input#inputCountRange:active::-webkit-slider-thumb{
-  box-shadow:0 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-#countSlider input#inputCountRange::-moz-range-thumb{
-  width:var(--thumbSize); height:var(--thumbSize);
-  background:#1b1b1b; border:var(--thumbRing) solid var(--accent); border-radius:50%;
-  box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-#countSlider input#inputCountRange:active::-moz-range-thumb{
-  box-shadow:0 0 0 10px color-mix(in srgb, var(--accent) 20%, transparent);
+#countSlider .slider-wrap {
+  grid-area: slider;
+  position: relative;
+  height: 32px;
+  display: flex;
+  align-items: center;
 }
 
-/* Цифры под треком */
-#countSlider .scale{
-  grid-area:scale;
-  display:grid; grid-template-columns:repeat(5, 1fr);
-  font-size:14px; color:var(--muted);
+/* Сам инпут range */
+#countSlider input[type="range"] {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #3a3a3a;
+  border-radius: 3px;
+  outline: none;
+  position: relative;
+  cursor: pointer;
 }
-#countSlider .scale span{ text-align:center; }
 
-/* Подсветка пройденных чисел */
-#countSlider[data-val="1"] .scale span:nth-child(-n+1),
-#countSlider[data-val="2"] .scale span:nth-child(-n+2),
-#countSlider[data-val="3"] .scale span:nth-child(-n+3),
-#countSlider[data-val="4"] .scale span:nth-child(-n+4),
-#countSlider[data-val="5"] .scale span:nth-child(-n+5){ color:var(--accent); }
+/* Красная заливка через background-image */
+#countSlider input[type="range"] {
+  background: linear-gradient(to right, 
+    #e21a1a 0%, 
+    #e21a1a var(--pct, 0%), 
+    #3a3a3a var(--pct, 0%), 
+    #3a3a3a 100%
+  );
+}
+
+/* Thumb для WebKit (Chrome, Safari) */
+#countSlider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1b1b1b;
+  border: 3px solid #e21a1a;
+  cursor: pointer;
+  box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.25);
+  transition: box-shadow 0.2s;
+}
+
+#countSlider input[type="range"]:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 10px rgba(226, 26, 26, 0.2);
+}
+
+/* Thumb для Firefox */
+#countSlider input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1b1b1b;
+  border: 3px solid #e21a1a;
+  cursor: pointer;
+  box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.25);
+  transition: box-shadow 0.2s;
+}
+
+#countSlider input[type="range"]:active::-moz-range-thumb {
+  box-shadow: 0 0 0 10px rgba(226, 26, 26, 0.2);
+}
+
+/* Трек для Firefox */
+#countSlider input[type="range"]::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+/* Цифры под слайдером */
+#countSlider .scale {
+  grid-area: labels;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  font-size: 14px;
+  color: #8a8a8a;
+  margin-top: 4px;
+}
+
+#countSlider .scale span {
+  text-align: center;
+}
+
+/* Подсветка активных чисел */
+#countSlider[data-val="1"] .scale span:nth-child(1) { color: #e21a1a; }
+#countSlider[data-val="2"] .scale span:nth-child(-n+2) { color: #e21a1a; }
+#countSlider[data-val="3"] .scale span:nth-child(-n+3) { color: #e21a1a; }
+#countSlider[data-val="4"] .scale span:nth-child(-n+4) { color: #e21a1a; }
+#countSlider[data-val="5"] .scale span:nth-child(-n+5) { color: #e21a1a; }
 
 /* (опционально) уберём старые отступы, если остались прежние классы */
 .custom-slider-wrapper, .slider-display, .slider-labels { display:none !important;}
@@ -1532,26 +1559,35 @@ plate = (isStandard || isTrolley) ? plate : '';
   };
 }
     
-  function updateCountLabel(value){
+function updateCountLabel(value) {
   const val = Number(value);
-  const root  = document.getElementById('countSlider');
+  const root = document.getElementById('countSlider');
   const range = document.getElementById('inputCountRange');
-
-  // бейдж + hidden
   const badge = document.getElementById('sliderValue');
-  if (badge) badge.textContent = val;
   const hidden = document.getElementById('inputCount');
+
+  // Обновляем значение
+  if (badge) badge.textContent = val;
   if (hidden) hidden.value = String(val);
 
-  // заливка и подсветка цифр
-  if (range && root){
-    const min = +range.min || 1;
-    const max = +range.max || 5;
-    const pct = (val - min) * 100 / (max - min);
+  // Обновляем прогресс-бар
+  if (range && root) {
+    const min = Number(range.min) || 1;
+    const max = Number(range.max) || 5;
+    const pct = ((val - min) / (max - min)) * 100;
     root.style.setProperty('--pct', pct + '%');
-    root.dataset.val = String(val);
+    root.setAttribute('data-val', String(val));
   }
 }
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+  const r = document.getElementById('inputCountRange');
+  if (r) {
+    updateCountLabel(r.value);
+    r.addEventListener('input', (e) => updateCountLabel(e.target.value));
+  }
+});
 
 // первичная инициализация
 document.addEventListener('DOMContentLoaded', () => {
@@ -2076,33 +2112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateTicketTimeUI();
 });
 
-    // Инициализация и синхронизация
-(function initTicketSlider(){
-  const range  = document.getElementById('inputCountRange');
-  const label  = document.getElementById('sliderValue');
-  const hidden = document.getElementById('inputCount');
-  if (!range || !label || !hidden) return;
 
-  // Нормализуем параметры
-  range.min = '1'; range.max = '5'; range.step = '1';
-
-  const clamp = v => Math.min(5, Math.max(1, Math.round(Number(v) || 1)));
-
-  const sync = () => {
-    const v = clamp(range.value);
-    if (String(v) !== range.value) range.value = String(v);
-    label.textContent = String(v);
-    hidden.value = String(v);
-    const pct = (v - 1) * 100 / (5 - 1);         // 0..100%
-    range.style.setProperty('--pct', pct + '%');  // заливка трека
-  };
-
-  ['input','change'].forEach(e => range.addEventListener(e, sync));
-  sync();
-
-  // Если у вас SPA и блок перерисовывается — зову sync() ещё раз после рендера
-  document.addEventListener('tickets:rerender', sync);
-})();
   </script>
   
 </div>
