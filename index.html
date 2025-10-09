@@ -795,95 +795,103 @@ https://telegram.org/js/telegram-web-app.js
 /* 5) На всякий случай отключаем авто-ужатие текста Safari */
 html { -webkit-text-size-adjust: 100%; }\
 /* === Ticket count slider (финальная версия как на макете) === */
+/* === Slider: цифра сверху, слайдер на всю ширину === */
 #countSlider {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
   margin: 16px 0;
   color: #ddd;
-  position: relative;
 }
 
-/* Заголовок над слайдером */
+/* Заголовок */
 #countSlider .title {
-  position: absolute;
-  top: -24px;
-  left: 0;
   font-size: 14px;
   color: #b0b0b0;
   font-weight: 400;
+  margin-bottom: 4px;
 }
 
-/* Цифра слева в рамке */
+/* Цифра БЕЗ рамки, крупно */
 #countSlider .badge {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 2px solid #fff;
-  border-radius: 6px;
+  font-size: 28px;
   font-weight: 700;
-  font-size: 18px;
   color: #fff;
-  background: transparent;
-  z-index: 2;
+  text-align: left;
+  margin-bottom: 4px;
 }
 
-/* Контейнер слайдера */
+/* Контейнер слайдера с точками */
 #countSlider .slider-wrap {
-  flex: 1;
   position: relative;
-  height: 32px;
+  width: 100%;
+  height: 40px;
   display: flex;
   align-items: center;
 }
 
-/* Точки-деления на треке */
-#countSlider .slider-wrap::before {
-  content: '';
+/* Трек с точками (серые) */
+#countSlider .dots-track {
   position: absolute;
   left: 0;
   right: 0;
   top: 50%;
   transform: translateY(-50%);
   height: 2px;
-  background: 
-    radial-gradient(circle 4px at 0%   50%, #8a8a8a 99%, transparent 100%),
-    radial-gradient(circle 4px at 25%  50%, #8a8a8a 99%, transparent 100%),
-    radial-gradient(circle 4px at 50%  50%, #8a8a8a 99%, transparent 100%),
-    radial-gradient(circle 4px at 75%  50%, #8a8a8a 99%, transparent 100%),
-    radial-gradient(circle 4px at 100% 50%, #8a8a8a 99%, transparent 100%),
-    linear-gradient(#3a3a3a, #3a3a3a);
+  background: #3a3a3a;
   pointer-events: none;
   z-index: 0;
 }
 
-/* Красная заливка с точками */
-#countSlider .slider-wrap::after {
+/* Точки на треке */
+#countSlider .dots-track::before {
   content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  background-image: 
+    radial-gradient(circle 3px, #8a8a8a 100%, transparent 0);
+  background-size: calc(100% / 4) 8px;
+  background-position: 0 center;
+  background-repeat: repeat-x;
+}
+
+/* Красная заливка */
+#countSlider .fill-track {
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: var(--pct, 0%);
   height: 2px;
-  background: 
-    radial-gradient(circle 4px at 0%   50%, #e21a1a 99%, transparent 100%),
-    radial-gradient(circle 4px at 25%  50%, #e21a1a 99%, transparent 100%),
-    radial-gradient(circle 4px at 50%  50%, #e21a1a 99%, transparent 100%),
-    radial-gradient(circle 4px at 75%  50%, #e21a1a 99%, transparent 100%),
-    radial-gradient(circle 4px at 100% 50%, #e21a1a 99%, transparent 100%),
-    linear-gradient(#e21a1a, #e21a1a);
+  width: var(--pct, 0%);
+  background: #e21a1a;
   pointer-events: none;
   z-index: 1;
 }
 
-/* Сам range input */
+/* Красные точки на заливке */
+#countSlider .fill-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  background-image: 
+    radial-gradient(circle 3px, #e21a1a 100%, transparent 0);
+  background-size: calc((100% * 4 / var(--val, 1)) / 4) 8px;
+  background-position: 0 center;
+  background-repeat: repeat-x;
+}
+
+/* Сам input */
 #countSlider input[type="range"] {
   width: 100%;
-  height: 32px;
+  height: 40px;
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
@@ -892,9 +900,10 @@ html { -webkit-text-size-adjust: 100%; }\
   cursor: pointer;
   z-index: 2;
   margin: 0;
+  padding: 0;
 }
 
-/* Убираем системный трек */
+/* Убираем стандартный трек */
 #countSlider input[type="range"]::-webkit-slider-runnable-track {
   height: 2px;
   background: transparent;
@@ -907,59 +916,56 @@ html { -webkit-text-size-adjust: 100%; }\
   border: none;
 }
 
-/* Thumb для WebKit */
+/* Бегунок (thumb) для Chrome/Safari */
 #countSlider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #1b1b1b;
   border: 3px solid #e21a1a;
   cursor: pointer;
-  margin-top: -9px; /* центрируем относительно трека 2px */
-  box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.2);
-  transition: box-shadow 0.15s;
+  margin-top: -10px;
+  box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
+  transition: box-shadow 0.2s;
 }
 
 #countSlider input[type="range"]:active::-webkit-slider-thumb {
-  box-shadow: 0 0 0 10px rgba(226, 26, 26, 0.15);
+  box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
 }
 
-/* Thumb для Firefox */
+/* Бегунок для Firefox */
 #countSlider input[type="range"]::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #1b1b1b;
   border: 3px solid #e21a1a;
   cursor: pointer;
-  box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.2);
-  transition: box-shadow 0.15s;
+  box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
+  transition: box-shadow 0.2s;
 }
 
 #countSlider input[type="range"]:active::-moz-range-thumb {
-  box-shadow: 0 0 0 10px rgba(226, 26, 26, 0.15);
+  box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
 }
 
-/* Подписи под слайдером */
+/* Цифры под слайдером */
 #countSlider .scale {
-  position: absolute;
-  bottom: -20px;
-  left: 52px; /* отступ от бейджа */
-  right: 0;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  font-size: 13px;
+  font-size: 14px;
   color: #8a8a8a;
-  pointer-events: none;
+  margin-top: 4px;
+  padding: 0 2px;
 }
 
 #countSlider .scale span {
   text-align: center;
 }
 
-/* Подсветка активных чисел под слайдером */
+/* Подсветка активных цифр */
 #countSlider[data-val="1"] .scale span:nth-child(1) { color: #e21a1a; font-weight: 600; }
 #countSlider[data-val="2"] .scale span:nth-child(-n+2) { color: #e21a1a; font-weight: 600; }
 #countSlider[data-val="3"] .scale span:nth-child(-n+3) { color: #e21a1a; font-weight: 600; }
@@ -1037,18 +1043,19 @@ html { -webkit-text-size-adjust: 100%; }\
   <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
   <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
 </div>
-<!-- Количество билетов -->
 <div class="tickets" id="countSlider" data-val="1">
   <label class="title" for="inputCountRange">Количество билетов</label>
-
-  <div class="badge" aria-hidden="true"><span id="sliderValue">1</span></div>
+  
+  <div class="badge"><span id="sliderValue">1</span></div>
 
   <div class="slider-wrap">
+    <div class="dots-track"></div>
+    <div class="fill-track"></div>
     <input id="inputCountRange" type="range" min="1" max="5" step="1" value="1"
            aria-label="Количество билетов" oninput="updateCountLabel(this.value)">
   </div>
 
-  <div class="scale" aria-hidden="true">
+  <div class="scale">
     <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
   </div>
 
