@@ -959,6 +959,39 @@ padding: 0 2px;
 .slider-labels {
   display: none !important;
 }
+    .plate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647; /* поверх всего */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+  pointer-events: none;      /* не блокируем клики */
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.plate-overlay.visible { opacity: 1; }
+
+.plate-overlay__box {
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: min(92vw, 640px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+}
+
+.plate-overlay__text {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Roboto Mono", monospace;
+  font-size: clamp(20px, 5vw, 36px);
+  letter-spacing: 0.08em;
+  text-align: center;
+  white-space: nowrap;
+}
   </style>
 </head>
 <body>
@@ -980,6 +1013,11 @@ padding: 0 2px;
     <button type="button" class="transport-trigger" onclick="openTransportMenu()">
   Выбрать номер транспорта
 </button>
+      <div id="plateOverlay" class="plate-overlay" aria-live="polite" hidden>
+  <div class="plate-overlay__box">
+    <span class="plate-overlay__text" id="plateOverlayText"></span>
+  </div>
+</div>
 
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
@@ -2144,6 +2182,83 @@ root.style.setProperty('--val', String(val)); // на будущее
 root.setAttribute('data-val', String(val));
 }
 }
+
+    (function initPlateOverlay() {
+  const input = document.getElementById('inputPlate');     // ваше поле госномера
+  const overlay = document.getElementById('plateOverlay');
+  const textEl = document.getElementById('plateOverlayText');
+
+  if (!input || !overlay || !textEl) return;
+
+  let keyboardOpen = false;
+  const KBD_THRESHOLD = 120; // пикселей уменьшения высоты, чтобы считать, что клавиатура открыта
+
+  function formatPlate(value) {
+    // Отображаем красиво: верхний регистр, сжатие лишних пробелов
+    const v = String(value ?? '').toUpperCase().replace(/\s+/g, ' ').trim();
+    return v || 'Госномер';
+  }
+
+  function updateText() {
+    textEl.textContent = formatPlate(input.value);
+  }
+
+  function computeKeyboardOpen() {
+    // На мобильных при открытии клавиатуры visualViewport.height уменьшается
+    if (window.visualViewport) {
+      const delta = window.innerHeight - window.visualViewport.height;
+      keyboardOpen = delta > KBD_THRESHOLD;
+    } else {
+      // Фолбэк: считаем, что если поле в фокусе — «клавиатура открыта»
+      keyboardOpen = document.activeElement === input;
+    }
+  }
+
+  function shouldShow() {
+    return document.activeElement === input && (keyboardOpen || !window.visualViewport);
+  }
+
+  function show() {
+    updateText();
+    overlay.hidden = false;
+    overlay.classList.add('visible');
+  }
+
+  function hide() {
+    overlay.classList.remove('visible');
+    // Чуть позже скрываем, чтобы не «мелькало» на быстрых переходах
+    setTimeout(() => { if (!overlay.classList.contains('visible')) overlay.hidden = true; }, 130);
+  }
+
+  // События ввода и фокуса
+  input.addEventListener('focus', () => {
+    computeKeyboardOpen();
+    if (shouldShow()) show();
+  });
+
+  input.addEventListener('input', () => {
+    updateText();
+    // На некоторых устройствах клавиатура открывается после focus — проверим ещё раз
+    computeKeyboardOpen();
+    if (shouldShow()) show();
+  });
+
+  input.addEventListener('blur', hide);
+
+  // Отслеживаем изменение viewport (появление/скрытие клавиатуры)
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const onVVChange = () => {
+      computeKeyboardOpen();
+      if (shouldShow()) show(); else hide();
+    };
+    vv.addEventListener('resize', onVVChange);
+    vv.addEventListener('scroll', onVVChange);
+  }
+
+  // На старте — синхронизация текста
+  updateText();
+})();
   </script>
   
 </div>
