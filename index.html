@@ -747,6 +747,25 @@ https://telegram.org/js/telegram-web-app.js
 .transport-option.active:disabled{
   border-color:#9a5a5a !important; /* серо-красная рамка при блокировке */
 }
+    /* === FREEZE TIME (UI) === */
+.freeze-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #fff;
+  background: #334155;
+  border: 1px solid #475569;
+}
+.freeze-badge:before { content: "⏱ "; opacity: .9; }
+
+/* Если у тебя нет общих стилей тумблера — добавь эти */
+.toggle { position: relative; display: inline-block; width: 44px; height: 24px; vertical-align: middle; }
+.toggle input { display: none; }
+.slider { position: absolute; cursor: pointer; inset: 0; background: #3a3a3a; transition: .2s; border-radius: 24px; }
+.slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; transition: .2s; border-radius: 50%; }
+.toggle input:checked + .slider { background: #16a34a; }
+.toggle input:checked + .slider:before { transform: translateX(20px); }
 
   </style>
 </head>
@@ -791,7 +810,18 @@ https://telegram.org/js/telegram-web-app.js
   </div>
   <input type="hidden" id="inputCount" value="1" />
 </div>
-          
+
+<!-- === FREEZE TIME: тумблер фиксации времени === -->
+<div class="toggle-container" id="freezeTimeControls" style="margin-top:8px;">
+  <span class="toggle-label">Зафиксировать время</span>
+  <label class="toggle">
+    <input type="checkbox" id="freezeTimeToggle">
+    <span class="slider"></span>
+  </label>
+  <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
+  <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
+</div>
+<!-- === /FREEZE TIME === -->         
     </div>
     
       <div class="photo-controls">
@@ -1111,10 +1141,9 @@ https://telegram.org/js/telegram-web-app.js
   plateOutput.textContent = plate;
   fareOutput.textContent = `${count} шт., Полный, ${fare} ₽`;
 
-  // Устанавливаем текущие дату и время
-  const now = new Date();
-  dateOutput.textContent = now.toLocaleDateString('ru-RU');
-  timeOutput.textContent = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+      // Устанавливаем дату/время с учётом фиксации
+dateOutput.textContent = getFreezeAwareDateString();
+timeOutput.textContent = getFreezeAwareTimeString();
 
   // Скрываем экран ввода, показываем основной
   inputScreen.classList.remove('active');
@@ -1734,6 +1763,136 @@ function setTransportType(type){
   document.getElementById('transportType').value = type;
 }
 
+    // === FREEZE TIME: логика фиксации времени ===
+const FREEZE_KEYS = {
+  enabled: 'freezeTime.enabled',
+  ts: 'freezeTime.ts',
+  timeStr: 'freezeTime.timeStr',
+  dateStr: 'freezeTime.dateStr'
+};
+
+const FREEZE = { enabled: false, ts: null, timeStr: '', dateStr: '' };
+
+// Используем твоё форматирование, если в проекте уже есть функции formatTicketTime/formatTicketDate.
+// Иначе — даём аккуратный дефолт.
+function formatTime(d) {
+  try { if (typeof window.formatTicketTime === 'function') return window.formatTicketTime(d); } catch(e){}
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDate(d) {
+  try { if (typeof window.formatTicketDate === 'function') return window.formatTicketDate(d); } catch(e){}
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function loadFreezeState() {
+  try {
+    FREEZE.enabled = localStorage.getItem(FREEZE_KEYS.enabled) === '1';
+    const ts = localStorage.getItem(FREEZE_KEYS.ts);
+    FREEZE.ts = ts ? Number(ts) : null;
+    FREEZE.timeStr = localStorage.getItem(FREEZE_KEYS.timeStr) || '';
+    FREEZE.dateStr = localStorage.getItem(FREEZE_KEYS.dateStr) || '';
+  } catch(e) {}
+  const toggle = document.getElementById('freezeTimeToggle');
+  if (toggle) toggle.checked = !!FREEZE.enabled;
+  updateFreezeBadge();
+}
+
+function saveFreezeState() {
+  try {
+    if (FREEZE.enabled) {
+      localStorage.setItem(FREEZE_KEYS.enabled, '1');
+      localStorage.setItem(FREEZE_KEYS.ts, String(FREEZE.ts || ''));
+      localStorage.setItem(FREEZE_KEYS.timeStr, FREEZE.timeStr || '');
+      localStorage.setItem(FREEZE_KEYS.dateStr, FREEZE.dateStr || '');
+    } else {
+      localStorage.removeItem(FREEZE_KEYS.enabled);
+      localStorage.removeItem(FREEZE_KEYS.ts);
+      localStorage.removeItem(FREEZE_KEYS.timeStr);
+      localStorage.removeItem(FREEZE_KEYS.dateStr);
+    }
+  } catch(e) {}
+}
+
+function freezeNow() {
+  const now = new Date();
+  FREEZE.enabled = true;
+  FREEZE.ts = now.getTime();
+  FREEZE.timeStr = formatTime(now);
+  FREEZE.dateStr = formatDate(now);
+  saveFreezeState();
+  updateFreezeBadge();
+  updateTicketTimeUI();
+}
+
+function unfreeze() {
+  FREEZE.enabled = false;
+  FREEZE.ts = null;
+  FREEZE.timeStr = '';
+  FREEZE.dateStr = '';
+  saveFreezeState();
+  updateFreezeBadge();
+  updateTicketTimeUI();
+}
+
+function getFreezeAwareDate() {
+  if (FREEZE.enabled && FREEZE.ts) return new Date(FREEZE.ts);
+  return new Date();
+}
+function getFreezeAwareTimeString() {
+  if (FREEZE.enabled && FREEZE.timeStr) return FREEZE.timeStr;
+  return formatTime(new Date());
+}
+function getFreezeAwareDateString() {
+  if (FREEZE.enabled && FREEZE.dateStr) return FREEZE.dateStr;
+  return formatDate(new Date());
+}
+
+function updateFreezeBadge() {
+  const badge = document.getElementById('freezeTimeBadge');
+  if (!badge) return;
+  if (FREEZE.enabled) {
+    badge.style.display = 'inline-block';
+    badge.textContent = FREEZE.timeStr + ' • ' + FREEZE.dateStr;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Универсальное обновление времени в билете.
+// Работает, если в вёрстке есть элементы с id: ticketTime, ticketDate, ticketDateTime (любые из них).
+function updateTicketTimeUI() {
+  const timeStr = getFreezeAwareTimeString();
+  const dateStr = getFreezeAwareDateString();
+
+  // Твои реальные id
+  const timeOut = document.getElementById('timeOutput');
+  if (timeOut) timeOut.textContent = timeStr;
+
+  const dateOut = document.getElementById('dateOutput');
+  if (dateOut) dateOut.textContent = dateStr;
+
+  // Совместимость (если вдруг где-то используешь эти id)
+  const tEl = document.getElementById('ticketTime');
+  if (tEl) tEl.textContent = timeStr;
+
+  const dEl = document.getElementById('ticketDate');
+  if (dEl) dEl.textContent = dateStr;
+
+  const dtEl = document.getElementById('ticketDateTime');
+  if (dtEl) dtEl.textContent = dateStr + ' ' + timeStr;
+}
+
+// Инициализация
+document.addEventListener('DOMContentLoaded', () => {
+  loadFreezeState();
+  const toggle = document.getElementById('freezeTimeToggle');
+  if (toggle) {
+    toggle.addEventListener('change', (e) => {
+      if (e.target.checked) freezeNow(); else unfreeze();
+    });
+  }
+  updateTicketTimeUI();
+});
   </script>
   
 </div>
