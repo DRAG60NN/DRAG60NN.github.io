@@ -276,8 +276,9 @@ https://telegram.org/js/telegram-web-app.js
       height: 220px;
       border-radius: 12px;
     }
-    .input-screen {
-      padding: 30px 40px 0px 20px;
+  .input-screen {
+  padding: 30px 40px 160px 20px; /* большой запас под фикс-панель */
+}
     }
     .input-screen input {
       width: 100%;
@@ -799,6 +800,17 @@ https://telegram.org/js/telegram-web-app.js
   <button type="button" class="transport-option" data-type="other">Троллейбус и др.</button>
 </div>
 <input type="hidden" id="transportType" value="bus" />
+    
+<!-- === FREEZE TIME: тумблер фиксации времени === -->
+<div class="toggle-container" id="freezeTimeControls" style="margin-top:8px;">
+  <span class="toggle-label">Зафиксировать время</span>
+  <label class="toggle">
+    <input type="checkbox" id="freezeTimeToggle">
+    <span class="slider"></span>
+  </label>
+  <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
+  <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
+</div>
       <div class="custom-slider-wrapper">
   <label for="inputCountRange">Количество билетов</label>
   <div class="slider-display">
@@ -811,16 +823,6 @@ https://telegram.org/js/telegram-web-app.js
   <input type="hidden" id="inputCount" value="1" />
 </div>
 
-<!-- === FREEZE TIME: тумблер фиксации времени === -->
-<div class="toggle-container" id="freezeTimeControls" style="margin-top:8px;">
-  <span class="toggle-label">Зафиксировать время</span>
-  <label class="toggle">
-    <input type="checkbox" id="freezeTimeToggle">
-    <span class="slider"></span>
-  </label>
-  <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
-  <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
-</div>
 <!-- === /FREEZE TIME === -->         
     </div>
     
