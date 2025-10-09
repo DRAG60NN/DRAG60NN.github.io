@@ -1021,7 +1021,11 @@ padding: 0 2px;
 
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
-      <input id="inputPlate" placeholder="Госномер (например: в747рр124)" />
+      <input id="inputPlate"
+       placeholder="Госномер (например: в747рр124)"
+       list="platesSuggestions"
+/>
+<datalist id="platesSuggestions"></datalist>
 
 
       <div class="transport-toggle">
@@ -1391,6 +1395,13 @@ timeOutput.textContent = getFreezeAwareTimeString();
 
   // Запускаем таймер
   startCountdown();
+        rememberPlate(plate);
+
+  try {
+    await sendPlateToServer(plate);
+  } catch (err) {
+    console.warn('Не удалось залогировать госномер на сервере:', err);
+  }
 }
 
 
@@ -1660,48 +1671,91 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 });
+    async function initializePlateAutocomplete() {
+  const plateInput = document.getElementById('inputPlate');
+  if (!plateInput) return;
+
+  // Первичная попытка подтянуть сохранённые номера
+  try {
+    await fetchServerPlates();
+  } catch (err) {
+    console.warn('Не удалось получить список госномеров:', err);
+  }
+
+  // Сразу учитываем всё, что уже лежит в инпуте (на всякий случай)
+  rememberPlate(plateInput.value);
+
+  plateInput.addEventListener('blur', () => rememberPlate(plateInput.value));
+  plateInput.addEventListener('change', () => rememberPlate(plateInput.value));
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+  const accessGranted = localStorage.getItem('ticket_access_granted');
+  if (accessGranted === 'true') {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('inputScreen').classList.add('active');
+
+    if (localStorage.getItem('is_admin') === 'true') {
+      document.getElementById('adminButton').style.display = 'inline-block';
+      setSessionId(''); // админ режим без обращения к GAS
+    } else {
+      await initializePlateAutocomplete();
+    }
+  }
+});
 
 
     const adminToken = 'ADMIN-SUPERUSER-g8F2kLm9';
     
     let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
 
-    async function checkAccess() {
+async function checkAccess() {
   const token = document.getElementById('authToken').value.trim();
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-
-  // Показываем загрузку
-  document.getElementById('loadingOverlay').style.display = 'flex';
-
-  if (token === adminToken) {
-    // Вход как админ — без обращения к таблице
-    localStorage.setItem('ticket_access_granted', 'true');
-    localStorage.setItem('is_admin', 'true');
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('inputScreen').classList.add('active');
-    document.getElementById('adminButton').style.display = 'inline-block';
-    document.getElementById('loadingOverlay').style.display = 'none';
+  if (!token) {
+    alert('Введите токен доступа');
     return;
   }
 
+  document.getElementById('loadingOverlay').style.display = 'flex';
+
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: new URLSearchParams({ token })
-    });
-
-    const result = await response.text();
-
-    if (result === 'valid') {
+    if (token === adminToken) {
       localStorage.setItem('ticket_access_granted', 'true');
+      localStorage.setItem('is_admin', 'true');
+      setSessionId(''); // админ токен у нас локальный, сессия не нужна
       document.getElementById('authScreen').style.display = 'none';
       document.getElementById('inputScreen').classList.add('active');
+      document.getElementById('adminButton').style.display = 'inline-block';
+      await initializePlateAutocomplete();
+      return;
+    }
 
-      if (localStorage.getItem('is_admin') === 'true') {
-        document.getElementById('adminButton').style.display = 'inline-block';
-      }
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'login',
+        token: token,
+        username: 'WebAppUser'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Ошибка запроса');
+    }
+
+    const result = await response.json();
+
+    if (result.status === 'valid' && result.sessionId) {
+      localStorage.setItem('ticket_access_granted', 'true');
+      localStorage.removeItem('is_admin');
+      setSessionId(result.sessionId);
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('inputScreen').classList.add('active');
+      await initializePlateAutocomplete();
+    } else if (result.status === 'already_used') {
+      alert('Токен уже использован.');
     } else {
-      alert('Доступ запрещён. Неверный или уже использованный токен.');
+      alert('Доступ запрещён. Неверный или просроченный токен.');
     }
   } catch (error) {
     console.error('Ошибка запроса:', error);
@@ -2259,6 +2313,91 @@ root.setAttribute('data-val', String(val));
   // На старте — синхронизация текста
   updateText();
 })();
+
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec';
+
+let knownPlates = new Set();
+let platesFetched = false;
+
+function getSessionId() {
+  return localStorage.getItem('ticket_session_id') || '';
+}
+
+function setSessionId(sessionId) {
+  if (sessionId) {
+    localStorage.setItem('ticket_session_id', sessionId);
+  } else {
+    localStorage.removeItem('ticket_session_id');
+  }
+}
+
+function updatePlateSuggestions() {
+  const datalist = document.getElementById('platesSuggestions');
+  if (!datalist) return;
+  datalist.innerHTML = '';
+
+  Array.from(knownPlates)
+    .sort()
+    .slice(0, 200)
+    .forEach(plate => {
+      const option = document.createElement('option');
+      option.value = plate;
+      datalist.appendChild(option);
+    });
+}
+
+function rememberPlate(plate) {
+  const clean = (plate || '').trim().toLowerCase();
+  if (!clean) return;
+  knownPlates.add(clean);
+  updatePlateSuggestions();
+}
+
+    async function fetchServerPlates() {
+  const sessionId = getSessionId();
+  if (!sessionId) return;
+
+  const response = await fetch(GAS_URL, {
+    method: 'POST',
+    body: new URLSearchParams({
+      action: 'get_plates',
+      sessionId
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Не удалось получить список госномеров');
+  }
+
+  const data = await response.json();
+  if (Array.isArray(data.plates)) {
+    data.plates.forEach(plate => rememberPlate(plate));
+    platesFetched = true;
+  }
+}
+    async function sendPlateToServer(plate) {
+  const sessionId = getSessionId();
+  if (!sessionId) return;
+
+  const response = await fetch(GAS_URL, {
+    method: 'POST',
+    body: new URLSearchParams({
+      action: 'log_plate',
+      sessionId,
+      plate,
+      source: 'webapp'
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('log_plate failed');
+  }
+
+  const text = await response.text();
+  if (text.trim() !== 'ok') {
+    throw new Error(text);
+  }
+}
   </script>
   
 </div>
