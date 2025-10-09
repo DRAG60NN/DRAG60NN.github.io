@@ -1328,7 +1328,9 @@ padding: 0 2px;
   const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
   const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
   const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
-  const count = parseInt(document.getElementById('inputCount').value, 10) || defaultData.count;
+  const rangeEl = document.getElementById('inputCountRange');
+let count = rangeEl ? parseInt(rangeEl.value, 10) : parseInt(document.getElementById('inputCount').value, 10);
+if (!Number.isFinite(count) || count < 1) count = 1;
 
   // Определяем тариф
   const selectedType = document.getElementById('transportType').value;
@@ -1361,7 +1363,7 @@ function closeApp() {
   mainScreen.classList.remove('active');
 
   // Безопасная очистка инпутов - проверяем существование элементов
-  const inputIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare', 'inputCount'];
+  const inputIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare'];
   inputIds.forEach(id => {
     const element = document.getElementById(id);
     if (element) {  // ← ДОБАВИЛИ ПРОВЕРКУ
