@@ -760,14 +760,42 @@ https://telegram.org/js/telegram-web-app.js
 }
 .freeze-badge:before { content: "⏱ "; opacity: .9; }
 
-/* Если у тебя нет общих стилей тумблера — добавь эти */
-.toggle { position: relative; display: inline-block; width: 44px; height: 24px; vertical-align: middle; }
-.toggle input { display: none; }
-.slider { position: absolute; cursor: pointer; inset: 0; background: #3a3a3a; transition: .2s; border-radius: 24px; }
-.slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; transition: .2s; border-radius: 50%; }
-.toggle input:checked + .slider { background: #16a34a; }
-.toggle input:checked + .slider:before { transform: translateX(20px); }
 
+    /* 1) Единый вертикальный зазор между блоками формы */
+#inputScreen .input-screen {
+  font-size: 16px;               /* базовый размер для мобильных */
+}
+#inputScreen .input-screen > * + * {
+  margin-top: 12px;              /* одинаковый шаг между соседями */
+}
+
+/* 2) Контролы не сжимаются и читаемы */
+#inputScreen input,
+#inputScreen select,
+#inputScreen button,
+#inputScreen .btn {
+  font-size: 1rem;               /* = 16px из родителя */
+  line-height: 1.2;
+  min-height: 44px;              /* тач‑зона по гайдлайнам */
+  box-sizing: border-box;
+}
+
+/* 3) Переключатель транспорта — аккуратный горизонтальный отступ */
+#inputScreen .transport-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+/* 4) Карточка “Зафиксировать время” — воздух сверху/снизу */
+#freezeTimeControls {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+/* 5) На всякий случай отключаем авто-ужатие текста Safari */
+html { -webkit-text-size-adjust: 100%; }
+    
   </style>
 </head>
 <body>
