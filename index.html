@@ -2201,7 +2201,7 @@ function chooseTimeForLastTicket() {
       if (btnId === 'prev') showLastTicket('prev');
     });
   } else {
-    const useNow = confirm('Показать с актуальным временем? <br> OK — актуальное, Отмена — как в билете.');
+    const useNow = confirm('Показать с актуальным временем?                               OK — актуальное, Отмена — как в билете.');
     showLastTicket(useNow ? 'now' : 'prev');
   }
 }
