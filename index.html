@@ -1025,7 +1025,7 @@ padding: 0 2px;
     </div>
     
       <div class="photo-controls">
-
+        <button type="button" id="showLastBtn" onclick="chooseTimeForLastTicket()">Показать последний билет</button>
     <button onclick="submitForm()" class="submit-button">Продолжить</button>
         <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
 
@@ -1346,6 +1346,21 @@ if (!Number.isFinite(count) || count < 1) count = 1;
       // Устанавливаем дату/время с учётом фиксации
 dateOutput.textContent = getFreezeAwareDateString();
 timeOutput.textContent = getFreezeAwareTimeString();
+
+      // Сохраняем последний билет для быстрого показа позже
+saveLastTicket({
+  carrier,
+  route,
+  plate,
+  count,
+  pricePerTicket,
+  transportType: selectedType,
+  fareString: `${count} шт., Полный, ${fare} ₽`,
+  // сохраняем видимые пользователю дату/время с учётом фиксации
+  timeStr: getFreezeAwareTimeString(),
+  dateStr: getFreezeAwareDateString(),
+  ts: Date.now()
+});
 
   // Скрываем экран ввода, показываем основной
   inputScreen.classList.remove('active');
@@ -2143,6 +2158,85 @@ root.style.setProperty('--pct', pct + '%');
 root.style.setProperty('--val', String(val)); // на будущее
 root.setAttribute('data-val', String(val));
 }
+}
+
+    // === LAST TICKET (NEW) ===
+const LAST_TICKET_KEY = 'last_ticket_v1';
+
+function saveLastTicket(payload) {
+  try {
+    localStorage.setItem(LAST_TICKET_KEY, JSON.stringify(payload));
+  } catch (e) { /* ignore */ }
+}
+
+function loadLastTicket() {
+  try {
+    const raw = localStorage.getItem(LAST_TICKET_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Выбор времени через Telegram popup (если доступен) или confirm
+function chooseTimeForLastTicket() {
+  const t = loadLastTicket();
+  const tg = window.Telegram && Telegram.WebApp;
+  if (!t) {
+    tg?.showAlert ? tg.showAlert('Нет сохранённого билета') : alert('Нет сохранённого билета');
+    return;
+  }
+
+  if (tg && typeof tg.showPopup === 'function') {
+    tg.showPopup({
+      title: 'Какое время показать?',
+      message: 'Выберите, с каким временем открыть билет',
+      buttons: [
+        { id: 'now',  type: 'default', text: 'Актуальное' },
+        { id: 'prev', type: 'default', text: 'Как в билете' },
+        { id: 'cancel', type: 'cancel', text: 'Отмена' }
+      ]
+    }, (btnId) => {
+      if (btnId === 'now')  showLastTicket('now');
+      if (btnId === 'prev') showLastTicket('prev');
+    });
+  } else {
+    const useNow = confirm('Показать с актуальным временем?
+OK — актуальное, Отмена — как в билете.');
+    showLastTicket(useNow ? 'now' : 'prev');
+  }
+}
+
+// Открыть сохранённый билет (mode: 'now' | 'prev')
+function showLastTicket(mode = 'prev') {
+  const t = loadLastTicket();
+  const tg = window.Telegram && Telegram.WebApp;
+  if (!t) {
+    tg?.showAlert ? tg.showAlert('Нет сохранённого билета') : alert('Нет сохранённого билета');
+    return;
+  }
+
+  // Заполняем билет
+  carrierOutput.textContent = t.carrier || defaultData.carrier;
+  routeOutput.textContent   = t.route   || defaultData.route;
+  plateOutput.textContent   = t.plate   || defaultData.plate;
+  fareOutput.textContent    = t.fareString || `${t.count ?? 1} шт., Полный, ${((t.count ?? 1) * (t.pricePerTicket ?? 48))} ₽`;
+
+  // Время: либо сохранённое, либо актуальное (фиксацию FREEZE не трогаем)
+  if (mode === 'now') {
+    const now = new Date();
+    timeOutput.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    dateOutput.textContent = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } else {
+    timeOutput.textContent = t.timeStr || getFreezeAwareTimeString();
+    dateOutput.textContent = t.dateStr || getFreezeAwareDateString();
+  }
+
+  // Переход на основной экран и запуск таймера
+  inputScreen.classList.remove('active');
+  mainScreen.classList.add('active');
+  switchTab('ticket');
+  startCountdown();
 }
   </script>
   
