@@ -1,14 +1,63 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <script src="
-https://telegram.org/js/telegram-web-app.js
-"></script>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Билет</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <!-- Подключение Telegram Web App JS в самом начале -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Шрифты -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+/* === СИСТЕМА ПЕРЕМЕННЫХ ДЛЯ ТЕМ === */
+:root {
+  /* Основные цвета из первого приложения */
+  --app-bg-primary: #1a1a1a;
+  --app-bg-secondary: #2b2b2b;
+  --app-bg-tertiary: #333333;
+  
+  /* Цвета текста */
+  --app-text-primary: #ffffff;
+  --app-text-secondary: #b0b0b0;
+  --app-text-muted: #808080;
+  
+  /* Акцентные цвета */
+  --app-accent-red: #e21a1a;
+  --app-accent-red-hover: #c91515;
+  --app-accent-red-shadow: rgba(226, 26, 26, 0.3);
+  
+  /* Цвета для форм */
+  --app-input-bg: #2b2b2b;
+  --app-input-border: #444444;
+  --app-input-focus: #555555;
+  
+  /* Тени и эффекты */
+  --app-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --app-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --app-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  
+  /* Радиусы */
+  --app-radius-sm: 6px;
+  --app-radius-md: 10px;
+  --app-radius-lg: 14px;
+  
+  /* Отступы */
+  --app-spacing-xs: 4px;
+  --app-spacing-sm: 8px;
+  --app-spacing-md: 16px;
+  --app-spacing-lg: 24px;
+  --app-spacing-xl: 32px;
+}
+
+/* Поддержка Telegram Theme */
+.tg-theme-dark {
+  --app-bg-primary: var(--tg-theme-bg-color, #1a1a1a);
+  --app-bg-secondary: var(--tg-theme-secondary-bg-color, #2b2b2b);
+  --app-text-primary: var(--tg-theme-text-color, #ffffff);
+  --app-accent-red: var(--tg-theme-button-color, #e21a1a);
+}
     /* Основные стили страницы */
     body {
       margin: 0;
@@ -959,6 +1008,472 @@ padding: 0 2px;
 .slider-labels {
   display: none !important;
 }
+    /* === БАЗОВЫЕ СТИЛИ === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background: var(--app-bg-primary);
+  color: var(--app-text-primary);
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Контейнеры */
+.container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--app-spacing-md);
+  padding-bottom: 80px;
+  position: relative;
+}
+
+/* Экраны */
+.screen {
+  display: none;
+  width: 100%;
+  min-height: 100vh;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+    /* === ФОРМЫ И ЭЛЕМЕНТЫ ВВОДА === */
+.input-screen {
+  padding: var(--app-spacing-lg);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Базовый input */
+input[type="text"],
+input[type="number"],
+input[type="tel"],
+input[type="email"],
+input[type="password"],
+input {
+  width: 100%;
+  height: 48px;
+  padding: 0 var(--app-spacing-md);
+  background: var(--app-input-bg);
+  border: 1px solid var(--app-input-border);
+  border-radius: var(--app-radius-md);
+  color: var(--app-text-primary);
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--app-input-focus);
+  background: var(--app-bg-tertiary);
+  box-shadow: 0 0 0 3px var(--app-accent-red-shadow);
+}
+
+input::placeholder {
+  color: var(--app-text-muted);
+}
+
+/* Кнопки */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 var(--app-spacing-lg);
+  background: var(--app-accent-red);
+  color: white;
+  border: none;
+  border-radius: var(--app-radius-md);
+  font-size: 16px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+button:hover {
+  background: var(--app-accent-red-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--app-shadow-md);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: var(--app-shadow-sm);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Эффект ripple для кнопок */
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button:active::after {
+  width: 300px;
+  height: 300px;
+}
+    /* === АДАПТИВНАЯ СЕТКА === */
+.form-group {
+  margin-bottom: var(--app-spacing-md);
+}
+
+.form-row {
+  display: flex;
+  gap: var(--app-spacing-sm);
+  margin-bottom: var(--app-spacing-md);
+}
+
+.form-row > * {
+  flex: 1;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .container {
+    padding: var(--app-spacing-sm);
+  }
+  
+  .input-screen {
+    padding: var(--app-spacing-md);
+  }
+}
+
+@media (max-width: 320px) {
+  body {
+    font-size: 14px;
+  }
+  
+  input, button {
+    font-size: 14px;
+    min-height: 44px;
+  }
+}
+    /* === ТАБЫ === */
+.tab {
+  display: flex;
+  width: 100%;
+  background: var(--app-bg-secondary);
+  border-radius: var(--app-radius-md);
+  padding: 4px;
+  margin-bottom: var(--app-spacing-lg);
+  position: relative;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-spacing-xs);
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: var(--app-radius-sm);
+  color: var(--app-text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.tab-item:hover {
+  color: var(--app-text-primary);
+}
+
+.tab-item.active {
+  color: var(--app-text-primary);
+  background: var(--app-bg-primary);
+  box-shadow: var(--app-shadow-sm);
+}
+
+/* Анимированный индикатор для табов */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background: var(--app-accent-red);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+    /* === ФИКСИРОВАННАЯ НИЖНЯЯ ПАНЕЛЬ === */
+.bottom-button {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(180deg, transparent 0%, var(--app-bg-primary) 20%);
+  z-index: 100;
+}
+
+.bottom-button button {
+  width: 100%;
+  background: var(--app-accent-red);
+  box-shadow: var(--app-shadow-lg);
+}
+
+.bottom-button button.disabled {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Безопасная зона для iPhone */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-button {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+    /* === МОДАЛЬНЫЕ ОКНА === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--app-spacing-md);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  background: var(--app-bg-secondary);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-lg);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: var(--app-spacing-md) var(--app-spacing-lg);
+  background: var(--app-bg-tertiary);
+  border-bottom: 1px solid var(--app-input-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-body {
+  padding: var(--app-spacing-lg);
+  overflow-y: auto;
+  max-height: calc(90vh - 120px);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+    /* === МОБИЛЬНАЯ ОПТИМИЗАЦИЯ === */
+
+/* Улучшенная типографика для мобильных */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 {
+    font-size: 24px;
+  }
+  
+  h2 {
+    font-size: 20px;
+  }
+  
+  .screen-title {
+    font-size: 22px;
+    margin-bottom: var(--app-spacing-lg);
+  }
+}
+
+/* Оптимизация для маленьких экранов */
+@media (max-width: 375px) {
+  .container {
+    padding: var(--app-spacing-sm);
+  }
+  
+  input, button {
+    font-size: 14px;
+    min-height: 44px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+/* Ландшафтная ориентация */
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen-title {
+    display: none;
+  }
+  
+  .form-group {
+    margin-bottom: var(--app-spacing-sm);
+  }
+  
+  input, button {
+    min-height: 40px;
+  }
+}
+
+/* Поддержка тёмной темы системы */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-bg-primary: #0a0a0a;
+    --app-bg-secondary: #1a1a1a;
+  }
+}
+
+/* Высококонтрастный режим */
+@media (prefers-contrast: high) {
+  :root {
+    --app-accent-red: #ff0000;
+    --app-input-border: #ffffff;
+  }
+}
+
+/* Уменьшенная анимация */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+    /* === УЛУЧШЕННЫЙ TOGGLE SWITCH === */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--app-input-border);
+  border-radius: 28px;
+  transition: all 0.3s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .toggle-slider {
+  background: var(--app-accent-red);
+}
+
+input:checked + .toggle-slider::before {
+  transform: translateX(24px);
+}
+
+/* Анимация включения */
+input:checked + .toggle-slider {
+  animation: toggleOn 0.3s ease;
+}
+
+@keyframes toggleOn {
+  0% {
+    box-shadow: 0 0 0 0 var(--app-accent-red-shadow);
+  }
+  50% {
+    box-shadow: 0 0 0 8px var(--app-accent-red-shadow);
+  }
+  100% {
+    box-shadow: 0 0 0 0 var(--app-accent-red-shadow);
+  }
+}
   </style>
 </head>
 <body>
@@ -972,64 +1487,114 @@ padding: 0 2px;
 
 
   
-  <!-- Экран ввода данных -->
-  <div class="screen" id="inputScreen">
+<!-- Экран ввода данных -->
+<div class="screen" id="inputScreen">
+  <div class="container">
     <div class="input-screen">
-      <div style="display: flex; gap: 10px; align-items: center;">
-  </div>
-    <button type="button" class="transport-trigger" onclick="openTransportMenu()">
-  Выбрать номер транспорта
-</button>
-
-      <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
-      <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
-      <input id="inputPlate" placeholder="Госномер (например: в747рр124)" />
-
-
-      <div class="transport-toggle">
-  <button type="button" class="transport-option active" data-type="bus">Автобус</button>
-  <button type="button" class="transport-option" data-type="other">Троллейбус и др.</button>
-</div>
-<input type="hidden" id="transportType" value="bus" />
-    
-<!-- === FREEZE TIME: тумблер фиксации времени === -->
-<div class="toggle-container" id="freezeTimeControls" style="margin-top:8px;">
-  <span class="toggle-label">Зафиксировать время</span>
-  <label class="toggle">
-    <input type="checkbox" id="freezeTimeToggle">
-    <span class="slider"></span>
-  </label>
-  <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
-  <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
-</div>
-<div class="tickets" id="countSlider" data-val="1">
-  <label class="title" for="inputCountRange">Количество билетов</label>
-  
-  <div class="badge"><span id="sliderValue">1</span></div>
-
-  <div class="slider-wrap">
-    <div class="dots-track"></div>
-    <div class="fill-track"></div>
-    <input id="inputCountRange" type="range" min="1" max="5" step="1" value="1"
-           aria-label="Количество билетов" oninput="updateCountLabel(this.value)">
-  </div>
-
-  <div class="scale">
-    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-  </div>
-
-  <input type="hidden" id="inputCount" value="1">
-</div>
-
-<!-- === /FREEZE TIME === -->         
-    </div>
-    
-      <div class="photo-controls">
-<button type="button" id="showLastBtn" onclick="chooseTimeForLastTicket()">Показать последний билет</button>
-    <button onclick="submitForm()" class="submit-button">Продолжить</button>
-        <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
-
+      <!-- Заголовок -->
+      <h1 class="screen-title">Создание билета</h1>
+      
+      <!-- Кнопка выбора маршрута -->
+      <div class="form-group">
+        <button type="button" class="transport-trigger" onclick="openTransportMenu()">
+          <svg class="icon" width="20" height="20"><!-- иконка --></svg>
+          <span>Выбрать номер транспорта</span>
+        </button>
       </div>
+      
+      <!-- Поля ввода -->
+      <div class="form-group">
+        <input 
+          id="inputCarrier" 
+          type="text"
+          placeholder="Перевозчик (например: КПАТП-5)" 
+          autocomplete="off"
+        />
+      </div>
+      
+      <div class="form-group">
+        <input 
+          id="inputRoute" 
+          type="text"
+          placeholder="Маршрут" 
+          autocomplete="off"
+        />
+      </div>
+      
+      <div class="form-row">
+        <input 
+          id="inputPlate" 
+          type="text"
+          placeholder="Госномер" 
+          autocomplete="off"
+        />
+      </div>
+      
+      <!-- Тип транспорта -->
+      <div class="form-group">
+        <div class="transport-toggle">
+          <button type="button" class="toggle-option active" data-type="bus">
+            Автобус
+          </button>
+          <button type="button" class="toggle-option" data-type="other">
+            Троллейбус
+          </button>
+        </div>
+        <input type="hidden" id="transportType" value="bus" />
+      </div>
+      
+      <!-- Слайдер количества -->
+      <div class="form-group">
+        <div id="countSlider" class="ticket-slider" data-value="1">
+          <label class="slider-label">Количество билетов</label>
+          <div class="slider-value">1</div>
+          <div class="slider-track">
+            <input 
+              id="inputCountRange" 
+              type="range" 
+              min="1" 
+              max="5" 
+              value="1"
+              oninput="updateCountLabel(this.value)"
+            />
+            <div class="slider-fill"></div>
+          </div>
+          <div class="slider-marks">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+            <span>5</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Фиксация времени -->
+      <div class="form-group">
+        <div class="toggle-container">
+          <span class="toggle-label">Зафиксировать время</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="freezeTimeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div id="freezeTimeBadge" class="time-badge" style="display:none;">
+          <!-- Время -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Нижняя панель действий -->
+  <div class="bottom-panel">
+    <button onclick="chooseTimeForLastTicket()" class="secondary-button">
+      Показать последний билет
+    </button>
+    <button onclick="submitForm()" class="primary-button">
+      Продолжить
+    </button>
+    <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
+  </div>
 </div>
   <!-- === Меню выбора транспорта (оверлей) === -->
 <div id="transportMenuOverlay" class="transport-menu-overlay">
@@ -1236,6 +1801,105 @@ padding: 0 2px;
   <div class="pre-footer"></div>
   <div class="bottom-button" id="closeButton" onclick="closeApp()">ЗАКРЫТЬ</div>
   <script>
+    // === ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP ===
+const tg = window.Telegram?.WebApp;
+
+// Инициализация темы и цветов
+function initTheme() {
+  if (tg) {
+    // Применяем тему Telegram
+    document.documentElement.className = tg.colorScheme === 'dark' ? 'tg-theme-dark' : 'tg-theme-light';
+    
+    // Расширяем WebApp на весь экран
+    tg.expand();
+    
+    // Готовность приложения
+    tg.ready();
+    
+    // Установка цвета header
+    tg.setHeaderColor('bg_color');
+    
+    // Включаем кнопку закрытия
+    tg.enableClosingConfirmation();
+  }
+}
+
+// Адаптивная высота viewport (решение проблемы с iOS Safari)
+function setViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Определение типа устройства
+function getDeviceType() {
+  const width = window.innerWidth;
+  if (width < 480) return 'mobile';
+  if (width < 768) return 'tablet';
+  return 'desktop';
+}
+
+// Обработка изменения ориентации
+function handleOrientationChange() {
+  const orientation = window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
+  document.body.dataset.orientation = orientation;
+}
+
+// Плавная прокрутка
+function smoothScrollTo(element) {
+  element.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+
+// Вибрация при клике (для мобильных)
+function hapticFeedback(type = 'light') {
+  if (tg?.HapticFeedback) {
+    switch(type) {
+      case 'light':
+        tg.HapticFeedback.impactOccurred('light');
+        break;
+      case 'medium':
+        tg.HapticFeedback.impactOccurred('medium');
+        break;
+      case 'heavy':
+        tg.HapticFeedback.impactOccurred('heavy');
+        break;
+      case 'success':
+        tg.HapticFeedback.notificationOccurred('success');
+        break;
+      case 'error':
+        tg.HapticFeedback.notificationOccurred('error');
+        break;
+    }
+  } else if (navigator.vibrate) {
+    // Fallback для обычных браузеров
+    navigator.vibrate(type === 'heavy' ? 50 : 20);
+  }
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  setViewportHeight();
+  handleOrientationChange();
+  
+  // Обновление при изменении размера окна
+  window.addEventListener('resize', () => {
+    setViewportHeight();
+    handleOrientationChange();
+  });
+  
+  // Добавляем haptic feedback на все кнопки
+  document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', () => hapticFeedback('light'));
+  });
+  
+  // Обработка изменения темы в Telegram
+  if (tg) {
+    tg.onEvent('themeChanged', initTheme);
+  }
+});
     // Получаем элементы для управления
     const inputScreen = document.getElementById('inputScreen');
     const mainScreen = document.getElementById('mainScreen');
