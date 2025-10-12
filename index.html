@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
   <script src="
 https://telegram.org/js/telegram-web-app.js
 "></script>
@@ -9,957 +9,932 @@ https://telegram.org/js/telegram-web-app.js
   <title>Билет</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
-    /* Основные стили страницы */
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background-color: #2b2b2b;
-      color: #fff;
-    }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        /* Тумблер */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-        
-        .toggle-label {
-            font-weight: 500;
-        }
-        
-        .toggle {
-            position: relative;
-            width: 50px;
-            height: 28px;
-        }
-        
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: var(--tg-theme-button-color, #3390ec);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
-        
-        /* Кнопка отправки */
-        .send-button {
-            width: 100%;
-            padding: 15px;
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .send-button.active {
-            display: block;
-        }
-        
-        /* Билет */
-        .ticket-view {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .ticket-view.active {
-            display: block;
-        }
-        
-        .ticket-number {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        
-        .ticket-info {
-            text-align: left;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            padding: 15px;
-            border-radius: 12px;
-            margin: 10px 0;
-        }
-        
-        .ticket-info div {
-            margin: 8px 0;
-        }
-    .container {
-      padding: 20px;
-      padding-bottom: 80px; /* Отступ снизу для кнопки */
-    }
-    .top-text {
-      text-align: center;
-      font-size: 20px;
-      font-weight: 500;
-      margin-bottom: 15px;
-      color: #fff;
-    }
-    .tab {
-  position: relative;
-  left: -16px;
-  width: calc(100% + 32px);
-      display: flex;
-      justify-content: space-around;
-      border-bottom: 1px solid #333;
-
-    }
-    .tab-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 16px;
-      color: #ccc;
-      padding: 10px 0;
-      position: relative;
-      cursor: pointer;
-      user-select: none;
-    }
-    .tab-item.active {
-      color: #e21a1a;
-      font-weight: 500;
-    }
-    .tab-item.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: #e21a1a;
-    }
-    .section {
-      border-bottom: 1px solid #333;
-      padding: 15px 0;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fadeIn 0.3s ease-out forwards;
-    }
-    .label {
-      color: #b0b0b0;
-      font-size: 14px;
-      font-weight: 300;
-    }
-    .value {
-      font-size: 20px;
-      font-weight: 500;
-      margin-top: 5px;
-    }
-    .value-small {
-      font-size: 14px;
-      color: #aaa;
-      margin-top: 3px;
-      font-weight: 300;
-    }
-    /* Кнопка "ЗАКРЫТЬ" - всегда отображается на основном экране */
-    .bottom-button {
-      width: 100%;
-      padding: 14px 0;
-      background-color: #e21a1a;
-      color: white;
-      text-align: center;
-      font-weight: bold;
-      font-size: 14px;
-      position: fixed;
-      bottom: 4px;
-      left: 2px;
-      right: 2px;
-      border-radius: 9px; /* Закругляем углы */
-      cursor: pointer;
-      user-select: none;
-      box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
-      z-index: 1000;
-    }
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .icon {
-      width: 24px;
-      height: 24px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .icon svg {
-      width: 100%;
-      height: 100%;
-      fill: #aaa;
-    }
-    .screen {
-      display: none;
-    }
-    .screen.active {
-      display: block;
-    }
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .qr-container {
-      background: #fff;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      border-radius: 12px;
-    }
-    .qr-container img {
-      width: 220px;
-      height: 220px;
-      border-radius: 12px;
-    }
-  .input-screen {
-  padding: 30px 40px 160px 20px; /* большой запас под фикс-панель */
-}
-    }
-    .input-screen input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      font-size: 16px;
-      border: none;
-      border-radius: 4px;
-    }
-    .input-screen button {
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: bold;
-      background-color: #e21a1a;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .photo-loader-block {
-  margin-bottom: 24px;
-}
-
-.photo-loader-block input,
-.photo-loader-block button {
-  display: block;
-  width: 100%;
-  margin-bottom: 10px;
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 4px;
-  border: none;
-}
-
-.photo-loader-block button {
-  background-color: #e21a1a;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.loader {
-  border: 4px solid #ccc;
-  border-top: 4px solid #e21a1a;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
-  margin: 10px auto 0;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-    /* Блок снизу */
-.photo-controls {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #2b2b2b;
-  padding: 20px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-/* Скрыть input-файл, стилизуем label */
-.photo-controls input[type="file"] {
-  display: none;
-}
-
-.upload-label {
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 12px;
-  margin-bottom: 10px;
-  background-color: #444;
-  color: white;
-  font-size: 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.photo-controls button {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: bold;
-  background-color: #e21a1a;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-/* Кнопка "Продолжить" отдельно выделена */
-.submit-button {
-  margin-top: 20px;
-  background-color: #26a269;
-}
-
-.loader {
-  border: 4px solid #ccc;
-  border-top: 4px solid #e21a1a;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
-  margin: 10px auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-    .loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-    .section .icon {
-  margin-left: 12px; /* сдвигает иконку немного правее */
-}
-
-.section span,
-.section p {
-  margin-left: 12px; /* сдвигает текст немного правее */
-}
-    .tab-container {
-  padding: 0;
-  margin: 0;
-}
-
-#authScreen {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background-color: #2b2b2b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#authScreen .input-screen {
-  max-width: 400px;
-  width: 90%;
-}
-
-.admin-modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  z-index: 10001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.admin-content {
-  position: relative;
-  background: #1e1e1e;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px #000;
-  width: 90%;
-  max-width: 420px;
-  text-align: center;
-}
-
-.admin-content input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.admin-content button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  background: #e21a1a;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.close-admin-button {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 26px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 2;
-}
-
-#codeLoader {
-  display: none;
-  margin-left: 8px;
-  font-size: 16px;
-  animation: blink 1s linear infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
-}
-.custom-slider-wrapper {
-  position: relative;
-  top: -25px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 3px;
-}
-
-.slider-display {
-  position: relative;
-  top:-16px;
-  display: flex;
-  align-items: center;
-}
-
-#inputCountRange {
-  flex: 1;
-  appearance: none;
-  height: 3px;
-  border-radius: 2px;
-  background: #555;
-  outline: none;
-  accent-color: #e21a1a;
-}
-
-#inputCountRange::-webkit-slider-thumb {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #e21a1a;
-  cursor: pointer;
-  border: none;
-  margin-top: -2px;
-}
-
-.slider-labels {
-  display: flex;
-  justify-content: space-between;  
-  font-size: 14px;
-  color: #bbb;
-  padding: 0 4px;
-  margin-top: 4px;
-}
-.input-invalid {
-    border: 2px solid red !important;
-    background-color: #ffe6e6;
+  :root {
+    color-scheme: dark;
+    --bg-main: #2b2b2b;
+    --bg-secondary: #1f1f1f;
+    --bg-elevated: #262626;
+    --bg-panel: #2b2b2b;
+    --bg-overlay: rgba(0, 0, 0, 0.6);
+    --text-primary: #ffffff;
+    --text-secondary: #c9c9c9;
+    --text-muted: #aaa;
+    --text-contrast: #0f172a;
+    --icon-fill: #aaa;
+    --border-main: #333;
+    --border-strong: #444;
+    --border-contrast: #fff;
+    --accent-red: #e21a1a;
+    --accent-red-muted: #d32f2f;
+    --accent-red-alt: #df1d1d;
+    --accent-blue: #3390ec;
+    --accent-green: #26a269;
+    --toggle-off: #ccc;
+    --toggle-thumb: #ffffff;
+    --slider-track: #555;
+    --slider-track-ghost: #3a3a3a;
+    --slider-dot: #8a8a8a;
+    --qr-bg: #ffffff;
+    --overlay-blocker: rgba(100, 100, 100, 0.97);
+    --loader-ring: rgba(255, 255, 255, 0.71);
+    --loader-ring-accent: #8c0000;
+    --photo-panel-shadow: rgba(0, 0, 0, 0.5);
+    --button-shadow: rgba(226, 26, 26, 0.6);
+    --input-bg: #1e1e1e;
+    --input-border: var(--border-main);
+    --badge-bg: #334155;
+    --badge-border: #475569;
   }
-    /* Полупрозрачная бесконечная загрузка для вкладки Контроль */
-#qrBlockOverlay {
+
+  [data-theme="light"] {
+    color-scheme: light;
+    --bg-main: #f7f8fa;
+    --bg-secondary: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-panel: #ffffff;
+    --bg-overlay: rgba(15, 23, 42, 0.25);
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-muted: #6b7280;
+    --text-contrast: #ffffff;
+    --icon-fill: #6b7280;
+    --border-main: #d1d5db;
+    --border-strong: #cbd5e1;
+    --border-contrast: #e11d48;
+    --accent-red: #d92d20;
+    --accent-red-muted: #b91c1c;
+    --accent-red-alt: #b91c1c;
+    --accent-blue: #2563eb;
+    --accent-green: #16a34a;
+    --toggle-off: #cbd5f5;
+    --toggle-thumb: #ffffff;
+    --slider-track: #d1d5db;
+    --slider-track-ghost: #9ca3af;
+    --slider-dot: #94a3b8;
+    --qr-bg: #ffffff;
+    --overlay-blocker: rgba(255, 255, 255, 0.8);
+    --loader-ring: rgba(226, 232, 240, 0.9);
+    --loader-ring-accent: #d92d20;
+    --photo-panel-shadow: rgba(15, 23, 42, 0.08);
+    --button-shadow: rgba(217, 45, 32, 0.3);
+    --input-bg: #ffffff;
+    --input-border: #d1d5db;
+    --badge-bg: #e0e7ff;
+    --badge-border: #c7d2fe;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+  }
+
+  .container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    padding-bottom: 80px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+    background: var(--input-bg);
+    color: var(--text-primary);
+  }
+
+  input::placeholder,
+  select::placeholder {
+    color: var(--text-muted);
+  }
+
+  .toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: var(--tg-theme-secondary-bg-color, var(--bg-secondary));
+    border-radius: 12px;
+    margin: 20px 0;
+    border: 1px solid var(--border-main);
+  }
+
+  .toggle-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .toggle {
+    position: relative;
+    width: 50px;
+    height: 28px;
+  }
+
+  .toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--toggle-off);
+    transition: .4s;
+    border-radius: 34px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--toggle-thumb);
+    transition: .4s;
+    border-radius: 50%;
+  }
+
+  input:checked + .slider {
+    background-color: var(--tg-theme-button-color, var(--accent-blue));
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+
+  .send-button {
+    width: 100%;
+    padding: 15px;
+    background: var(--tg-theme-button-color, var(--accent-blue));
+    color: var(--tg-theme-button-text-color, var(--text-contrast));
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: none;
+    margin-top: 20px;
+  }
+
+  .send-button.active {
+    display: block;
+  }
+
+  .ticket-view {
+    display: none;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .ticket-view.active {
+    display: block;
+  }
+
+  .ticket-number {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0;
+    color: var(--text-primary);
+  }
+
+  .ticket-info {
+    text-align: left;
+    background: var(--tg-theme-secondary-bg-color, var(--bg-secondary));
+    padding: 15px;
+    border-radius: 12px;
+    margin: 10px 0;
+    border: 1px solid var(--border-main);
+  }
+
+  .ticket-info div {
+    margin: 8px 0;
+  }
+
+  .top-text {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+  }
+
+  .tab {
+    position: relative;
+    left: -16px;
+    width: calc(100% + 32px);
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid var(--border-main);
+  }
+
+  .tab-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+    color: var(--text-muted);
+    padding: 10px 0;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .tab-item.active {
+    color: var(--accent-red);
+    font-weight: 500;
+  }
+
+  .tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--accent-red);
+  }
+
+  .section {
+    border-bottom: 1px solid var(--border-main);
+    padding: 15px 0;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .label {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  .value {
+    font-size: 20px;
+    font-weight: 500;
+    margin-top: 5px;
+    color: var(--text-primary);
+  }
+
+  .value-small {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    font-weight: 300;
+  }
+
+  .bottom-button {
+    width: 100%;
+    padding: 14px 0;
+    background-color: var(--accent-red);
+    color: var(--text-contrast);
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    position: fixed;
+    bottom: 4px;
+    left: 2px;
+    right: 2px;
+    border-radius: 9px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 6px var(--button-shadow);
+    z-index: 1000;
+  }
+
+  .bottom-button.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon svg {
+    width: 100%;
+    height: 100%;
+    fill: var(--icon-fill);
+  }
+
+  .screen {
+    display: none;
+  }
+
+  .screen.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .qr-container {
+    background: var(--qr-bg);
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .qr-container img {
+    width: 220px;
+    height: 220px;
+    border-radius: 12px;
+  }
+
+  .input-screen {
+    padding: 30px 40px 160px 20px;
+  }
+
+  .input-screen input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border: 1px solid var(--border-main);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+  }
+
+  .input-screen button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: var(--accent-red);
+    color: var(--text-contrast);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .photo-loader-block {
+    margin-bottom: 24px;
+  }
+
+  .photo-loader-block input,
+  .photo-loader-block button {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    font-size: 16px;
+    padding: 12px;
+    border-radius: 4px;
+    border: none;
+  }
+
+  .photo-loader-block button {
+    background-color: var(--accent-red);
+    color: var(--text-contrast);
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .loader {
+    border: 4px solid var(--toggle-off);
+    border-top: 4px solid var(--accent-red);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 1s linear infinite;
+    margin: 10px auto 0;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .photo-controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-panel);
+    padding: 20px;
+    box-shadow: 0 -2px 10px var(--photo-panel-shadow);
+    z-index: 999;
+  }
+
+  .photo-controls input[type="file"] {
+    display: none;
+  }
+
+  .upload-label {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #444;
+    color: var(--text-primary);
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .photo-controls button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: var(--accent-red);
+    color: var(--text-contrast);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .submit-button {
+    margin-top: 20px;
+    background-color: var(--accent-green);
+  }
+
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .section .icon,
+  .section span,
+  .section p {
+    margin-left: 12px;
+  }
+
+  #authScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background-color: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #authScreen .input-screen {
+    max-width: 400px;
+    width: 90%;
+  }
+
+  .admin-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .admin-content {
+    position: relative;
+    background: var(--bg-elevated);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px #000;
+    width: 90%;
+    max-width: 420px;
+    text-align: center;
+  }
+
+  .admin-content input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid var(--border-main);
+    border-radius: 4px;
+    font-size: 16px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+  }
+
+  .admin-content button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    background: var(--accent-red);
+    color: var(--text-contrast);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .close-admin-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  #codeLoader {
+    display: none;
+    margin-left: 8px;
+    font-size: 16px;
+    animation: blink 1s linear infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  .transport-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay);
+    z-index: 10002;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .transport-menu {
+    width: 100%;
+    max-width: 520px;
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    padding: 14px 14px 18px;
+  }
+
+  .transport-menu__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .transport-menu__close {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .transport-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .transport-tabs button {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 8px;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .transport-tabs button.active {
+    background: var(--accent-red);
+    color: var(--text-contrast);
+    border-color: var(--accent-red);
+  }
+
+  .route-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    max-height: 50vh;
+    overflow: auto;
+    padding-right: 2px;
+  }
+
+  .route-buttons button {
+    padding: 12px 8px;
+    border: none;
+    border-radius: 10px;
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+  }
+
+  .route-buttons button:hover {
+    transform: translateY(-1px);
+  }
+
+  .transport-trigger {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: #444;
+    color: var(--text-primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .transport-hint {
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .transport-trigger.inline-trigger {
+    width: 100%;
+    padding: 10px;
+    margin: 0;
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .transport-trigger.inline-trigger:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .transport-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    width:100%;
+    margin:8px 0 14px 0;
+  }
+
+  .transport-option,
+  .transport-option:hover,
+  .transport-option:active,
+  .transport-option:focus {
+    background: var(--bg-panel) !important;
+    color: var(--text-primary) !important;
+    border:1px solid var(--border-contrast) !important;
+    box-shadow:none !important;
+    outline:none !important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:22px;
+    padding:0 12px;
+    font-size:14px;
+    font-weight:700;
+    border-radius:8px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  .transport-option.active {
+    border:2px solid var(--accent-red-muted) !important;
+  }
+
+  .transport-option:disabled {
+    cursor:not-allowed;
+    opacity:0.95;
+  }
+
+  .transport-option.active:disabled {
+    border-color:#9a5a5a !important;
+  }
+
+  .freeze-badge {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: var(--text-primary);
+    background: var(--badge-bg);
+    border: 1px solid var(--badge-border);
+  }
+
+  .freeze-badge:before { content: "⏱ "; opacity: .9; }
+
+  #countSlider {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0;
+    color: var(--text-secondary);
+  }
+
+  #countSlider .title {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-bottom: 4px;
+  }
+
+  #countSlider .badge {
+    background: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 6px 0;
+    line-height: 1;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: left;
+  }
+
+  #countSlider .slider-wrap {
+    position: relative;
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  #countSlider .dots-track {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 2px;
+    background: var(--slider-track-ghost);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  #countSlider .dots {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    pointer-events: none;
+  }
+
+  #countSlider .dots i {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--slider-dot);
+    margin: 0 auto;
+  }
+
+  #countSlider .fill-track {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 2px;
+    width: var(--pct, 0%);
+    background: var(--accent-red);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  #countSlider input[type="range"] {
+    width: 100%;
+    height: 36px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    outline: none;
+    position: relative;
+    z-index: 2;
+    margin: 0; padding: 0;
+    cursor: pointer;
+  }
+
+  #countSlider input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: transparent; }
+  #countSlider input[type="range"]::-moz-range-track { height: 2px; background: transparent; }
+
+  #countSlider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #1b1b1b;
+    border: 3px solid var(--accent-red);
+    box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
+    margin-top: -10px;
+    transition: box-shadow 0.2s ease;
+  }
+
+  #countSlider input[type="range"]:active::-webkit-slider-thumb {
+    box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
+  }
+
+  #countSlider input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #1b1b1b;
+    border: 3px solid var(--accent-red);
+    box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
+    transition: box-shadow 0.2s ease;
+  }
+
+  #countSlider input[type="range"]:active::-moz-range-thumb {
+    box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
+  }
+
+  #countSlider .scale {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    padding: 0 2px;
+  }
+
+  #countSlider .scale span { text-align: center; }
+
+  #countSlider[data-val="1"] .scale span:nth-child(1) { color: var(--accent-red); font-weight: 600; }
+  #countSlider[data-val="2"] .scale span:nth-child(-n+2) { color: var(--accent-red); font-weight: 600; }
+  #countSlider[data-val="3"] .scale span:nth-child(-n+3) { color: var(--accent-red); font-weight: 600; }
+  #countSlider[data-val="4"] .scale span:nth-child(-n+4) { color: var(--accent-red); font-weight: 600; }
+  #countSlider[data-val="5"] .scale span:nth-child(-n+5) { color: var(--accent-red); font-weight: 600; }
+
+  .custom-slider-wrapper,
+  .slider-display,
+  .slider-labels {
+    display: none !important;
+  }
+
+  .input-invalid {
+    border: 2px solid var(--accent-red) !important;
+    background-color: rgba(226, 26, 26, 0.08);
+  }
+
+  #qrBlockOverlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(100, 100, 100, 0.97); /* почти белый, прозрачность 15% */
+    background-color: var(--overlay-blocker);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    pointer-events: all; /* блокируем клики и сканирование */
-}
+    pointer-events: all;
+  }
 
-#qrBlockOverlay .loader {
-    border: 8px solid rgba(255, 255, 255, 0.71);
-    border-left-color: #8c0000;
+  #qrBlockOverlay .loader {
+    border: 8px solid var(--loader-ring);
+    border-left-color: var(--loader-ring-accent);
     border-radius: 50%;
     width: 60px;
     height: 60px;
     animation: spin 1s linear infinite;
-}
+  }
 
-/* уже есть @keyframes spin, поэтому новый не нужен */
-    /* === Меню выбора транспорта (оверлей сверху) === */
-.transport-menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 10002; /* выше админ-меню и прочего */
-  display: none;  /* по умолчанию скрыто */
-  align-items: flex-start;
-  justify-content: center;
-  padding: 16px;
-}
-
-.transport-menu {
-  width: 100%;
-  max-width: 520px;
-  background: #1f1f1f;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-  padding: 14px 14px 18px;
-}
-
-/* заголовок + крестик */
-.transport-menu__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.transport-menu__title {
-  font-size: 18px;
-  font-weight: 600;
-}
-.transport-menu__close {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-/* табы */
-.transport-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.transport-tabs button {
-  background: #2b2b2b;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 10px 8px;
-  color: #ddd;
-  font-size: 14px;
-  cursor: pointer;
-}
-.transport-tabs button.active {
-  background: #e21a1a;
-  color: #fff;
-  border-color: #e21a1a;
-}
-
-/* контейнер кнопок-номеров маршрутов */
-.route-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  max-height: 50vh;
-  overflow: auto;
-  padding-right: 2px;
-}
-.route-buttons button {
-  padding: 12px 8px;
-  border: none;
-  border-radius: 10px;
-  background: #2b2b2b;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid #3a3a3a;
-}
-.route-buttons button:hover {
-  transform: translateY(-1px);
-}
-
-/* кнопка-триггер над полями */
-.transport-trigger {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: #444;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* подпись под сеткой (подсказка) */
-.transport-hint {
-  margin-top: 10px;
-  color: #aaa;
-  font-size: 12px;
-  text-align: center;
-}
-    /* компактная кнопка выбора транспорта (вместо input) */
-.transport-trigger.inline-trigger {
-  width: 100%;
-  padding: 10px;
-  margin: 0;
-  background: #2b2b2b;
-  color: #fff;
-  border: 1px solid #444;
-  border-radius: 8px;
-  font-size: 14px;
-  text-align: left;
-}
-.transport-trigger.inline-trigger:hover {
-  background: #3a3a3a;
-}
-/* ==== Transport toggle (переписано) ==== */
-.transport-toggle{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px;
-  width:100%;
-  margin:8px 0 14px 0; /* как у остальных полей */
-}
-
-.transport-option,
-.transport-option:hover,
-.transport-option:active,
-.transport-option:focus{
-  /* переопределяем любые глобальные кнопки */
-  background:#2b2b2b !important; /* серый фон как у инпутов */
-  color:#fff !important;          /* белый текст */
-  border:1px solid #fff !important; /* белая обводка всегда */
-  box-shadow:none !important;
-  outline:none !important;
-
-  display:flex;
-  align-items:center;   /* идеальная вертикальная центровка */
-  justify-content:center;
-  height:22px;          /* под размер строки/инпута */
-  padding:0 12px;
-  font-size:14px;
-  font-weight:700;      /* текст всегда жирный */
-  border-radius:8px;
-  cursor:pointer;
-  white-space:nowrap;   /* чтобы не ломалось на 2 строки */
-}
-
-/* выбранная — тонкая красная рамка */
-.transport-option.active{
-  border:2px solid #d32f2f !important; /* красный акцент */
-}
-
-/* при блокировке показываем, что выбранная заблокирована */
-.transport-option:disabled{
-  cursor:not-allowed;
-  opacity:0.95;
-}
-.transport-option.active:disabled{
-  border-color:#9a5a5a !important; /* серо-красная рамка при блокировке */
-}
-    /* === FREEZE TIME (UI) === */
-.freeze-badge {
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  color: #fff;
-  background: #334155;
-  border: 1px solid #475569;
-}
-.freeze-badge:before { content: "⏱ "; opacity: .9; }
-
-
-    /* 1) Единый вертикальный зазор между блоками формы */
-#inputScreen .input-screen {
-  font-size: 16px;               /* базовый размер для мобильных */
-}
-#inputScreen .input-screen > * + * {
-  margin-top: 6px;              /* одинаковый шаг между соседями */
-}
-
-/* 2) Контролы не сжимаются и читаемы */
-#inputScreen input,
-#inputScreen select,
-#inputScreen button,
-#inputScreen .btn {
-  font-size: 1rem;               /* = 16px из родителя */
-  line-height: 1.2;
-  min-height: 44px;              /* тач‑зона по гайдлайнам */
-  box-sizing: border-box;
-}
-
-/* 3) Переключатель транспорта — аккуратный горизонтальный отступ */
-#inputScreen .transport-toggle {
-  display: flex;
-  gap: 8px;
-}
-
-/* 4) Карточка “Зафиксировать время” — воздух сверху/снизу */
-#freezeTimeControls {
-  margin: 12px 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-}
-
-/* 5) На всякий случай отключаем авто-ужатие текста Safari */
-html { -webkit-text-size-adjust: 100%; }
-/* === Ticket count slider (финальная версия как на макете) === */
-/* === Slider: цифра сверху, слайдер на всю ширину === */
-#countSlider {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 16px 0;
-  color: #ddd;
-}
-
-/* Заголовок */
-#countSlider .title {
-  font-size: 14px;
-  color: #b0b0b0;
-  font-weight: 400;
-  margin-bottom: 4px;
-}
-
-#countSlider .badge {
-background: none !important;
-border: 0 !important;
-padding: 0 !important;
-margin: 0 0 6px 0;   /* ближе к треку */
-line-height: 1;
-font-size: 28px;
-font-weight: 700;
-color: #fff;
-text-align: left;
-}
-    
-#countSlider .slider-wrap {
-position: relative;
-width: 100%;
-height: 36px;             /* компактнее, ближе к макету */
-display: flex;
-align-items: center;
-margin-top: 4px;
-}
-
-/* Серый трек */
-#countSlider .dots-track {
-position: absolute;
-left: 0; right: 0;
-top: 50%;
-transform: translateY(-50%);
-height: 2px;
-background: #3a3a3a;
-border-radius: 2px;
-pointer-events: none;
-}
-
-    /* Явные точки — ровно под цифрами */
-#countSlider .dots {
-position: absolute;
-left: 0; right: 0;
-top: 50%;
-transform: translateY(-50%);
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-pointer-events: none;
-}
-#countSlider .dots i {
-width: 6px; height: 6px;
-border-radius: 50%;
-background: #8a8a8a;
-margin: 0 auto;
-}
-
-/* Красная заливка до текущего значения */
-#countSlider .fill-track {
-position: absolute;
-left: 0;
-top: 50%;
-transform: translateY(-50%);
-height: 2px;
-width: var(--pct, 0%);     /* управляется из JS */
-background: #e21a1a;
-border-radius: 2px;
-pointer-events: none;
-}
-/* Сам range — прозрачный, только бегунок */
-#countSlider input[type="range"] {
-width: 100%;
-height: 36px;
--webkit-appearance: none;
-appearance: none;
-background: transparent;
-outline: none;
-position: relative;
-z-index: 2;  /* поверх точек, чтобы тянуть пальцем */
-margin: 0; padding: 0;
-cursor: pointer;
-}
-/* Трек range скрыт (мы рисуем свой) */
-#countSlider input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: transparent; }
-#countSlider input[type="range"]::-moz-range-track { height: 2px; background: transparent; }
-/* Бегунок — красное кольцо с «ореолом», как на макете */
-#countSlider input[type="range"]::-webkit-slider-thumb {
--webkit-appearance: none;
-width: 22px; height: 22px;
-border-radius: 50%;
-background: #1b1b1b;
-border: 3px solid #e21a1a;
-box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
-margin-top: -10px; /* центрируем относительно 2px линии */
-transition: box-shadow 0.2s ease;
-}
-#countSlider input[type="range"]:active::-webkit-slider-thumb {
-box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
-}
-#countSlider input[type="range"]::-moz-range-thumb {
-width: 22px; height: 22px;
-border-radius: 50%;
-background: #1b1b1b;
-border: 3px solid #e21a1a;
-box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
-transition: box-shadow 0.2s ease;
-}
-#countSlider input[type="range"]:active::-moz-range-thumb {
-box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
-}
-/* Цифры под слайдером — как были, это ок */
-#countSlider .scale {
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-font-size: 14px;
-color: #8a8a8a;
-margin-top: 4px;
-padding: 0 2px;
-}
-#countSlider .scale span { text-align: center; }
-/* Подсветка активных 1..N (оставляем как у тебя) */
-#countSlider[data-val="1"] .scale span:nth-child(1) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="2"] .scale span:nth-child(-n+2) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="3"] .scale span:nth-child(-n+3) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="4"] .scale span:nth-child(-n+4) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="5"] .scale span:nth-child(-n+5) { color: #e21a1a; font-weight: 600; }
-/* (опционально) уберём старые отступы, если остались прежние классы */
-.custom-slider-wrapper, .slider-display, .slider-labels { display:none !important;}
-
-    /* Чтобы метки и бейдж не блокировали касания по слайдеру */
-.count-slider .ticks,
-.count-slider .badge { pointer-events: none; }
-
-.count-slider input[type=range] {
-  width: 100%;
-  height: 6px;
-  border-radius: 4px;
-  appearance: none;
-  background: linear-gradient(to right, #ff3b30 var(--pct, 0%), #3a3a3a var(--pct, 0%));
-  /* На мобильных, чтобы свайп по слайдеру не уводил страницу */
-  touch-action: pan-y;
-}
-.count-slider input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #fff; border: 2px solid #ff3b30;
-}
-
-    /* Убираем старые стили слайдера */
-.custom-slider-wrapper,
-.slider-display,
-.slider-labels {
-  display: none !important;
-}
-  </style>
+  html { -webkit-text-size-adjust: 100%; }
+</style>
 </head>
 <body>
 <!-- Экран авторизации -->
@@ -2237,9 +2212,52 @@ function showLastTicket(mode = 'prev') {
   switchTab('ticket');
   startCountdown();
 }
+    (function(){
+  const html = document.documentElement;
+  const tg = window.Telegram?.WebApp;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function setTheme(theme, accent) {
+    html.setAttribute('data-theme', theme);
+    if (accent?.secondary_bg_color) {
+      document.documentElement.style.setProperty('--bg-secondary', accent.secondary_bg_color);
+    }
+    if (accent?.bg_color) {
+      document.documentElement.style.setProperty('--bg-main', accent.bg_color);
+    }
+    if (accent?.text_color) {
+      document.documentElement.style.setProperty('--text-primary', accent.text_color);
+    }
+  }
+
+  function applyThemeFromTelegram() {
+    if (!tg) return null;
+    const params = tg.themeParams || {};
+    if (params.bg_color || params.secondary_bg_color || params.text_color) {
+      const theme = params.bg_color && parseInt(params.bg_color.replace('#',''),16) > 0x7fffff ? 'light' : 'dark';
+      setTheme(theme, {
+        bg_color: params.bg_color,
+        secondary_bg_color: params.secondary_bg_color,
+        text_color: params.text_color
+      });
+      return true;
+    }
+    return false;
+  }
+
+  function applyTheme() {
+    if (!applyThemeFromTelegram()) {
+      setTheme(prefersDark.matches ? 'dark' : 'light');
+    }
+  }
+
+  applyTheme();
+
+  tg?.onEvent?.('themeChanged', applyThemeFromTelegram);
+  prefersDark.addEventListener('change', applyTheme);
+})();
   </script>
   
-</div>
   <div id="loadingOverlay" class="loading-overlay" style="display: none;">
   <div class="loader"></div>
 </div>
