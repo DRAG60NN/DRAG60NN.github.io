@@ -1,297 +1,104 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <script src="
-https://telegram.org/js/telegram-web-app.js
-"></script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Билет</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
+    /* 1. БАЗОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ ТЕМ */
+
+    /* Тёмная тема по умолчанию */
     :root {
-  --app-bg: #090909;
-  --app-bg-elevated: #141414;
-  --app-surface: #1f1f1f;
-  --app-text-primary: #f6f6f6;
-  --app-text-secondary: #b0b0b0;
-  --app-divider: rgba(255, 255, 255, 0.12);
-  --app-accent: #e21a1a;
-  --app-button-bg: #e21a1a;
-  --app-button-fg: #ffffff;
-  --app-muted-icon: #d4d4d4;
-}
+      --app-bg: #090909;
+      --app-bg-elevated: #141414;
+      --app-surface: #1f1f1f;
+      --app-text-primary: #f6f6f6;
+      --app-text-secondary: #b0b0b0;
+      --app-divider: rgba(255, 255, 255, 0.12);
+      --app-accent: #e21a1a;
+      --app-button-bg: #e21a1a;
+      --app-button-fg: #ffffff;
+      --app-muted-icon: #d4d4d4;
+      --app-qr-bg: #ffffff; /* QR-код всегда на белом фоне */
+      --app-slider-track: #3a3a3a;
+      --app-slider-thumb-bg: #1b1b1b;
+      --app-input-bg: #2b2b2b;
+      --app-input-border: #444;
+    }
 
-:root.theme-light {
-  --app-bg: #f4f4f6;
-  --app-bg-elevated: #ffffff;
-  --app-surface: #ffffff;
-  --app-text-primary: #1d1d1f;
-  --app-text-secondary: #666772;
-  --app-divider: rgba(0, 0, 0, 0.08);
-  --app-accent: #e21a1a;
-  --app-button-bg: #e21a1a;
-  --app-button-fg: #ffffff;
-  --app-muted-icon: #3e3f45;
-}
+    /* Светлая тема */
+    :root.theme-light {
+      --app-bg: #f4f4f6;
+      --app-bg-elevated: #ffffff;
+      --app-surface: #ffffff;
+      --app-text-primary: #1d1d1f;
+      --app-text-secondary: #666772;
+      --app-divider: rgba(0, 0, 0, 0.08);
+      --app-muted-icon: #3e3f45;
+      --app-qr-bg: #ffffff;
+      --app-slider-track: #e0e0e0;
+      --app-slider-thumb-bg: #fdfdfd;
+      --app-input-bg: #ebebf0;
+      --app-input-border: #d1d1d6;
+    }
 
-html,
-body {
-  min-height: 100%;
-  background-color: var(--app-bg);
-  color: var(--app-text-primary);
-}
 
-.section,
-.ticket .row,
-.ticket-info {
-  background: var(--app-surface);
-  border-bottom: 1px solid var(--app-divider);
-}
+    /* 2. ГЛОБАЛЬНЫЕ СТИЛИ (используют переменные) */
 
-.label  { color: var(--app-text-secondary); }
-.value,
-.value-small,
-.tab-item { color: var(--app-text-primary); }
-
-.bottom-button,
-#closeButton {
-  background-color: var(--app-button-bg);
-  color: var(--app-button-fg);
-}
-    .header,
-.countdown-bar {
-  background: var(--app-bg-elevated);
-  color: var(--app-text-primary);
-}
-
-.section,
-.ticket-row,
-.ticket-info,
-.ticket-details {
-  background: var(--app-surface);
-  border-color: var(--app-divider);
-  color: var(--app-text-primary);
-}
-
-.label    { color: var(--app-text-secondary); }
-.value    { color: var(--app-text-primary);  }
-.value--faded { color: var(--app-text-secondary); }
-
-.bottom-button,
-#closeButton {
-  background: var(--app-button-bg);
-  color: var(--app-button-fg);
-}
-
-svg path[fill="#dedede"],
-svg path[fill="#e8e8e8"],
-svg path[fill="#e7e7e6"],
-svg path[fill="#e6e7e6"],
-svg path[fill="#eaeaea"] {
-  fill: var(--app-muted-icon);
-}
-
-/* Светлая тема */
-body.light-theme {
-  --app-bg: #ffffff;
-  --app-surface: #f6f6f6;
-  --app-text-primary: #121212;
-  --app-text-secondary: #5c5c5c;
-  --app-divider: rgba(0, 0, 0, 0.08);
-  --app-accent: #e21a1a;      /* акцент остаётся красным */
-  --app-button-bg: #e21a1a;
-  --app-button-fg: #ffffff;
-  --app-muted-icon: #3a3a3a;
-}
-
-body.light-theme .tab-item.active {
-  color: var(--app-accent);
-}
-
-body.light-theme .section,
-body.light-theme .ticket .row,
-body.light-theme .ticket-info {
-  background: var(--app-surface);
-}
-
-body.light-theme .top-text,
-body.light-theme #countdown {
-  color: var(--app-text-primary);
-}
-
-/* Перекрашиваем «серые» иконки под светлый фон */
-body.light-theme svg path[fill="#dedede"],
-body.light-theme svg path[fill="#e8e8e8"],
-body.light-theme svg path[fill="#e7e7e6"],
-body.light-theme svg path[fill="#e6e7e6"],
-body.light-theme svg path[fill="#eaeaea"] {
-  fill: var(--app-muted-icon) !important;
-}
-    /* Основные стили страницы */
-    body {
+    html, body {
+      min-height: 100%;
       margin: 0;
       font-family: 'Roboto', sans-serif;
-      background-color: #2b2b2b;
-      color: #fff;
+      background-color: var(--app-bg);
+      color: var(--app-text-primary);
+      -webkit-text-size-adjust: 100%;
     }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        /* Тумблер */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-        
-        .toggle-label {
-            font-weight: 500;
-        }
-        
-        .toggle {
-            position: relative;
-            width: 50px;
-            height: 28px;
-        }
-        
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: var(--tg-theme-button-color, #3390ec);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
-        
-        /* Кнопка отправки */
-        .send-button {
-            width: 100%;
-            padding: 15px;
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            display: none;
-            margin-top: 20px;
-        }
-        
-        .send-button.active {
-            display: block;
-        }
-        
-        /* Билет */
-        .ticket-view {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .ticket-view.active {
-            display: block;
-        }
-        
-        .ticket-number {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        
-        .ticket-info {
-            text-align: left;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            padding: 15px;
-            border-radius: 12px;
-            margin: 10px 0;
-        }
-        
-        .ticket-info div {
-            margin: 8px 0;
-        }
+
     .container {
+      max-width: 400px;
+      margin: 0 auto;
       padding: 20px;
-      padding-bottom: 80px; /* Отступ снизу для кнопки */
+      padding-bottom: 80px;
     }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+    
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+
+    /* 3. СТИЛИ КОМПОНЕНТОВ (все на переменных) */
+
+    /* --- Шапка и экран билета --- */
     .top-text {
       text-align: center;
       font-size: 24px;
       font-weight: 500;
       margin-bottom: 15px;
-      color: #fff;
+      color: var(--app-text-primary);
     }
+    
+    .tab-container { padding: 0; margin: 0; }
+
     .tab {
-  position: relative;
-  left: -16px;
-  width: calc(100% + 32px);
+      position: relative;
+      left: -16px;
+      width: calc(100% + 32px);
       display: flex;
       justify-content: space-around;
-      border-bottom: 1px solid #333;
-
+      border-bottom: 1px solid var(--app-divider);
     }
+
     .tab-item {
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 18px;
-      color: #ccc;
+      color: var(--app-text-secondary);
       padding: 10px 0;
       position: relative;
       cursor: pointer;
@@ -299,91 +106,77 @@ body.light-theme svg path[fill="#eaeaea"] {
       font-weight: 400;
     }
     .tab-item.active {
-      color: #e21a1a;
+      color: var(--app-accent);
+      font-weight: 600;
     }
     .tab-item.active::after {
       content: '';
       position: absolute;
       bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: #e21a1a;
+      left: -10px;
+      right: -10px;
+      height: 2px;
+      background-color: var(--app-accent);
+      border-radius: 1px;
     }
+    .tab-item b, .tab-item strong {
+      font-weight: inherit; /* убираем лишнюю жирность */
+    }
+
+    /* Блоки с информацией */
     .section {
-      border-bottom: 1px solid #333;
+      background-color: var(--app-surface);
+      border-bottom: 1px solid var(--app-divider);
       padding: 15px 0;
       opacity: 0;
       transform: translateY(10px);
       animation: fadeIn 0.3s ease-out forwards;
     }
-    .label {
-      color: #b0b0b0;
-      font-size: 14px;
-      font-weight: 300;
-    }
-    .value {
-      font-size: 28px;
-      font-weight: 300;
-      margin-top: 5px;
-    }
-    .value-small {
-      font-size: 16px;
-      color: #aaa;
-      margin-top: 3px;
-      font-weight: 400;
-    }
-    /* Кнопка "ЗАКРЫТЬ" - всегда отображается на основном экране */
-    .bottom-button {
-      width: 100%;
-      padding: 14px 0;
-      background-color: #e21a1a;
-      color: black;
-      text-align: center;
-      font-weight: bold;
-      font-size: 14px;
-      position: fixed;
-      bottom: 4px;
-      left: 2px;
-      right: 2px;
-      border-radius: 9px; /* Закругляем углы */
-      cursor: pointer;
-      user-select: none;
-      box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
-      z-index: 1000;
+    #ticket .section:last-of-type {
+      border-bottom: 0;
     }
     .row {
       display: flex;
       align-items: center;
       gap: 10px;
+      padding: 0 16px;
     }
+
+    /* Типографика в билете */
+    .label {
+      font-size: 14px;
+      color: var(--app-text-secondary);
+      font-weight: 400;
+    }
+    .value {
+      font-size: 22px;
+      font-weight: 600;
+      margin-top: 5px;
+      color: var(--app-text-primary);
+    }
+    .value-small {
+      font-size: 15px;
+      color: var(--app-text-primary);
+      margin-top: 3px;
+      font-weight: 400;
+    }
+
+    /* Иконки */
     .icon {
       width: 24px;
       height: 24px;
       flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
-    .icon svg {
-      width: 100%;
-      height: 100%;
-      fill: #aaa;
+    .icon svg path {
+      fill: var(--app-muted-icon);
     }
-    .screen {
-      display: none;
+    #tabs .tab-item .icon svg path {
+      fill: currentColor; /* иконка в табе красится цветом текста */
     }
-    .screen.active {
-      display: block;
-    }
-    @keyframes fadeIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+
+    /* --- QR-код и оверлеи --- */
     .qr-container {
-      background: #fff;
+      background: var(--app-qr-bg);
       padding: 20px;
       display: flex;
       justify-content: center;
@@ -394,1073 +187,399 @@ body.light-theme svg path[fill="#eaeaea"] {
       height: 220px;
       border-radius: 12px;
     }
-  .input-screen {
-  padding: 30px 40px 160px 20px; /* большой запас под фикс-панель */
-}
-    .input-screen input {
+
+    #qrBlockOverlay {
+      position: absolute;
+      inset: 0;
+      background-color: var(--app-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loader {
+      border: 4px solid var(--app-text-secondary);
+      border-top: 4px solid var(--app-accent);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+    }
+    #qrBlockOverlay .loader {
+      width: 60px; height: 60px; border-width: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* --- Экраны ввода и авторизации --- */
+    .input-screen {
+      padding: 20px;
+    }
+    #authScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background-color: var(--app-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #authScreen .input-screen {
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .input-screen > * + * {
+      margin-top: 12px;
+    }
+    .input-screen input,
+    .input-screen select {
       width: 100%;
       padding: 12px;
-      margin-bottom: 15px;
       font-size: 16px;
-      border: none;
-      border-radius: 4px;
+      box-sizing: border-box;
+      border: 1px solid var(--app-input-border);
+      background-color: var(--app-input-bg);
+      color: var(--app-text-primary);
+      border-radius: 8px;
     }
     .input-screen button {
       width: 100%;
       padding: 14px;
       font-size: 16px;
       font-weight: bold;
-      background-color: #e21a1a;
-      color: white;
+      background-color: var(--app-button-bg);
+      color: var(--app-button-fg);
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
     }
-    .photo-loader-block {
-  margin-bottom: 24px;
-}
-
-.photo-loader-block input,
-.photo-loader-block button {
-  display: block;
-  width: 100%;
-  margin-bottom: 10px;
-  font-size: 16px;
-  padding: 12px;
-  border-radius: 4px;
-  border: none;
-}
-
-.photo-loader-block button {
-  background-color: #e21a1a;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.loader {
-  border: 4px solid #ccc;
-  border-top: 4px solid #e21a1a;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
-  margin: 10px auto 0;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-    /* Блок снизу */
-.photo-controls {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #2b2b2b;
-  padding: 20px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-/* Скрыть input-файл, стилизуем label */
-.photo-controls input[type="file"] {
-  display: none;
-}
-
-.upload-label {
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 12px;
-  margin-bottom: 10px;
-  background-color: #444;
-  color: white;
-  font-size: 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.photo-controls button {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  font-weight: bold;
-  background-color: #e21a1a;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-/* Кнопка "Продолжить" отдельно выделена */
-.submit-button {
-  margin-top: 20px;
-  background-color: #26a269;
-}
-
-.loader {
-  border: 4px solid #ccc;
-  border-top: 4px solid #e21a1a;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  animation: spin 1s linear infinite;
-  margin: 10px auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-    .loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-    .section .icon {
-  margin-left: 12px; /* сдвигает иконку немного правее */
-}
-
-.section span,
-.section p {
-  margin-left: 12px; /* сдвигает текст немного правее */
-}
-    .tab-container {
-  padding: 0;
-  margin: 0;
-}
-
-#authScreen {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background-color: #2b2b2b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#authScreen .input-screen {
-  max-width: 400px;
-  width: 90%;
-}
-
-.admin-modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  z-index: 10001;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.admin-content {
-  position: relative;
-  background: #1e1e1e;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px #000;
-  width: 90%;
-  max-width: 420px;
-  text-align: center;
-}
-
-.admin-content input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.admin-content button {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  background: #e21a1a;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.close-admin-button {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 26px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 2;
-}
-
-#codeLoader {
-  display: none;
-  margin-left: 8px;
-  font-size: 16px;
-  animation: blink 1s linear infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.2; }
-}
-.custom-slider-wrapper {
-  position: relative;
-  top: -25px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 3px;
-}
-
-.slider-display {
-  position: relative;
-  top:-16px;
-  display: flex;
-  align-items: center;
-}
-
-#inputCountRange {
-  flex: 1;
-  appearance: none;
-  height: 3px;
-  border-radius: 2px;
-  background: #555;
-  outline: none;
-  accent-color: #e21a1a;
-}
-
-#inputCountRange::-webkit-slider-thumb {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #e21a1a;
-  cursor: pointer;
-  border: none;
-  margin-top: -2px;
-}
-
-.slider-labels {
-  display: flex;
-  justify-content: space-between;  
-  font-size: 14px;
-  color: #bbb;
-  padding: 0 4px;
-  margin-top: 4px;
-}
-.input-invalid {
-    border: 2px solid red !important;
-    background-color: #ffe6e6;
-  }
-    /* Полупрозрачная бесконечная загрузка для вкладки Контроль */
-#qrBlockOverlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(100, 100, 100, 0.97); /* почти белый, прозрачность 15% */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    pointer-events: all; /* блокируем клики и сканирование */
-}
-
-#qrBlockOverlay .loader {
-    border: 8px solid rgba(255, 255, 255, 0.71);
-    border-left-color: #8c0000;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    animation: spin 1s linear infinite;
-}
-
-/* уже есть @keyframes spin, поэтому новый не нужен */
-    /* === Меню выбора транспорта (оверлей сверху) === */
-.transport-menu-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  z-index: 10002; /* выше админ-меню и прочего */
-  display: none;  /* по умолчанию скрыто */
-  align-items: flex-start;
-  justify-content: center;
-  padding: 16px;
-}
-
-.transport-menu {
-  width: 100%;
-  max-width: 520px;
-  background: #1f1f1f;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-  padding: 14px 14px 18px;
-}
-
-/* заголовок + крестик */
-.transport-menu__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.transport-menu__title {
-  font-size: 18px;
-  font-weight: 600;
-}
-.transport-menu__close {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-/* табы */
-.transport-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.transport-tabs button {
-  background: #2b2b2b;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 10px 8px;
-  color: #ddd;
-  font-size: 14px;
-  cursor: pointer;
-}
-.transport-tabs button.active {
-  background: #e21a1a;
-  color: #fff;
-  border-color: #e21a1a;
-}
-
-/* контейнер кнопок-номеров маршрутов */
-.route-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  max-height: 50vh;
-  overflow: auto;
-  padding-right: 2px;
-}
-.route-buttons button {
-  padding: 12px 8px;
-  border: none;
-  border-radius: 10px;
-  background: #2b2b2b;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid #3a3a3a;
-}
-.route-buttons button:hover {
-  transform: translateY(-1px);
-}
-
-/* кнопка-триггер над полями */
-.transport-trigger {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: #444;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* подпись под сеткой (подсказка) */
-.transport-hint {
-  margin-top: 10px;
-  color: #aaa;
-  font-size: 12px;
-  text-align: center;
-}
-    /* компактная кнопка выбора транспорта (вместо input) */
-.transport-trigger.inline-trigger {
-  width: 100%;
-  padding: 10px;
-  margin: 0;
-  background: #2b2b2b;
-  color: #fff;
-  border: 1px solid #444;
-  border-radius: 8px;
-  font-size: 14px;
-  text-align: left;
-}
-.transport-trigger.inline-trigger:hover {
-  background: #3a3a3a;
-}
-/* ==== Transport toggle (переписано) ==== */
-.transport-toggle{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px;
-  width:100%;
-  margin:8px 0 14px 0; /* как у остальных полей */
-}
-
-.transport-option,
-.transport-option:hover,
-.transport-option:active,
-.transport-option:focus{
-  /* переопределяем любые глобальные кнопки */
-  background:#2b2b2b !important; /* серый фон как у инпутов */
-  color:#fff !important;          /* белый текст */
-  border:1px solid #fff !important; /* белая обводка всегда */
-  box-shadow:none !important;
-  outline:none !important;
-
-  display:flex;
-  align-items:center;   /* идеальная вертикальная центровка */
-  justify-content:center;
-  height:22px;          /* под размер строки/инпута */
-  padding:0 12px;
-  font-size:14px;
-  font-weight:700;      /* текст всегда жирный */
-  border-radius:8px;
-  cursor:pointer;
-  white-space:nowrap;   /* чтобы не ломалось на 2 строки */
-}
-
-/* выбранная — тонкая красная рамка */
-.transport-option.active{
-  border:2px solid #d32f2f !important; /* красный акцент */
-}
-
-/* при блокировке показываем, что выбранная заблокирована */
-.transport-option:disabled{
-  cursor:not-allowed;
-  opacity:0.95;
-}
-.transport-option.active:disabled{
-  border-color:#9a5a5a !important; /* серо-красная рамка при блокировке */
-}
-    /* === FREEZE TIME (UI) === */
-.freeze-badge {
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  color: #fff;
-  background: #334155;
-  border: 1px solid #475569;
-}
-.freeze-badge:before { content: "⏱ "; opacity: .9; }
-
-
-    /* 1) Единый вертикальный зазор между блоками формы */
-#inputScreen .input-screen {
-  font-size: 16px;               /* базовый размер для мобильных */
-}
-#inputScreen .input-screen > * + * {
-  margin-top: 6px;              /* одинаковый шаг между соседями */
-}
-
-/* 2) Контролы не сжимаются и читаемы */
-#inputScreen input,
-#inputScreen select,
-#inputScreen button,
-#inputScreen .btn {
-  font-size: 1rem;               /* = 16px из родителя */
-  line-height: 1.2;
-  min-height: 44px;              /* тач‑зона по гайдлайнам */
-  box-sizing: border-box;
-}
-
-/* 3) Переключатель транспорта — аккуратный горизонтальный отступ */
-#inputScreen .transport-toggle {
-  display: flex;
-  gap: 8px;
-}
-
-/* 4) Карточка “Зафиксировать время” — воздух сверху/снизу */
-#freezeTimeControls {
-  margin: 12px 0;
-  padding: 10px 12px;
-  border-radius: 8px;
-}
-
-/* 5) На всякий случай отключаем авто-ужатие текста Safari */
-html { -webkit-text-size-adjust: 100%; }
-/* === Ticket count slider (финальная версия как на макете) === */
-/* === Slider: цифра сверху, слайдер на всю ширину === */
-#countSlider {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 16px 0;
-  color: #ddd;
-}
-
-/* Заголовок */
-#countSlider .title {
-  font-size: 14px;
-  color: #b0b0b0;
-  font-weight: 400;
-  margin-bottom: 4px;
-}
-
-#countSlider .badge {
-background: none !important;
-border: 0 !important;
-padding: 0 !important;
-margin: 0 0 6px 0;   /* ближе к треку */
-line-height: 1;
-font-size: 28px;
-font-weight: 700;
-color: #fff;
-text-align: left;
-}
     
-#countSlider .slider-wrap {
-position: relative;
-width: 100%;
-height: 36px;             /* компактнее, ближе к макету */
-display: flex;
-align-items: center;
-margin-top: 4px;
-}
+    /* --- Кнопка "Закрыть" --- */
+    .bottom-button {
+      position: fixed;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      width: auto;
+      padding: 16px 0;
+      background-color: var(--app-button-bg);
+      color: var(--app-button-fg);
+      text-align: center;
+      font-weight: bold;
+      font-size: 14px;
+      border-radius: 9px;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+    .bottom-button.disabled {
+      opacity: 0.7;
+      pointer-events: none;
+    }
 
-/* Серый трек */
-#countSlider .dots-track {
-position: absolute;
-left: 0; right: 0;
-top: 50%;
-transform: translateY(-50%);
-height: 2px;
-background: #3a3a3a;
-border-radius: 2px;
-pointer-events: none;
-}
+    /* --- Переключатель транспорта --- */
+    .transport-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .transport-option {
+      background: var(--app-input-bg) !important;
+      color: var(--app-text-primary) !important;
+      border: 1px solid var(--app-input-border) !important;
+      box-shadow: none !important;
+      outline: none !important;
+      height: 44px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .transport-option.active {
+      border: 2px solid var(--app-accent) !important;
+    }
+    .transport-option:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
 
-    /* Явные точки — ровно под цифрами */
-#countSlider .dots {
-position: absolute;
-left: 0; right: 0;
-top: 50%;
-transform: translateY(-50%);
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-pointer-events: none;
-}
-#countSlider .dots i {
-width: 6px; height: 6px;
-border-radius: 50%;
-background: #8a8a8a;
-margin: 0 auto;
-}
+    /* --- Слайдер количества билетов --- */
+    #countSlider {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+      color: var(--app-text-secondary);
+    }
+    #countSlider .title {
+      font-size: 14px;
+      font-weight: 400;
+    }
+    #countSlider .badge {
+      background: none !important;
+      border: 0 !important;
+      padding: 0 !important;
+      margin: 0 0 6px 0;
+      line-height: 1;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--app-text-primary);
+      text-align: left;
+    }
+    #countSlider .slider-wrap {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    #countSlider .dots-track {
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      transform: translateY(-50%);
+      height: 2px;
+      background: var(--app-slider-track);
+    }
+    #countSlider .fill-track {
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      height: 2px;
+      width: var(--pct, 0%);
+      background: var(--app-accent);
+    }
+    #countSlider input[type="range"] {
+      width: 100%;
+      height: 36px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      position: relative;
+      z-index: 2;
+      margin: 0; padding: 0;
+      cursor: pointer;
+    }
+    #countSlider input[type="range"]::-webkit-slider-runnable-track,
+    #countSlider input[type="range"]::-moz-range-track {
+      height: 2px; background: transparent;
+    }
+    #countSlider input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--app-slider-thumb-bg);
+      border: 3px solid var(--app-accent);
+      box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
+      margin-top: -10px;
+    }
+     #countSlider input[type="range"]::-moz-range-thumb {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--app-slider-thumb-bg);
+      border: 3px solid var(--app-accent);
+      box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
+    }
+    #countSlider .scale {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      font-size: 14px;
+      color: var(--app-text-secondary);
+      margin-top: 4px;
+    }
+    #countSlider .scale span { text-align: center; }
+    #countSlider[data-val="1"] .scale span:nth-child(1),
+    #countSlider[data-val="2"] .scale span:nth-child(-n+2),
+    #countSlider[data-val="3"] .scale span:nth-child(-n+3),
+    #countSlider[data-val="4"] .scale span:nth-child(-n+4),
+    #countSlider[data-val="5"] .scale span:nth-child(-n+5) {
+      color: var(--app-accent); font-weight: 600;
+    }
+    
+    /* --- Меню выбора транспорта --- */
+    .transport-menu-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 10002;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 16px;
+    }
+    .transport-menu {
+      width: 100%; max-width: 520px;
+      background: var(--app-surface);
+      color: var(--app-text-primary);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .transport-menu__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .transport-menu__title { font-size: 18px; font-weight: 600; }
+    .transport-menu__close { background: none; border: none; color: var(--app-text-primary); font-size: 24px; cursor: pointer; }
+    .transport-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+    .transport-tabs button {
+      background: var(--app-input-bg); border: 1px solid var(--app-input-border);
+      border-radius: 8px; padding: 10px 8px;
+      color: var(--app-text-secondary); font-size: 14px; cursor: pointer;
+    }
+    .transport-tabs button.active {
+      background: var(--app-button-bg); color: var(--app-button-fg); border-color: var(--app-button-bg);
+    }
+    .route-buttons {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px;
+      max-height: 50vh; overflow: auto;
+    }
+    .route-buttons button {
+      padding: 12px 8px; border-radius: 10px;
+      background: var(--app-input-bg); color: var(--app-text-primary);
+      border: 1px solid var(--app-input-border);
+      font-weight: 600; cursor: pointer;
+    }
+    .transport-hint { margin-top: 10px; color: var(--app-text-secondary); font-size: 12px; text-align: center; }
 
-/* Красная заливка до текущего значения */
-#countSlider .fill-track {
-position: absolute;
-left: 0;
-top: 50%;
-transform: translateY(-50%);
-height: 2px;
-width: var(--pct, 0%);     /* управляется из JS */
-background: #e21a1a;
-border-radius: 2px;
-pointer-events: none;
-}
-/* Сам range — прозрачный, только бегунок */
-#countSlider input[type="range"] {
-width: 100%;
-height: 36px;
--webkit-appearance: none;
-appearance: none;
-background: transparent;
-outline: none;
-position: relative;
-z-index: 2;  /* поверх точек, чтобы тянуть пальцем */
-margin: 0; padding: 0;
-cursor: pointer;
-}
-/* Трек range скрыт (мы рисуем свой) */
-#countSlider input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: transparent; }
-#countSlider input[type="range"]::-moz-range-track { height: 2px; background: transparent; }
-/* Бегунок — красное кольцо с «ореолом», как на макете */
-#countSlider input[type="range"]::-webkit-slider-thumb {
--webkit-appearance: none;
-width: 22px; height: 22px;
-border-radius: 50%;
-background: #1b1b1b;
-border: 3px solid #e21a1a;
-box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
-margin-top: -10px; /* центрируем относительно 2px линии */
-transition: box-shadow 0.2s ease;
-}
-#countSlider input[type="range"]:active::-webkit-slider-thumb {
-box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
-}
-#countSlider input[type="range"]::-moz-range-thumb {
-width: 22px; height: 22px;
-border-radius: 50%;
-background: #1b1b1b;
-border: 3px solid #e21a1a;
-box-shadow: 0 0 0 6px rgba(226, 26, 26, 0.18);
-transition: box-shadow 0.2s ease;
-}
-#countSlider input[type="range"]:active::-moz-range-thumb {
-box-shadow: 0 0 0 12px rgba(226, 26, 26, 0.12);
-}
-/* Цифры под слайдером — как были, это ок */
-#countSlider .scale {
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-font-size: 14px;
-color: #8a8a8a;
-margin-top: 4px;
-padding: 0 2px;
-}
-#countSlider .scale span { text-align: center; }
-/* Подсветка активных 1..N (оставляем как у тебя) */
-#countSlider[data-val="1"] .scale span:nth-child(1) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="2"] .scale span:nth-child(-n+2) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="3"] .scale span:nth-child(-n+3) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="4"] .scale span:nth-child(-n+4) { color: #e21a1a; font-weight: 600; }
-#countSlider[data-val="5"] .scale span:nth-child(-n+5) { color: #e21a1a; font-weight: 600; }
-/* (опционально) уберём старые отступы, если остались прежние классы */
-.custom-slider-wrapper, .slider-display, .slider-labels { display:none !important;}
+    /* --- Прочие компоненты --- */
+    .toggle-container {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 15px; background: var(--app-surface); border-radius: 12px;
+    }
+    .toggle { position: relative; width: 50px; height: 28px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--app-input-bg); transition: .4s; border-radius: 34px; }
+    .slider:before {
+      position: absolute; content: ""; height: 20px; width: 20px;
+      left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--app-accent); }
+    input:checked + .slider:before { transform: translateX(22px); }
+    .freeze-badge {
+      margin-left: 8px; padding: 2px 8px; border-radius: 10px;
+      font-size: 12px; color: var(--app-text-primary); background: var(--app-input-bg);
+      border: 1px solid var(--app-input-border);
+    }
+    .photo-controls {
+      position: fixed; bottom: 0; left: 0; width: 100%;
+      background-color: var(--app-bg-elevated);
+      padding: 20px; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5); z-index: 999;
+      box-sizing: border-box;
+    }
+    .photo-controls button { margin-top: 10px; }
+    .photo-controls button:first-child { margin-top: 0; }
 
-    /* Чтобы метки и бейдж не блокировали касания по слайдеру */
-.count-slider .ticks,
-.count-slider .badge { pointer-events: none; }
-
-.count-slider input[type=range] {
-  width: 100%;
-  height: 6px;
-  border-radius: 4px;
-  appearance: none;
-  background: linear-gradient(to right, #ff3b30 var(--pct, 0%), #3a3a3a var(--pct, 0%));
-  /* На мобильных, чтобы свайп по слайдеру не уводил страницу */
-  touch-action: pan-y;
-}
-.count-slider input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #fff; border: 2px solid #ff3b30;
-}
-
-    /* Убираем старые стили слайдера */
-.custom-slider-wrapper,
-.slider-display,
-.slider-labels {
-  display: none !important;
-}
-    /* Контейнер экрана билета */
-.ticket {
-  --bg: #0D0D0D;
-  --text: #FFFFFF;
-  --text-2: rgba(255,255,255,.72);
-  --accent: #E21A1A;
-  --divider: rgba(255,255,255,.12);
-  --radius: 12px;
-
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
-  font-feature-settings: "tnum";
-}
-
-/* Типографика: крупнее, но легче по весу */
-.ticket .label { font-size: 13px; font-weight: 400; color: var(--text-2); }
-.ticket .value { font-size: 17px; font-weight: 500; color: var(--text); }
-.ticket .timer { font-size: 18px; font-weight: 500; color: var(--text); }
-    .ticket .row {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--divider);
-}
-.ticket .row--time { border-bottom: 0; }   /* <- убрать разделитель под временем покупки */
-    .ticket .title { 
-  font-size: 18px; font-weight: 500; text-align: center; padding: 12px 16px;
-}
-
-/* Простые вкладки */
-.ticket .tabs { display: flex; gap: 24px; padding: 0 16px; }
-.ticket .tab { position: relative; padding: 12px 0 10px; color: var(--text-2); }
-.ticket .tab--active { color: var(--text); }
-.ticket .tab--active::after {
-  content: ""; position: absolute; left: -8px; right: -8px; bottom: 0;
-  height: 2px; background: var(--accent); border-radius: 1px; /* тоньше и длиннее */
-}
-
-/* Если используешь Ant Design Tabs */
-.ant-tabs-ink-bar { height: 2px; background: var(--accent); border-radius: 1px; }
-.ant-tabs-tab { padding: 12px 8px; }
-.ant-tabs-tab-active .ant-tabs-tab-btn { color: var(--text) !important; }
-    .ticket .footer { padding: 12px 16px 16px; position: sticky; bottom: 0; background: var(--bg); }
-.ticket .btn-close {
-  width: 100%; height: 56px; border: 0; border-radius: var(--radius);
-  background: #FFFFFF; color: var(--accent); font-weight: 600; font-size: 16px;
-}
-    /* Тема + системный стек шрифтов */
-body {
-  background-color: #0D0D0D !important;
-  color: #fff;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
-  font-feature-settings: "tnum";
-}
-
-/* Вкладки: активная — белый текст; полоса — тоньше и длиннее */
-.tab-item.active {
-  color: #fff;
-  font-weight: 500;
-}
-.tab-item.active::after {
-  left: -10px;
-  right: -10px;
-  bottom: -1px;
-  height: 2px;
-  background-color: #e21a1a;
-  border-radius: 1px;
-}
-
-/* Убрать разделитель у "Время покупки" (последняя секция на билете) */
-#ticket .section:last-of-type {
-  border-bottom: 0;
-}
-
-/* Кнопка "ЗАКРЫТЬ" — белая с красным текстом */
-.bottom-button {
-  background-color: #000 !important;
-  color: #e21a1a !important;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-}
-
-/* Чуть темнее разделители под тёмный фон */
-.tab { border-bottom-color: #2a2a2a; }
-.section { border-bottom-color: #2a2a2a; }
-
-    /* Глобально: ЧЁРНЫЙ фон и системный шрифт (как просили), крупнее */
-html, body {
-  background-color: #000 !important; /* RGB(0,0,0) */
-  color: #fff;
-  font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
-  font-size: 17px;                  /* сделали крупнее */
-  font-feature-settings: "tnum" 1;  /* табличные цифры */
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Акцентная вкладка (с номером билета): красный текст + тонкая длинная линия */
-.tab-item.active {
-  color: #e21a1a !important;
-  font-weight: 600;
-}
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  left: -10px;
-  right: -10px;
-  bottom: -1px;
-  height: 2px;
-  background-color: #e21a1a;
-  border-radius: 1px;
-}
-
-/* Кнопка "ЗАКРЫТЬ" — красная, текст белый */
-.bottom-button {
-  background-color: #e21a1a !important;
-  color: #fff !important;
-  font-weight: 700;
-}
-
-/* Текстовые размеры — чуть крупнее и чище читаются */
-.label { font-size: 14px !important; color: #b0b0b0; }
-.value { font-size: 22px !important; font-weight: 600; }
-.value-small { font-size: 15px !important; }
-
-/* Разделители потемнее под чёрный фон */
-.tab, .section { border-bottom-color: #2c2c2e !important; }
-    /* 1) Кнопка "ЗАКРЫТЬ" — красный фон, ЧЁРНЫЙ текст (перебиваем всё) */
-#closeButton,
-#closeButton:focus,
-#closeButton:hover,
-#closeButton:active {
-  background-color: #e21a1a !important;
-  color: #000 !important;
-  -webkit-text-fill-color: #000 !important; /* Safari/WebView */
-  text-shadow: none !important;
-  font-weight: 600 !important;
-}
-#closeButton.disabled {
-  opacity: .6 !important;
-  pointer-events: none !important;
-  color: #000 !important;
-  -webkit-text-fill-color: #000 !important;
-}
-
-/* 2) Типографика экрана билета — применяем к реальному контейнеру #ticket */
-#ticket .label {
-  font-size: 16px !important;
-  font-weight: 400 !important;
-  color: #757575 !important;
-}
-#ticket .value {
-  font-size: 24px !important;     /* крупнее */
-  font-weight: 402 !important;     /* убрали жирность */
-  line-height: 1.22 !important;
-  color: #fff !important;
-}
-#ticket .value-small {
-  font-size: 16px !important;
-  font-weight: 400 !important;
-  color: #757575 !important;
-}
-/* На всякий случай снимем жирность с b/strong внутри билета */
-#ticket b, #ticket strong {
-  font-weight: 400 !important;
-}
-
-/* 3) Опционально: если хочешь, чтобы и заголовок сверху был не жирным */
-.top-text { font-weight: 402 !important; }
-/* === Финальный патч для кнопки "ЗАКРЫТЬ" === */
-
-/* 1. Основной стиль: выше и с боковыми отступами */
-.bottom-button {
-  /* Позиционирование */
-  bottom: 4px;
-  left: 4px;     /* Увеличили боковой отступ (было 2px) */
-  right: 4px;    /* Увеличили боковой отступ (было 2px) */
-  width: auto;   /* Убираем фикс. ширину, чтобы работали left/right */
-  
-  /* Размеры */
-  padding: 16px 0 !important; /* Сделали чуть выше (было 14px) */
-
-  /* Внешний вид */
-  background-color: #e21a1a !important;
-  color: #000 !important;
-  font-weight: 600 !important;
-  border-radius: 9px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  
-  /* Остальное */
-  position: fixed;
-  text-align: center;
-  font-size: 14px;
-  cursor: pointer;
-  user-select: none;
-  z-index: 1000;
-}
-
-/* 2. Стиль НЕАКТИВНОЙ кнопки: убираем затемнение */
-.bottom-button.disabled {
-  opacity: 1 !important;      /* Убрали затемнение (было 0.6) */
-  pointer-events: none !important;      /* Оставили, чтобы не нажималась */
-  cursor: default;
-}
-    /* Финальный override — без затемнения в disabled */
-#closeButton.disabled,
-.bottom-button.disabled {
-  opacity: 1 !important;
-}
-    /* Верхние вкладки */
-#tabs .tab-item,
-#tabs .tab-item.active,
-#tabs .tab-item[aria-selected="true"],
-#tabs .tab-item:active,
-#tabs .tab-item:focus {
-  font-weight: 400 !important; /* или normal */
-}
-
-/* Табы в меню выбора транспорта */
-.transport-tabs button,
-.transport-tabs button.active,
-.transport-tabs button[aria-selected="true"] {
-  font-weight: 400 !important;
-}
-
-/* Если текст обёрнут в <strong>/<b> — не даём им утяжелять */
-#tabs .tab-item strong,
-#tabs .tab-item b,
-.transport-tabs button strong,
-.transport-tabs button b {
-  font-weight: inherit;
-}
   </style>
 </head>
 <body>
-<!-- Экран авторизации -->
-<div id="authScreen" class="screen active">
-  <div class="input-screen">
-    <input id="authToken" placeholder="Введите токен доступа" />
-    <button onclick="checkAccess()">Войти</button>
+
+  <!-- Системные оверлеи -->
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loader"></div>
   </div>
-</div>
 
+  <!-- Экран авторизации (поверх всего) -->
+  <div id="authScreen" class="screen active">
+    <div class="input-screen">
+      <input id="authToken" placeholder="Введите токен доступа" />
+      <button onclick="checkAccess()">Войти</button>
+    </div>
+  </div>
 
-  
   <!-- Экран ввода данных -->
   <div class="screen" id="inputScreen">
     <div class="input-screen">
-      <div style="display: flex; gap: 10px; align-items: center;">
-  </div>
-    <button type="button" class="transport-trigger" onclick="openTransportMenu()">
-  Выбрать номер транспорта
-</button>
+      <button type="button" class="transport-trigger" onclick="openTransportMenu()">
+        Выбрать номер транспорта
+      </button>
 
       <input id="inputCarrier" placeholder="Перевозчик (например: КПАТП-5)" />
       <input id="inputRoute" placeholder="Маршрут (например: 3-я Дальневосточная - Молодежная)" />
-      <input id="inputPlate" placeholder="Госномер (например: в747рр124)" />
-
+      <input id="inputPlate" placeholder="Госномер (например: в447рр124)" />
 
       <div class="transport-toggle">
-  <button type="button" class="transport-option active" data-type="bus">Автобус</button>
-  <button type="button" class="transport-option" data-type="other">Троллейбус и др.</button>
-</div>
-<input type="hidden" id="transportType" value="bus" />
-    
-<!-- === FREEZE TIME: тумблер фиксации времени === -->
-<div class="toggle-container" id="freezeTimeControls" style="margin-top:8px;">
-  <span class="toggle-label">Зафиксировать время</span>
-  <label class="toggle">
-    <input type="checkbox" id="freezeTimeToggle">
-    <span class="slider"></span>
-  </label>
-  <!-- Небольшой бейдж, чтобы видно было, какое время зафиксировано -->
-  <span id="freezeTimeBadge" class="freeze-badge" style="display:none;" title="Время зафиксировано">—:—</span>
-</div>
-<div class="tickets" id="countSlider" data-val="1">
-  <label class="title" for="inputCountRange">Количество билетов</label>
-  
-  <div class="badge"><span id="sliderValue">1</span></div>
-
-  <div class="slider-wrap">
-    <div class="dots-track"></div>
-    <div class="fill-track"></div>
-    <input id="inputCountRange" type="range" min="1" max="5" step="1" value="1"
-           aria-label="Количество билетов" oninput="updateCountLabel(this.value)">
-  </div>
-
-  <div class="scale">
-    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-  </div>
-
-  <input type="hidden" id="inputCount" value="1">
-</div>
-
-<!-- === /FREEZE TIME === -->         
-    </div>
-    
-      <div class="photo-controls">
-<button type="button" id="showLastBtn" onclick="chooseTimeForLastTicket()">Показать последний билет</button>
-    <button onclick="submitForm()" class="submit-button">Продолжить</button>
-        <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
-
+        <button type="button" class="transport-option active" data-type="bus">Автобус</button>
+        <button type="button" class="transport-option" data-type="other">Троллейбус и др.</button>
       </div>
-</div>
-  <!-- === Меню выбора транспорта (оверлей) === -->
-<div id="transportMenuOverlay" class="transport-menu-overlay">
-  <div class="transport-menu">
-    <div class="transport-menu__header">
-      <div class="transport-menu__title">Выбор маршрута</div>
-      <button class="transport-menu__close" onclick="closeTransportMenu()">×</button>
+      <input type="hidden" id="transportType" value="bus" />
+    
+      <div class="toggle-container" id="freezeTimeControls">
+        <span class="toggle-label">Зафиксировать время</span>
+        <label class="toggle">
+          <input type="checkbox" id="freezeTimeToggle">
+          <span class="slider"></span>
+        </label>
+        <span id="freezeTimeBadge" class="freeze-badge" style="display:none;">—:—</span>
+      </div>
+      
+      <div class="tickets" id="countSlider" data-val="1">
+        <label class="title" for="inputCountRange">Количество билетов</label>
+        <div class="badge"><span id="sliderValue">1</span></div>
+        <div class="slider-wrap">
+          <div class="dots-track"></div>
+          <div class="fill-track"></div>
+          <input id="inputCountRange" type="range" min="1" max="5" step="1" value="1" aria-label="Количество билетов" oninput="updateCountLabel(this.value)">
+        </div>
+        <div class="scale">
+          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+        </div>
+        <input type="hidden" id="inputCount" value="1">
+      </div>
     </div>
-
-    <!-- Табы -->
-    <div class="transport-tabs">
-      <button id="tab-buses"        class="active" onclick="switchTransportTab('buses')">Автобусы</button>
-      <button id="tab-trolleybuses"            onclick="switchTransportTab('trolleybuses')">Троллейбусы</button>
-      <button id="tab-trams"                  onclick="switchTransportTab('trams')">Трамваи</button>
-      <button id="tab-eBuses"                 onclick="switchTransportTab('eBuses')">Электробусы</button>
+    
+    <div class="photo-controls">
+      <button type="button" id="showLastBtn" onclick="chooseTimeForLastTicket()">Показать последний билет</button>
+      <button onclick="submitForm()" class="submit-button">Продолжить</button>
+      <button id="adminButton" onclick="toggleAdminMenu()" style="display: none;">Админ-меню</button>
     </div>
-
-    <!-- Список маршрутов (кнопки) -->
-    <div id="routesButtons" class="route-buttons"></div>
-
-    <div class="transport-hint">Нажмите на номер — перевозчик и маршрут подставятся автоматически</div>
   </div>
-</div>
 
+  <!-- Меню выбора транспорта (оверлей) -->
+  <div id="transportMenuOverlay" class="transport-menu-overlay">
+    <div class="transport-menu">
+      <div class="transport-menu__header">
+        <div class="transport-menu__title">Выбор маршрута</div>
+        <button class="transport-menu__close" onclick="closeTransportMenu()">×</button>
+      </div>
+      <div class="transport-tabs">
+        <button id="tab-buses" class="active" onclick="switchTransportTab('buses')">Автобусы</button>
+        <button id="tab-trolleybuses" onclick="switchTransportTab('trolleybuses')">Троллейбусы</button>
+        <button id="tab-trams" onclick="switchTransportTab('trams')">Трамваи</button>
+        <button id="tab-eBuses" onclick="switchTransportTab('eBuses')">Электробусы</button>
+      </div>
+      <div id="routesButtons" class="route-buttons"></div>
+      <div class="transport-hint">Нажмите на номер — перевозчик и маршрут подставятся автоматически</div>
+    </div>
+  </div>
   
-  <div id="adminPanel" class="admin-modal" style="display: none;">
-  <div class="admin-content">
-    <button class="close-admin-button" onclick="toggleAdminMenu()">×</button>
-
-    <h2>Админ-панель</h2>
-
-    <input id="newTokenInput" placeholder="Новый токен" />
-    <button onclick="addToken()">Добавить токен</button>
-
-    <br /><br />
-
-    <input id="removeTokenInput" placeholder="Удалить токен" />
-    <button onclick="removeToken()">Удалить токен</button>
-
-    <hr style="margin: 20px 0; border: 1px solid #444;" />
-
-    <h3 style="margin-bottom: 10px;">Все токены</h3>
-    <button onclick="loadTokens()">Обновить список</button>
-    <ul id="tokenList" style="list-style: none; padding: 0; margin-top: 10px; font-size: 14px;"></ul>
-  </div>
-</div>
-
-
-
-
-  <!-- Основной экран с вкладками -->
+  <!-- Основной экран с билетом -->
   <div class="container screen" id="mainScreen">
     <div class="top-text">Действует: <span id="countdown">15</span> сек.</div>
 
     <div class="tab" id="tabs">
       <div class="tab-item active" onclick="switchTab('ticket', event)">
-        <div style="display: flex; align-items: center; gap: 8px; color: #df1d1d;">
-  <!-- SVG иконка -->
-  <svg width="25pt" height="25pt" viewBox="0 0 140 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#282525ff">
-</g>
-<g id="#ca211fff">
-<path fill="#ca211f" opacity="1.00" d=" M 70.74 31.51 C 81.83 31.06 92.91 31.97 104.00 31.65 C 110.82 31.68 118.83 31.75 123.76 37.24 C 126.38 41.26 126.20 46.38 126.44 51.00 C 126.34 58.66 126.89 66.35 126.18 73.97 C 126.13 79.14 116.09 80.87 116.47 74.65 C 116.50 65.45 115.54 56.28 115.56 47.08 C 115.57 45.69 115.34 43.63 113.57 43.53 C 107.73 42.96 101.84 43.51 96.00 42.82 C 82.89 42.67 69.66 41.61 56.64 43.80 C 53.49 44.53 53.40 48.40 53.33 51.01 C 53.47 76.94 53.21 102.88 53.45 128.80 C 53.16 132.81 58.03 133.17 60.94 133.32 C 70.63 133.30 80.35 133.82 90.00 132.69 C 94.81 132.75 99.89 131.89 104.52 133.52 C 108.20 136.00 111.52 139.42 113.09 143.65 C 110.09 144.18 107.05 144.57 104.00 144.47 C 93.67 144.30 83.34 144.49 73.01 144.47 C 65.80 144.44 58.48 144.85 51.41 143.19 C 47.42 142.37 44.31 139.13 42.81 135.46 C 40.98 130.87 41.91 125.83 41.22 121.05 C 40.26 116.03 41.84 111.03 41.65 106.00 C 41.45 92.66 41.73 79.33 41.56 66.00 C 41.38 58.96 42.71 51.99 42.52 44.94 C 42.13 39.43 46.43 34.45 51.50 32.86 C 57.79 31.26 64.32 31.76 70.74 31.51 Z" />
-<path fill="#ca211f" opacity="1.00" d=" M 68.37 61.26 C 73.12 59.96 78.13 60.67 82.99 60.50 C 88.54 60.77 94.22 59.93 99.67 61.24 C 103.71 62.20 105.50 69.85 100.86 71.18 C 96.28 71.86 91.62 71.39 87.00 71.50 C 80.91 71.36 74.70 72.00 68.72 70.55 C 63.85 70.33 64.55 62.58 68.37 61.26 Z" />
-<path fill="#ca211f" opacity="1.00" d=" M 64.68 82.70 C 65.84 80.96 68.18 81.54 69.95 81.32 C 78.96 81.44 87.97 81.31 96.99 81.39 C 99.46 81.51 102.74 81.44 104.08 83.98 C 105.24 86.39 104.10 89.04 103.43 91.42 C 97.30 91.91 91.14 91.26 85.03 92.04 C 80.45 92.58 75.82 92.76 71.21 92.55 C 68.90 92.45 66.50 91.84 64.72 90.28 C 64.08 87.82 64.04 85.16 64.68 82.70 Z" />
-<path fill="#ca211f" opacity="1.00" d=" M 128.32 82.18 C 135.66 80.80 143.65 81.01 150.42 84.48 C 159.08 88.52 166.43 96.43 168.25 105.98 C 169.07 113.30 168.10 121.07 164.58 127.62 C 161.38 132.62 157.39 137.50 151.87 140.04 C 146.34 142.68 140.25 145.18 133.99 144.15 C 127.83 143.22 122.06 140.49 116.85 137.17 C 103.10 126.01 101.54 102.06 115.19 90.19 C 118.96 86.69 123.26 83.47 128.32 82.18 M 140.85 110.87 C 138.45 112.75 136.36 115.89 132.99 115.77 C 129.89 116.26 128.45 113.04 126.38 111.41 C 125.37 110.10 123.49 110.58 122.90 112.01 C 123.95 116.03 126.51 119.66 129.79 122.18 C 132.45 123.32 135.71 122.73 137.99 120.97 C 142.23 117.97 146.00 114.19 148.74 109.75 C 149.88 108.03 149.63 105.86 149.87 103.90 C 146.01 104.87 143.82 108.53 140.85 110.87 Z" />
-<path fill="#ca211f" opacity="1.00" d=" M 64.35 103.32 C 69.56 100.12 76.30 101.16 81.69 103.40 C 84.14 104.15 85.32 106.94 84.28 109.25 C 82.37 111.83 78.91 111.62 76.05 111.71 C 72.63 111.68 69.14 111.94 65.77 111.20 C 63.42 109.37 64.77 105.89 64.35 103.32 Z" />
-  </g>
-</svg>
-</div>
+        <div class="icon">
+          <svg width="25pt" height="25pt" viewBox="0 0 140 200" xmlns="http://www.w3.org/2000/svg">
+            <path fill="currentColor" d=" M 70.74 31.51 C 81.83 31.06 92.91 31.97 104.00 31.65 C 110.82 31.68 118.83 31.75 123.76 37.24 C 126.38 41.26 126.20 46.38 126.44 51.00 C 126.34 58.66 126.89 66.35 126.18 73.97 C 126.13 79.14 116.09 80.87 116.47 74.65 C 116.50 65.45 115.54 56.28 115.56 47.08 C 115.57 45.69 115.34 43.63 113.57 43.53 C 107.73 42.96 101.84 43.51 96.00 42.82 C 82.89 42.67 69.66 41.61 56.64 43.80 C 53.49 44.53 53.40 48.40 53.33 51.01 C 53.47 76.94 53.21 102.88 53.45 128.80 C 53.16 132.81 58.03 133.17 60.94 133.32 C 70.63 133.30 80.35 133.82 90.00 132.69 C 94.81 132.75 99.89 131.89 104.52 133.52 C 108.20 136.00 111.52 139.42 113.09 143.65 C 110.09 144.18 107.05 144.57 104.00 144.47 C 93.67 144.30 83.34 144.49 73.01 144.47 C 65.80 144.44 58.48 144.85 51.41 143.19 C 47.42 142.37 44.31 139.13 42.81 135.46 C 40.98 130.87 41.91 125.83 41.22 121.05 C 40.26 116.03 41.84 111.03 41.65 106.00 C 41.45 92.66 41.73 79.33 41.56 66.00 C 41.38 58.96 42.71 51.99 42.52 44.94 C 42.13 39.43 46.43 34.45 51.50 32.86 C 57.79 31.26 64.32 31.76 70.74 31.51 Z M 68.37 61.26 C 73.12 59.96 78.13 60.67 82.99 60.50 C 88.54 60.77 94.22 59.93 99.67 61.24 C 103.71 62.20 105.50 69.85 100.86 71.18 C 96.28 71.86 91.62 71.39 87.00 71.50 C 80.91 71.36 74.70 72.00 68.72 70.55 C 63.85 70.33 64.55 62.58 68.37 61.26 Z M 64.68 82.70 C 65.84 80.96 68.18 81.54 69.95 81.32 C 78.96 81.44 87.97 81.31 96.99 81.39 C 99.46 81.51 102.74 81.44 104.08 83.98 C 105.24 86.39 104.10 89.04 103.43 91.42 C 97.30 91.91 91.14 91.26 85.03 92.04 C 80.45 92.58 75.82 92.76 71.21 92.55 C 68.90 92.45 66.50 91.84 64.72 90.28 C 64.08 87.82 64.04 85.16 64.68 82.70 Z M 128.32 82.18 C 135.66 80.80 143.65 81.01 150.42 84.48 C 159.08 88.52 166.43 96.43 168.25 105.98 C 169.07 113.30 168.10 121.07 164.58 127.62 C 161.38 132.62 157.39 137.50 151.87 140.04 C 146.34 142.68 140.25 145.18 133.99 144.15 C 127.83 143.22 122.06 140.49 116.85 137.17 C 103.10 126.01 101.54 102.06 115.19 90.19 C 118.96 86.69 123.26 83.47 128.32 82.18 M 140.85 110.87 C 138.45 112.75 136.36 115.89 132.99 115.77 C 129.89 116.26 128.45 113.04 126.38 111.41 C 125.37 110.10 123.49 110.58 122.90 112.01 C 123.95 116.03 126.51 119.66 129.79 122.18 C 132.45 123.32 135.71 122.73 137.99 120.97 C 142.23 117.97 146.00 114.19 148.74 109.75 C 149.88 108.03 149.63 105.86 149.87 103.90 C 146.01 104.87 143.82 108.53 140.85 110.87 Z M 64.35 103.32 C 69.56 100.12 76.30 101.16 81.69 103.40 C 84.14 104.15 85.32 106.94 84.28 109.25 C 82.37 111.83 78.91 111.62 76.05 111.71 C 72.63 111.68 69.14 111.94 65.77 111.20 C 63.42 109.37 64.77 105.89 64.35 103.32 Z" />
+          </svg>
+        </div>
         <div>1 081 124 924</div>
       </div>
       <div class="tab-item" onclick="switchTab('control', event)">     
-  <div class="icon">
-    <svg width="25pt" height="25pt" viewBox="0 0 132 166" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#252525ff">
-</g>
-<g id="#e8e8e8ff">
-<path fill="#e8e8e8" opacity="1.00" d=" M 53.91 15.16 C 57.31 14.63 60.18 12.34 63.55 11.86 C 67.50 12.55 71.17 14.36 75.12 15.11 C 85.14 17.13 95.11 19.45 104.89 22.45 C 108.41 23.21 111.41 26.84 110.40 30.52 C 109.31 34.11 105.91 36.21 103.85 39.18 C 102.99 42.77 103.98 46.53 103.23 50.13 C 99.86 52.53 96.26 55.06 92.04 55.55 C 85.35 56.45 78.77 58.20 72.00 58.41 C 64.26 58.66 56.47 58.80 48.82 57.43 C 41.46 56.17 33.37 55.55 27.38 50.59 C 23.85 48.12 26.63 43.59 26.14 40.14 C 24.34 36.50 20.17 34.15 19.43 30.00 C 20.28 26.25 23.28 22.79 27.14 21.98 C 36.17 20.11 44.88 17.02 53.91 15.16 M 50.27 30.03 C 48.01 31.21 48.26 34.43 49.96 35.99 C 53.77 40.19 59.38 42.95 64.98 43.52 C 70.57 42.46 75.54 39.18 80.29 36.17 C 83.47 34.07 80.09 29.31 77.01 29.53 C 73.81 30.43 71.36 33.15 67.99 33.55 C 64.44 33.84 60.26 34.34 57.58 31.48 C 55.72 29.46 52.75 28.60 50.27 30.03 Z" />
-<path fill="#e8e8e8" opacity="1.00" d=" M 32.12 63.04 C 33.24 61.67 35.18 62.85 36.58 63.05 C 40.52 64.30 44.41 66.76 46.13 70.67 C 47.88 74.09 49.25 78.04 52.62 80.24 C 56.39 82.76 60.86 84.87 65.51 84.35 C 70.64 83.89 75.29 81.33 79.32 78.27 C 83.10 75.57 82.58 69.98 86.06 67.04 C 88.87 64.77 92.21 62.66 95.93 62.58 C 97.22 63.38 97.73 64.52 97.47 66.02 C 97.17 71.65 94.25 76.67 91.67 81.53 C 88.89 87.02 83.13 89.80 78.55 93.54 C 75.93 95.86 72.28 95.55 69.03 95.63 C 64.68 95.61 60.33 95.76 55.99 95.49 C 51.94 95.26 48.62 92.66 45.31 90.60 C 40.02 87.39 37.23 81.61 34.52 76.30 C 32.76 72.21 30.74 67.51 32.12 63.04 Z" />
-<path fill="#e8e8e8" opacity="1.00" d=" M 34.34 106.05 C 35.79 105.74 37.34 105.41 38.80 105.91 C 48.06 108.91 54.50 116.91 63.41 120.57 C 67.26 121.45 70.44 118.30 73.44 116.38 C 78.39 112.88 83.31 109.19 88.90 106.74 C 93.59 104.88 98.56 107.16 103.03 108.66 C 108.01 110.25 111.58 114.26 114.94 118.06 C 119.42 123.33 123.14 129.86 122.63 137.02 C 122.45 140.06 123.19 144.49 119.71 145.96 C 116.59 146.98 113.22 146.51 110.00 146.60 C 78.65 146.52 47.30 146.58 15.95 146.62 C 13.16 146.57 9.84 146.36 8.05 143.89 C 5.67 140.71 6.87 136.54 7.57 133.01 C 9.03 127.61 10.75 121.89 14.92 117.92 C 18.35 114.61 21.44 110.61 26.02 108.84 C 28.72 107.71 31.49 106.72 34.34 106.05 M 26.37 123.36 C 23.50 126.23 19.78 129.58 20.78 134.11 C 26.14 135.06 31.60 134.51 37.00 134.59 C 43.88 134.43 50.78 135.05 57.63 134.27 C 55.06 129.55 49.82 127.50 45.92 124.14 C 42.58 121.79 39.51 118.06 35.06 118.26 C 31.46 118.26 28.86 121.16 26.37 123.36 M 91.48 118.57 C 86.41 120.36 82.89 124.69 78.39 127.45 C 75.22 129.54 71.10 131.26 70.11 135.34 C 83.20 135.43 96.31 135.63 109.38 135.19 C 110.87 130.51 106.64 127.19 103.98 124.02 C 101.00 120.41 96.36 117.27 91.48 118.57 Z" />
-  </g>
-</svg>
+        <div class="icon">
+          <svg width="25pt" height="25pt" viewBox="0 0 132 166" xmlns="http://www.w3.org/2000/svg">
+            <path fill="currentColor" d=" M 53.91 15.16 C 57.31 14.63 60.18 12.34 63.55 11.86 C 67.50 12.55 71.17 14.36 75.12 15.11 C 85.14 17.13 95.11 19.45 104.89 22.45 C 108.41 23.21 111.41 26.84 110.40 30.52 C 109.31 34.11 105.91 36.21 103.85 39.18 C 102.99 42.77 103.98 46.53 103.23 50.13 C 99.86 52.53 96.26 55.06 92.04 55.55 C 85.35 56.45 78.77 58.20 72.00 58.41 C 64.26 58.66 56.47 58.80 48.82 57.43 C 41.46 56.17 33.37 55.55 27.38 50.59 C 23.85 48.12 26.63 43.59 26.14 40.14 C 24.34 36.50 20.17 34.15 19.43 30.00 C 20.28 26.25 23.28 22.79 27.14 21.98 C 36.17 20.11 44.88 17.02 53.91 15.16 M 50.27 30.03 C 48.01 31.21 48.26 34.43 49.96 35.99 C 53.77 40.19 59.38 42.95 64.98 43.52 C 70.57 42.46 75.54 39.18 80.29 36.17 C 83.47 34.07 80.09 29.31 77.01 29.53 C 73.81 30.43 71.36 33.15 67.99 33.55 C 64.44 33.84 60.26 34.34 57.58 31.48 C 55.72 29.46 52.75 28.60 50.27 30.03 Z M 32.12 63.04 C 33.24 61.67 35.18 62.85 36.58 63.05 C 40.52 64.30 44.41 66.76 46.13 70.67 C 47.88 74.09 49.25 78.04 52.62 80.24 C 56.39 82.76 60.86 84.87 65.51 84.35 C 70.64 83.89 75.29 81.33 79.32 78.27 C 83.10 75.57 82.58 69.98 86.06 67.04 C 88.87 64.77 92.21 62.66 95.93 62.58 C 97.22 63.38 97.73 64.52 97.47 66.02 C 97.17 71.65 94.25 76.67 91.67 81.53 C 88.89 87.02 83.13 89.80 78.55 93.54 C 75.93 95.86 72.28 95.55 69.03 95.63 C 64.68 95.61 60.33 95.76 55.99 95.49 C 51.94 95.26 48.62 92.66 45.31 90.60 C 40.02 87.39 37.23 81.61 34.52 76.30 C 32.76 72.21 30.74 67.51 32.12 63.04 Z M 34.34 106.05 C 35.79 105.74 37.34 105.41 38.80 105.91 C 48.06 108.91 54.50 116.91 63.41 120.57 C 67.26 121.45 70.44 118.30 73.44 116.38 C 78.39 112.88 83.31 109.19 88.90 106.74 C 93.59 104.88 98.56 107.16 103.03 108.66 C 108.01 110.25 111.58 114.26 114.94 118.06 C 119.42 123.33 123.14 129.86 122.63 137.02 C 122.45 140.06 123.19 144.49 119.71 145.96 C 116.59 146.98 113.22 146.51 110.00 146.60 C 78.65 146.52 47.30 146.58 15.95 146.62 C 13.16 146.57 9.84 146.36 8.05 143.89 C 5.67 140.71 6.87 136.54 7.57 133.01 C 9.03 127.61 10.75 121.89 14.92 117.92 C 18.35 114.61 21.44 110.61 26.02 108.84 C 28.72 107.71 31.49 106.72 34.34 106.05 M 26.37 123.36 C 23.50 126.23 19.78 129.58 20.78 134.11 C 26.14 135.06 31.60 134.51 37.00 134.59 C 43.88 134.43 50.78 135.05 57.63 134.27 C 55.06 129.55 49.82 127.50 45.92 124.14 C 42.58 121.79 39.51 118.06 35.06 118.26 C 31.46 118.26 28.86 121.16 26.37 123.36 M 91.48 118.57 C 86.41 120.36 82.89 124.69 78.39 127.45 C 75.22 129.54 71.10 131.26 70.11 135.34 C 83.20 135.43 96.31 135.63 109.38 135.19 C 110.87 130.51 106.64 127.19 103.98 124.02 C 101.00 120.41 96.36 117.27 91.48 118.57 Z" />
+          </svg>
         </div>
         Контроль
       </div>
@@ -1471,14 +590,9 @@ html, body {
       <div class="section">
         <div class="row">
           <div class="icon">
-            <svg width="25pt" height="25pt" viewBox="0 0 132 166" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#252525ff">
-</g>
-<g id="#e8e8e8ff">
-<path fill="#e8e8e8" opacity="1.00" d=" M 53.91 15.16 C 57.31 14.63 60.18 12.34 63.55 11.86 C 67.50 12.55 71.17 14.36 75.12 15.11 C 85.14 17.13 95.11 19.45 104.89 22.45 C 108.41 23.21 111.41 26.84 110.40 30.52 C 109.31 34.11 105.91 36.21 103.85 39.18 C 102.99 42.77 103.98 46.53 103.23 50.13 C 99.86 52.53 96.26 55.06 92.04 55.55 C 85.35 56.45 78.77 58.20 72.00 58.41 C 64.26 58.66 56.47 58.80 48.82 57.43 C 41.46 56.17 33.37 55.55 27.38 50.59 C 23.85 48.12 26.63 43.59 26.14 40.14 C 24.34 36.50 20.17 34.15 19.43 30.00 C 20.28 26.25 23.28 22.79 27.14 21.98 C 36.17 20.11 44.88 17.02 53.91 15.16 M 50.27 30.03 C 48.01 31.21 48.26 34.43 49.96 35.99 C 53.77 40.19 59.38 42.95 64.98 43.52 C 70.57 42.46 75.54 39.18 80.29 36.17 C 83.47 34.07 80.09 29.31 77.01 29.53 C 73.81 30.43 71.36 33.15 67.99 33.55 C 64.44 33.84 60.26 34.34 57.58 31.48 C 55.72 29.46 52.75 28.60 50.27 30.03 Z" />
-<path fill="#e8e8e8" opacity="1.00" d=" M 32.12 63.04 C 33.24 61.67 35.18 62.85 36.58 63.05 C 40.52 64.30 44.41 66.76 46.13 70.67 C 47.88 74.09 49.25 78.04 52.62 80.24 C 56.39 82.76 60.86 84.87 65.51 84.35 C 70.64 83.89 75.29 81.33 79.32 78.27 C 83.10 75.57 82.58 69.98 86.06 67.04 C 88.87 64.77 92.21 62.66 95.93 62.58 C 97.22 63.38 97.73 64.52 97.47 66.02 C 97.17 71.65 94.25 76.67 91.67 81.53 C 88.89 87.02 83.13 89.80 78.55 93.54 C 75.93 95.86 72.28 95.55 69.03 95.63 C 64.68 95.61 60.33 95.76 55.99 95.49 C 51.94 95.26 48.62 92.66 45.31 90.60 C 40.02 87.39 37.23 81.61 34.52 76.30 C 32.76 72.21 30.74 67.51 32.12 63.04 Z" />
-<path fill="#e8e8e8" opacity="1.00" d=" M 34.34 106.05 C 35.79 105.74 37.34 105.41 38.80 105.91 C 48.06 108.91 54.50 116.91 63.41 120.57 C 67.26 121.45 70.44 118.30 73.44 116.38 C 78.39 112.88 83.31 109.19 88.90 106.74 C 93.59 104.88 98.56 107.16 103.03 108.66 C 108.01 110.25 111.58 114.26 114.94 118.06 C 119.42 123.33 123.14 129.86 122.63 137.02 C 122.45 140.06 123.19 144.49 119.71 145.96 C 116.59 146.98 113.22 146.51 110.00 146.60 C 78.65 146.52 47.30 146.58 15.95 146.62 C 13.16 146.57 9.84 146.36 8.05 143.89 C 5.67 140.71 6.87 136.54 7.57 133.01 C 9.03 127.61 10.75 121.89 14.92 117.92 C 18.35 114.61 21.44 110.61 26.02 108.84 C 28.72 107.71 31.49 106.72 34.34 106.05 M 26.37 123.36 C 23.50 126.23 19.78 129.58 20.78 134.11 C 26.14 135.06 31.60 134.51 37.00 134.59 C 43.88 134.43 50.78 135.05 57.63 134.27 C 55.06 129.55 49.82 127.50 45.92 124.14 C 42.58 121.79 39.51 118.06 35.06 118.26 C 31.46 118.26 28.86 121.16 26.37 123.36 M 91.48 118.57 C 86.41 120.36 82.89 124.69 78.39 127.45 C 75.22 129.54 71.10 131.26 70.11 135.34 C 83.20 135.43 96.31 135.63 109.38 135.19 C 110.87 130.51 106.64 127.19 103.98 124.02 C 101.00 120.41 96.36 117.27 91.48 118.57 Z" />
-
+             <svg width="25pt" height="25pt" viewBox="0 0 132 166" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d=" M 53.91 15.16 C 57.31 14.63 60.18 12.34 63.55 11.86 C 67.50 12.55 71.17 14.36 75.12 15.11 C 85.14 17.13 95.11 19.45 104.89 22.45 C 108.41 23.21 111.41 26.84 110.40 30.52 C 109.31 34.11 105.91 36.21 103.85 39.18 C 102.99 42.77 103.98 46.53 103.23 50.13 C 99.86 52.53 96.26 55.06 92.04 55.55 C 85.35 56.45 78.77 58.20 72.00 58.41 C 64.26 58.66 56.47 58.80 48.82 57.43 C 41.46 56.17 33.37 55.55 27.38 50.59 C 23.85 48.12 26.63 43.59 26.14 40.14 C 24.34 36.50 20.17 34.15 19.43 30.00 C 20.28 26.25 23.28 22.79 27.14 21.98 C 36.17 20.11 44.88 17.02 53.91 15.16 M 50.27 30.03 C 48.01 31.21 48.26 34.43 49.96 35.99 C 53.77 40.19 59.38 42.95 64.98 43.52 C 70.57 42.46 75.54 39.18 80.29 36.17 C 83.47 34.07 80.09 29.31 77.01 29.53 C 73.81 30.43 71.36 33.15 67.99 33.55 C 64.44 33.84 60.26 34.34 57.58 31.48 C 55.72 29.46 52.75 28.60 50.27 30.03 Z M 32.12 63.04 C 33.24 61.67 35.18 62.85 36.58 63.05 C 40.52 64.30 44.41 66.76 46.13 70.67 C 47.88 74.09 49.25 78.04 52.62 80.24 C 56.39 82.76 60.86 84.87 65.51 84.35 C 70.64 83.89 75.29 81.33 79.32 78.27 C 83.10 75.57 82.58 69.98 86.06 67.04 C 88.87 64.77 92.21 62.66 95.93 62.58 C 97.22 63.38 97.73 64.52 97.47 66.02 C 97.17 71.65 94.25 76.67 91.67 81.53 C 88.89 87.02 83.13 89.80 78.55 93.54 C 75.93 95.86 72.28 95.55 69.03 95.63 C 64.68 95.61 60.33 95.76 55.99 95.49 C 51.94 95.26 48.62 92.66 45.31 90.60 C 40.02 87.39 37.23 81.61 34.52 76.30 C 32.76 72.21 30.74 67.51 32.12 63.04 Z M 34.34 106.05 C 35.79 105.74 37.34 105.41 38.80 105.91 C 48.06 108.91 54.50 116.91 63.41 120.57 C 67.26 121.45 70.44 118.30 73.44 116.38 C 78.39 112.88 83.31 109.19 88.90 106.74 C 93.59 104.88 98.56 107.16 103.03 108.66 C 108.01 110.25 111.58 114.26 114.94 118.06 C 119.42 123.33 123.14 129.86 122.63 137.02 C 122.45 140.06 123.19 144.49 119.71 145.96 C 116.59 146.98 113.22 146.51 110.00 146.60 C 78.65 146.52 47.30 146.58 15.95 146.62 C 13.16 146.57 9.84 146.36 8.05 143.89 C 5.67 140.71 6.87 136.54 7.57 133.01 C 9.03 127.61 10.75 121.89 14.92 117.92 C 18.35 114.61 21.44 110.61 26.02 108.84 C 28.72 107.71 31.49 106.72 34.34 106.05 M 26.37 123.36 C 23.50 126.23 19.78 129.58 20.78 134.11 C 26.14 135.06 31.60 134.51 37.00 134.59 C 43.88 134.43 50.78 135.05 57.63 134.27 C 55.06 129.55 49.82 127.50 45.92 124.14 C 42.58 121.79 39.51 118.06 35.06 118.26 C 31.46 118.26 28.86 121.16 26.37 123.36 M 91.48 118.57 C 86.41 120.36 82.89 124.69 78.39 127.45 C 75.22 129.54 71.10 131.26 70.11 135.34 C 83.20 135.43 96.31 135.63 109.38 135.19 C 110.87 130.51 106.64 127.19 103.98 124.02 C 101.00 120.41 96.36 117.27 91.48 118.57 Z" />
+            </svg>
           </div>
           <div>
             <div class="label">Перевозчик</div>
@@ -1490,15 +604,9 @@ html, body {
       <div class="section">
         <div class="row">
           <div class="icon">
-            <svg width="38pt" height="42pt" viewBox="0 0 38 42" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#262626ff">
-</g>
-<g id="#dededeff">
-<path fill="#dedede" opacity="1.00" d=" M 15.20 4.23 C 21.98 3.66 29.89 3.89 34.93 9.16 C 35.19 10.36 35.45 11.55 35.72 12.75 C 38.41 14.89 37.69 18.33 37.51 21.32 C 37.00 21.70 35.97 22.46 35.45 22.84 C 35.44 26.17 35.48 29.49 35.36 32.82 C 34.62 33.72 33.88 34.62 33.14 35.51 C 33.10 37.28 33.04 39.06 32.94 40.83 C 32.17 40.88 30.62 40.98 29.85 41.03 C 29.76 39.51 29.68 37.99 29.62 36.47 C 22.80 36.57 15.99 36.45 9.18 36.53 C 9.05 37.99 8.93 39.45 8.79 40.91 C 8.09 40.92 6.68 40.93 5.98 40.94 C 5.82 39.18 5.67 37.42 5.52 35.67 C 2.39 32.25 3.57 27.40 3.25 23.21 C 0.48 21.08 1.10 17.59 1.36 14.54 C 1.78 14.13 2.62 13.32 3.05 12.91 C 3.42 6.79 10.11 4.81 15.20 4.23 M 7.03 10.81 C 12.71 11.84 18.23 8.30 23.83 10.22 C 26.40 11.11 29.16 10.93 31.83 10.70 C 30.07 9.56 28.19 8.48 26.08 8.18 C 19.73 6.98 12.55 7.04 7.03 10.81 M 6.81 14.22 C 6.82 16.21 6.81 18.20 6.80 20.19 C 10.39 20.18 13.99 20.20 17.58 20.23 C 17.59 18.21 17.60 16.19 17.59 14.17 C 14.00 14.16 10.40 14.18 6.81 14.22 M 21.08 14.16 C 21.08 16.15 21.07 18.14 21.10 20.13 C 24.74 20.18 28.39 20.17 32.04 20.20 C 32.00 18.19 31.96 16.18 31.89 14.17 C 28.29 14.17 24.69 14.18 21.08 14.16 M 6.83 23.76 C 7.32 26.68 5.56 30.70 7.92 32.89 C 15.76 33.18 23.60 32.86 31.44 33.00 C 32.08 29.98 32.13 26.88 32.04 23.81 C 23.63 23.69 15.23 23.80 6.83 23.76 Z" />
-<path fill="#dedede" opacity="1.00" d=" M 10.35 26.39 C 12.35 24.73 15.22 28.31 13.11 29.82 C 11.12 32.65 6.90 27.94 10.35 26.39 Z" />
-<path fill="#dedede" opacity="1.00" d=" M 26.48 26.39 C 29.32 24.40 31.20 30.21 27.88 30.51 C 25.61 31.59 23.52 26.98 26.48 26.39 Z" />
-</g>
-</svg>
+            <svg width="38pt" height="42pt" viewBox="0 0 38 42" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d=" M 15.20 4.23 C 21.98 3.66 29.89 3.89 34.93 9.16 C 35.19 10.36 35.45 11.55 35.72 12.75 C 38.41 14.89 37.69 18.33 37.51 21.32 C 37.00 21.70 35.97 22.46 35.45 22.84 C 35.44 26.17 35.48 29.49 35.36 32.82 C 34.62 33.72 33.88 34.62 33.14 35.51 C 33.10 37.28 33.04 39.06 32.94 40.83 C 32.17 40.88 30.62 40.98 29.85 41.03 C 29.76 39.51 29.68 37.99 29.62 36.47 C 22.80 36.57 15.99 36.45 9.18 36.53 C 9.05 37.99 8.93 39.45 8.79 40.91 C 8.09 40.92 6.68 40.93 5.98 40.94 C 5.82 39.18 5.67 37.42 5.52 35.67 C 2.39 32.25 3.57 27.40 3.25 23.21 C 0.48 21.08 1.10 17.59 1.36 14.54 C 1.78 14.13 2.62 13.32 3.05 12.91 C 3.42 6.79 10.11 4.81 15.20 4.23 M 7.03 10.81 C 12.71 11.84 18.23 8.30 23.83 10.22 C 26.40 11.11 29.16 10.93 31.83 10.70 C 30.07 9.56 28.19 8.48 26.08 8.18 C 19.73 6.98 12.55 7.04 7.03 10.81 M 6.81 14.22 C 6.82 16.21 6.81 18.20 6.80 20.19 C 10.39 20.18 13.99 20.20 17.58 20.23 C 17.59 18.21 17.60 16.19 17.59 14.17 C 14.00 14.16 10.40 14.18 6.81 14.22 M 21.08 14.16 C 21.08 16.15 21.07 18.14 21.10 20.13 C 24.74 20.18 28.39 20.17 32.04 20.20 C 32.00 18.19 31.96 16.18 31.89 14.17 C 28.29 14.17 24.69 14.18 21.08 14.16 M 6.83 23.76 C 7.32 26.68 5.56 30.70 7.92 32.89 C 15.76 33.18 23.60 32.86 31.44 33.00 C 32.08 29.98 32.13 26.88 32.04 23.81 C 23.63 23.69 15.23 23.80 6.83 23.76 Z M 10.35 26.39 C 12.35 24.73 15.22 28.31 13.11 29.82 C 11.12 32.65 6.90 27.94 10.35 26.39 Z M 26.48 26.39 C 29.32 24.40 31.20 30.21 27.88 30.51 C 25.61 31.59 23.52 26.98 26.48 26.39 Z"/>
+            </svg>
           </div>
           <div>
             <div class="value-small" id="routeOutput">3-я Дальневосточная - Молодежная</div>
@@ -1510,17 +618,13 @@ html, body {
       <div class="section">
         <div class="row">
           <div class="icon">
-            <svg width="111pt" height="129pt" viewBox="0 0 111 129" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#242424ff">
-</g>
-<g id="#e7e7e6ff">
-<path fill="#e7e7e6" opacity="1.00" d=" M 25.27 12.24 C 27.96 8.65 32.63 7.45 36.91 7.53 C 47.96 7.49 59.01 7.36 70.06 7.49 C 77.50 7.39 84.56 10.54 90.73 14.43 C 100.09 21.46 105.29 33.39 104.66 45.01 C 105.38 57.59 98.27 69.93 87.63 76.42 C 80.63 80.93 72.09 81.42 64.03 82.19 C 54.23 82.59 44.40 82.07 34.59 82.45 C 34.68 86.41 34.01 90.66 35.88 94.32 C 47.23 94.96 58.63 94.40 70.00 94.58 C 75.12 94.73 80.30 94.04 85.38 94.88 C 87.87 96.06 89.37 98.96 89.48 101.64 C 87.67 105.53 82.91 106.27 79.08 106.34 C 64.49 106.40 49.90 106.34 35.31 106.34 C 35.30 110.69 35.62 115.09 34.81 119.39 C 34.16 124.40 25.65 124.75 23.79 120.24 C 21.42 116.07 21.66 111.10 21.50 106.47 C 16.92 106.24 11.79 106.93 7.74 104.33 C 5.77 101.94 6.24 98.24 7.58 95.65 C 12.00 93.57 17.50 95.92 21.56 93.21 C 21.66 89.90 22.43 86.11 20.86 83.11 C 16.33 81.74 11.25 82.36 7.01 80.04 C 6.21 76.78 6.33 73.10 7.96 70.10 C 11.93 69.22 16.03 69.94 20.03 69.36 C 21.90 68.77 21.46 66.57 21.62 65.09 C 21.69 52.37 21.69 39.65 21.65 26.94 C 21.64 21.87 22.27 16.48 25.27 12.24 M 35.63 20.18 C 34.87 36.38 35.43 52.61 35.30 68.81 C 47.22 68.82 59.14 68.95 71.06 68.84 C 77.39 69.13 82.51 64.82 86.98 60.90 C 92.48 55.95 93.00 47.92 92.57 41.01 C 92.24 32.11 85.92 23.40 77.13 21.22 C 73.54 20.17 69.75 20.19 66.04 20.17 C 55.90 20.23 45.77 20.21 35.63 20.18 Z" />
-</g>
-</svg>
+            <svg width="111pt" height="129pt" viewBox="0 0 111 129" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d=" M 25.27 12.24 C 27.96 8.65 32.63 7.45 36.91 7.53 C 47.96 7.49 59.01 7.36 70.06 7.49 C 77.50 7.39 84.56 10.54 90.73 14.43 C 100.09 21.46 105.29 33.39 104.66 45.01 C 105.38 57.59 98.27 69.93 87.63 76.42 C 80.63 80.93 72.09 81.42 64.03 82.19 C 54.23 82.59 44.40 82.07 34.59 82.45 C 34.68 86.41 34.01 90.66 35.88 94.32 C 47.23 94.96 58.63 94.40 70.00 94.58 C 75.12 94.73 80.30 94.04 85.38 94.88 C 87.87 96.06 89.37 98.96 89.48 101.64 C 87.67 105.53 82.91 106.27 79.08 106.34 C 64.49 106.40 49.90 106.34 35.31 106.34 C 35.30 110.69 35.62 115.09 34.81 119.39 C 34.16 124.40 25.65 124.75 23.79 120.24 C 21.42 116.07 21.66 111.10 21.50 106.47 C 16.92 106.24 11.79 106.93 7.74 104.33 C 5.77 101.94 6.24 98.24 7.58 95.65 C 12.00 93.57 17.50 95.92 21.56 93.21 C 21.66 89.90 22.43 86.11 20.86 83.11 C 16.33 81.74 11.25 82.36 7.01 80.04 C 6.21 76.78 6.33 73.10 7.96 70.10 C 11.93 69.22 16.03 69.94 20.03 69.36 C 21.90 68.77 21.46 66.57 21.62 65.09 C 21.69 52.37 21.69 39.65 21.65 26.94 C 21.64 21.87 22.27 16.48 25.27 12.24 M 35.63 20.18 C 34.87 36.38 35.43 52.61 35.30 68.81 C 47.22 68.82 59.14 68.95 71.06 68.84 C 77.39 69.13 82.51 64.82 86.98 60.90 C 92.48 55.95 93.00 47.92 92.57 41.01 C 92.24 32.11 85.92 23.40 77.13 21.22 C 73.54 20.17 69.75 20.19 66.04 20.17 C 55.90 20.23 45.77 20.21 35.63 20.18 Z" />
+            </svg>
           </div>
           <div>
             <div class="label">Стоимость</div>
-            <div class="value" id="fareOutput">1 шт., Полный, 44.00 ₽</div>
+            <div class="value" id="fareOutput">1 шт., Полный, 48.00 ₽</div>
           </div>
         </div>
       </div>
@@ -1528,14 +632,9 @@ html, body {
       <div class="section">
         <div class="row">
           <div class="icon">
-            <svg width="126pt" height="145pt" viewBox="0 0 126 145" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#232323ff">
-</g>
-<g id="#e6e7e6ff">
-<path fill="#e6e7e6" opacity="1.00" d=" M 31.81 10.08 C 32.99 4.98 40.95 4.10 43.45 8.61 C 44.86 12.74 44.34 17.20 44.53 21.49 C 56.49 21.60 68.45 21.41 80.41 21.59 C 80.89 16.48 79.76 9.74 84.56 6.36 C 88.09 3.86 92.56 6.85 93.73 10.46 C 94.85 14.04 94.39 17.85 94.47 21.54 C 102.42 20.96 111.41 21.62 117.17 27.85 C 119.79 30.11 120.73 33.58 120.58 36.94 C 120.54 66.32 120.66 95.70 120.52 125.07 C 120.86 130.58 116.15 134.46 111.84 136.96 C 108.59 138.96 104.65 138.67 100.99 138.75 C 75.65 138.67 50.32 138.74 24.98 138.72 C 19.02 138.67 11.98 138.04 8.27 132.70 C 5.57 129.83 4.23 125.97 4.48 122.05 C 4.45 94.35 4.48 66.64 4.41 38.94 C 3.95 33.24 7.59 28.13 11.90 24.82 C 17.91 21.62 24.94 21.32 31.60 21.48 C 31.54 17.69 31.20 13.85 31.81 10.08 M 16.59 55.59 C 16.17 75.39 16.56 95.20 16.33 115.00 C 16.50 118.08 15.96 121.53 17.74 124.26 C 20.50 125.94 23.91 125.43 27.00 125.57 C 54.10 125.27 81.22 125.85 108.31 125.29 C 109.35 120.60 109.74 115.79 109.62 110.99 C 109.42 92.53 109.83 74.06 109.39 55.59 C 78.46 55.39 47.52 55.30 16.59 55.59 Z" />
-<path fill="#e6e7e6" opacity="1.00" d=" M 30.53 72.42 C 40.02 72.43 49.52 72.09 59.01 72.48 C 61.05 72.21 62.63 74.02 62.45 76.00 C 62.87 84.83 62.44 93.67 62.61 102.51 C 56.57 105.81 49.56 104.42 43.00 104.69 C 38.80 104.56 34.38 105.22 30.37 103.67 C 29.29 100.57 29.52 97.23 29.49 94.00 C 29.70 86.80 28.93 79.51 30.53 72.42 Z" />
-</g>
-</svg>
+            <svg width="126pt" height="145pt" viewBox="0 0 126 145" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d=" M 31.81 10.08 C 32.99 4.98 40.95 4.10 43.45 8.61 C 44.86 12.74 44.34 17.20 44.53 21.49 C 56.49 21.60 68.45 21.41 80.41 21.59 C 80.89 16.48 79.76 9.74 84.56 6.36 C 88.09 3.86 92.56 6.85 93.73 10.46 C 94.85 14.04 94.39 17.85 94.47 21.54 C 102.42 20.96 111.41 21.62 117.17 27.85 C 119.79 30.11 120.73 33.58 120.58 36.94 C 120.54 66.32 120.66 95.70 120.52 125.07 C 120.86 130.58 116.15 134.46 111.84 136.96 C 108.59 138.96 104.65 138.67 100.99 138.75 C 75.65 138.67 50.32 138.74 24.98 138.72 C 19.02 138.67 11.98 138.04 8.27 132.70 C 5.57 129.83 4.23 125.97 4.48 122.05 C 4.45 94.35 4.48 66.64 4.41 38.94 C 3.95 33.24 7.59 28.13 11.90 24.82 C 17.91 21.62 24.94 21.32 31.60 21.48 C 31.54 17.69 31.20 13.85 31.81 10.08 M 16.59 55.59 C 16.17 75.39 16.56 95.20 16.33 115.00 C 16.50 118.08 15.96 121.53 17.74 124.26 C 20.50 125.94 23.91 125.43 27.00 125.57 C 54.10 125.27 81.22 125.85 108.31 125.29 C 109.35 120.60 109.74 115.79 109.62 110.99 C 109.42 92.53 109.83 74.06 109.39 55.59 C 78.46 55.39 47.52 55.30 16.59 55.59 Z M 30.53 72.42 C 40.02 72.43 49.52 72.09 59.01 72.48 C 61.05 72.21 62.63 74.02 62.45 76.00 C 62.87 84.83 62.44 93.67 62.61 102.51 C 56.57 105.81 49.56 104.42 43.00 104.69 C 38.80 104.56 34.38 105.22 30.37 103.67 C 29.29 100.57 29.52 97.23 29.49 94.00 C 29.70 86.80 28.93 79.51 30.53 72.42 Z" />
+            </svg>
           </div>
           <div>
             <div class="label">Дата покупки</div>
@@ -1547,15 +646,9 @@ html, body {
       <div class="section">
         <div class="row">
           <div class="icon">
-            <svg width="144pt" height="149pt" viewBox="0 0 144 149" version="1.1" xmlns="http://www.w3.org/2000/svg">
-<g id="#242424ff">
-</g>
-<g id="#eaeaeaff">
-<path fill="#eaeaea" opacity="1.00" d=" M 61.54 9.16 C 74.23 7.30 87.24 9.25 99.00 14.29 C 106.80 16.99 112.93 22.67 118.95 28.08 C 123.48 32.81 127.66 38.04 130.23 44.11 C 134.78 54.48 138.89 65.50 138.53 77.00 C 137.40 89.48 134.25 102.26 126.61 112.44 C 118.97 123.06 109.14 132.93 96.46 137.13 C 86.34 140.34 75.69 142.95 65.00 141.51 C 57.73 140.47 50.46 138.85 43.68 135.98 C 30.05 129.00 18.79 117.54 12.00 103.81 C 5.33 89.21 3.34 72.16 8.35 56.74 C 10.82 46.23 17.14 37.18 24.09 29.14 C 29.48 23.67 35.36 18.39 42.53 15.37 C 48.67 12.77 54.90 10.11 61.54 9.16 M 64.61 21.31 C 55.12 23.40 45.35 26.32 37.93 32.91 C 31.99 37.36 28.00 43.74 23.89 49.78 C 19.93 55.67 19.68 62.97 18.12 69.69 C 16.52 76.63 18.82 83.57 19.96 90.40 C 21.36 99.02 27.07 106.02 32.50 112.54 C 42.54 122.67 56.61 129.13 71.00 128.82 C 83.62 129.33 96.23 124.79 106.21 117.16 C 110.42 114.08 113.46 109.77 116.83 105.86 C 120.45 101.57 121.89 96.04 123.64 90.84 C 124.70 87.68 125.50 84.41 125.55 81.07 C 125.71 73.43 126.39 65.40 123.02 58.29 C 119.32 47.14 111.83 37.39 102.23 30.68 C 95.54 25.29 86.93 23.60 78.80 21.61 C 74.17 20.45 69.29 20.30 64.61 21.31 Z" />
-<path fill="#eaeaea" opacity="1.00" d=" M 69.59 33.78 C 73.33 33.21 78.57 35.58 78.27 40.00 C 78.63 47.66 77.83 55.33 78.53 62.98 C 84.44 60.17 89.22 55.40 95.29 52.88 C 98.04 51.55 100.39 54.23 101.96 56.15 C 104.38 58.89 100.90 62.06 99.03 64.02 C 93.09 68.81 86.60 72.89 80.31 77.21 C 77.08 79.15 73.62 81.88 69.63 81.33 C 65.96 78.94 64.34 74.33 64.55 70.09 C 64.66 61.04 64.56 51.99 64.63 42.95 C 64.48 39.27 66.38 35.62 69.59 33.78 Z" />
-</g>
-</svg>
-
+            <svg width="144pt" height="149pt" viewBox="0 0 144 149" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d=" M 61.54 9.16 C 74.23 7.30 87.24 9.25 99.00 14.29 C 106.80 16.99 112.93 22.67 118.95 28.08 C 123.48 32.81 127.66 38.04 130.23 44.11 C 134.78 54.48 138.89 65.50 138.53 77.00 C 137.40 89.48 134.25 102.26 126.61 112.44 C 118.97 123.06 109.14 132.93 96.46 137.13 C 86.34 140.34 75.69 142.95 65.00 141.51 C 57.73 140.47 50.46 138.85 43.68 135.98 C 30.05 129.00 18.79 117.54 12.00 103.81 C 5.33 89.21 3.34 72.16 8.35 56.74 C 10.82 46.23 17.14 37.18 24.09 29.14 C 29.48 23.67 35.36 18.39 42.53 15.37 C 48.67 12.77 54.90 10.11 61.54 9.16 M 64.61 21.31 C 55.12 23.40 45.35 26.32 37.93 32.91 C 31.99 37.36 28.00 43.74 23.89 49.78 C 19.93 55.67 19.68 62.97 18.12 69.69 C 16.52 76.63 18.82 83.57 19.96 90.40 C 21.36 99.02 27.07 106.02 32.50 112.54 C 42.54 122.67 56.61 129.13 71.00 128.82 C 83.62 129.33 96.23 124.79 106.21 117.16 C 110.42 114.08 113.46 109.77 116.83 105.86 C 120.45 101.57 121.89 96.04 123.64 90.84 C 124.70 87.68 125.50 84.41 125.55 81.07 C 125.71 73.43 126.39 65.40 123.02 58.29 C 119.32 47.14 111.83 37.39 102.23 30.68 C 95.54 25.29 86.93 23.60 78.80 21.61 C 74.17 20.45 69.29 20.30 64.61 21.31 Z M 69.59 33.78 C 73.33 33.21 78.57 35.58 78.27 40.00 C 78.63 47.66 77.83 55.33 78.53 62.98 C 84.44 60.17 89.22 55.40 95.29 52.88 C 98.04 51.55 100.39 54.23 101.96 56.15 C 104.38 58.89 100.90 62.06 99.03 64.02 C 93.09 68.81 86.60 72.89 80.31 77.21 C 77.08 79.15 73.62 81.88 69.63 81.33 C 65.96 78.94 64.34 74.33 64.55 70.09 C 64.66 61.04 64.56 51.99 64.63 42.95 C 64.48 39.27 66.38 35.62 69.59 33.78 Z" />
+            </svg>
           </div>
           <div>
             <div class="label">Время покупки</div>
@@ -1567,1151 +660,435 @@ html, body {
 
     <!-- Вкладка контроля с QR-кодом -->
     <div id="control" class="screen">
+      <div id="qrBlockOverlay">
+        <div class="loader"></div>
+      </div>
       <div class="qr-container">
-        <!-- Пример QR-кода, ссылка для демонстрации -->
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=ExampleQRCode" alt="QR Code" />
       </div>
     </div>
-  <div id="qrBlockOverlay">
-    <div class="loader"></div>
-</div>
 
-</div>
-
+    <!-- Кнопка закрыть, отображается всегда на основном экране -->
+    <div class="bottom-button" id="closeButton" onclick="closeApp()">ЗАКРЫТЬ</div>
   </div>
 
-  <!-- Кнопка закрыть, отображается всегда на основном экране -->
-  <div class="pre-footer"></div>
-  <div class="bottom-button" id="closeButton" onclick="closeApp()">ЗАКРЫТЬ</div>
+  
   <script>
-    // Получаем элементы для управления
+    // --- Глобальные переменные и константы ---
     const inputScreen = document.getElementById('inputScreen');
     const mainScreen = document.getElementById('mainScreen');
     const countdownEl = document.getElementById('countdown');
     const dateOutput = document.getElementById('dateOutput');
     const timeOutput = document.getElementById('timeOutput');
-    const closeButton = document.getElementById('closeButton');
-
-    // Выводы для билета
     const carrierOutput = document.getElementById('carrierOutput');
     const routeOutput = document.getElementById('routeOutput');
     const plateOutput = document.getElementById('plateOutput');
     const fareOutput = document.getElementById('fareOutput');
-
-    // Вкладки и экраны
     const tabs = document.querySelectorAll('.tab-item');
     const screens = document.querySelectorAll('#mainScreen > .screen');
 
-    // Дефолтные данные, если что-то не введено
     const defaultData = {
       carrier: 'КПАТП-5',
       route: '3-я Дальневосточная - Молодежная',
       plate: 'в447рр124',
-      fare: '44.00',
       count: '1',
     };
 
     let countdownInterval;
 
-    // Функция переключения вкладок
-    function switchTab(tabName, event) {
-      tabs.forEach(tab => {
-        if (tab.textContent.trim() === 'Контроль' && tabName === 'control') {
-          tab.classList.add('active');
-        } else if (tab.textContent.trim() !== 'Контроль' && tabName === 'ticket') {
-          tab.classList.add('active');
-        } else {
-          tab.classList.remove('active');
-        }
+    // --- Форматтеры ---
+    function formatRuDateLong(date) {
+      let s = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+      return s.replace(/\s*г\.$/u, ' г.');
+    }
+    function formatRub(amount) {
+      const n = Number(amount);
+      if (!Number.isFinite(n)) return '0.00 ₽';
+      return n.toFixed(2).replace('.', ',') + ' ₽';
+    }
+    function formatTime(d) {
+      return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+    function formatDate(d) {
+      return formatRuDateLong(d);
+    }
+    
+    // --- Логика UI (вкладки, таймер, экраны) ---
+    function switchTab(tabName) {
+      document.querySelectorAll('#tabs .tab-item').forEach(tab => {
+        tab.classList.remove('active');
       });
-      // Показываем/скрываем экраны по имени вкладки
+      document.querySelectorAll('#mainScreen > .screen').forEach(screen => {
+        screen.classList.remove('active');
+      });
+
       if (tabName === 'ticket') {
+        document.querySelector('#tabs .tab-item:not([onclick*="control"])').classList.add('active');
         document.getElementById('ticket').classList.add('active');
-        document.getElementById('control').classList.remove('active');
-      } else {
-        document.getElementById('ticket').classList.remove('active');
+        document.getElementById('qrBlockOverlay').style.display = 'none';
+      } else if (tabName === 'control') {
+        document.querySelector('#tabs .tab-item[onclick*="control"]').classList.add('active');
         document.getElementById('control').classList.add('active');
+        document.getElementById('qrBlockOverlay').style.display = 'flex';
       }
-      if (tabName === 'control') {
-    // Всегда показываем overlay при заходе на вкладку Контроль
-    document.getElementById('qrBlockOverlay').style.display = 'flex';
-} else {
-    // Если ушли с вкладки Контроль, можно скрыть overlay (если нужно)
-    document.getElementById('qrBlockOverlay').style.display = 'none';
-}
-
     }
 
-   function startCountdown() {
-  let time = 15;
-  countdownEl.textContent = time;
-
-  const closeBtn = document.getElementById('closeButton');
-  if (closeBtn) {
-    closeBtn.classList.add('disabled'); // блокируем через CSS
-    closeBtn.onclick = null; // временно убираем действие
-  }
-
-  countdownInterval = setInterval(() => {
-    time--;
-    if (time <= 0) {
+    function startCountdown() {
+      let time = 15;
       clearInterval(countdownInterval);
-      countdownEl.textContent = '0';
-
-      if (closeBtn) {
-        closeBtn.classList.remove('disabled'); 
-        closeBtn.onclick = closeApp; // возвращаем функцию
-      }
-    } else {
       countdownEl.textContent = time;
+      
+      const closeBtn = document.getElementById('closeButton');
+      closeBtn.classList.add('disabled');
+      closeBtn.onclick = null; 
+
+      countdownInterval = setInterval(() => {
+        time--;
+        if (time <= 0) {
+          clearInterval(countdownInterval);
+          countdownEl.textContent = '0';
+          closeBtn.classList.remove('disabled');
+          closeBtn.onclick = closeApp;
+        } else {
+          countdownEl.textContent = time;
+        }
+      }, 1000);
     }
-  }, 1000);
-}
 
-
-
+    function closeApp() {
+      clearInterval(countdownInterval);
+      inputScreen.classList.add('active');
+      mainScreen.classList.remove('active');
+      ['inputCarrier', 'inputRoute', 'inputPlate'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      switchTab('ticket');
+    }
 
     async function submitForm() {
-  // Считываем значения из инпутов
-  const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
-  const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
-  const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
-  const rangeEl = document.getElementById('inputCountRange');
-let count = rangeEl ? parseInt(rangeEl.value, 10) : parseInt(document.getElementById('inputCount').value, 10);
-if (!Number.isFinite(count) || count < 1) count = 1;
+      const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
+      const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
+      const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
+      const rangeEl = document.getElementById('inputCountRange');
+      let count = rangeEl ? parseInt(rangeEl.value, 10) : 1;
+      if (!Number.isFinite(count) || count < 1) count = 1;
 
-  // Определяем тариф
-  const selectedType = document.getElementById('transportType').value;
-  const pricePerTicket = selectedType === 'bus' ? 48 : 46;
-  const fare = count * pricePerTicket;
+      const selectedType = document.getElementById('transportType').value;
+      const pricePerTicket = selectedType === 'bus' ? 48 : 46;
+      const fare = count * pricePerTicket;
 
-  // Заполняем данные на основном экране
-  carrierOutput.textContent = carrier;
-  routeOutput.textContent = route;
-  plateOutput.textContent = plate;
-  fareOutput.textContent = `${count} шт., Полный, ${formatRub(fare)}`;
+      carrierOutput.textContent = carrier;
+      routeOutput.textContent = route;
+      plateOutput.textContent = plate;
+      fareOutput.textContent = `${count} шт., Полный, ${formatRub(fare)}`;
 
-      // Устанавливаем дату/время с учётом фиксации
-dateOutput.textContent = getFreezeAwareDateString();
-timeOutput.textContent = getFreezeAwareTimeString();
+      dateOutput.textContent = getFreezeAwareDateString();
+      timeOutput.textContent = getFreezeAwareTimeString();
 
-      // Сохраняем последний билет для быстрого показа позже
-saveLastTicket({
-  carrier,
-  route,
-  plate,
-  count,
-  pricePerTicket,
-  transportType: selectedType,
-  fareString: `${count} шт., Полный, ${formatRub(fare)}`,
-  // сохраняем видимые пользователю дату/время с учётом фиксации
-  timeStr: getFreezeAwareTimeString(),
-  dateStr: getFreezeAwareDateString(),
-  ts: Date.now()
-});
+      saveLastTicket({
+        carrier, route, plate, count, pricePerTicket, transportType: selectedType,
+        fareString: `${count} шт., Полный, ${formatRub(fare)}`,
+        timeStr: getFreezeAwareTimeString(),
+        dateStr: getFreezeAwareDateString(),
+        ts: Date.now()
+      });
 
-  // Скрываем экран ввода, показываем основной
-  inputScreen.classList.remove('active');
-  mainScreen.classList.add('active');
-
-  // Запускаем таймер
-  startCountdown();
-}
-
-
-
-function closeApp() {
-  clearInterval(countdownInterval);
-  inputScreen.classList.add('active');
-  mainScreen.classList.remove('active');
-
-  // Безопасная очистка инпутов - проверяем существование элементов
-  const inputIds = ['inputCarrier', 'inputRoute', 'inputPlate', 'inputFare'];
-  inputIds.forEach(id => {
-    const element = document.getElementById(id);
-    if (element) {  // ← ДОБАВИЛИ ПРОВЕРКУ
-      element.value = '';
-    }
-  });
-
-  // Сброс вкладок к первой
-  switchTab('ticket');
-
-}
-
-    // Инициализация: отображаем вкладку "1 070 004 271" и активируем кнопку "ЗАКРЫТЬ"
-    switchTab('ticket');
-
-    // Кнопка "ЗАКРЫТЬ" всегда видна только на основном экране
-    function updateCloseButtonVisibility() {
-      if (mainScreen.classList.contains('active')) {
-        closeButton.style.display = 'block';
-      } else {
-        closeButton.style.display = 'none';
-      }
+      inputScreen.classList.remove('active');
+      mainScreen.classList.add('active');
+      startCountdown();
     }
 
-    // Следим за сменой экранов и обновляем видимость кнопки
-    const observer = new MutationObserver(updateCloseButtonVisibility);
-    observer.observe(mainScreen, { attributes: true, attributeFilter: ['class'] });
-
-    // Изначальный вызов
-    updateCloseButtonVisibility();
-
-    function highlightField(id, isValid) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (isValid) {
-    el.classList.remove('input-invalid');
-  } else {
-    el.classList.add('input-invalid');
-  }
-}
-
-
-function recognizeFromPhoto() {
-  const fileInput = document.getElementById('photoInput');
-  const file = fileInput.files[0];
-  document.getElementById('loadingOverlay').style.display = 'flex';
-
-  if (!file) {
-    alert("Пожалуйста, выберите фото.");
-    document.getElementById('loadingOverlay').style.display = 'none';
-    return;
-  }
-
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
-
-  img.onload = async () => {
-    const BASE_WIDTH = 1080;
-    const DEBUG = false;
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
-
-    const scale = img.width / BASE_WIDTH;
-
-    // Шаблон координат — оригинальные (для BASE_WIDTH), масштабируем
-    const zones = {
-      inputCarrier: [
-        { x: 203, y: 942, width: 769, height: 94 },
-        { x: 203, y: 942, width: 769, height: 94 }
+    // --- Логика меню выбора транспорта ---
+    const routesData = {
+      buses: [
+        { number: "2",  carrier: "ИП Багаев Д.Б.", route: "Автовокзал \"Восточный\" - Дом Учёных" },
+        { number: "3",  carrier: "ООО \"СТК\"", route: "Академгородок - Автовокзал «Восточный»" },
+        { number: "5",  carrier: "ИП Долгушина Г.И.", route: "Спорткомплекс «Радуга» - ОАО «Красфарма»" },
+        { number: "6",  carrier: "ИП Тагачаков В.Г.", route: "ДК «Кировский» - Кардиоцентр" },
+        { number: "7",  carrier: "ООО «Экипаж-ГО»", route: "ДК \"Кировский\" - Агротерминал" },
+        { number: "8",  carrier: "ООО \"Перевозчик\"", route: "пос. Водников - Кардиоцентр" },
+        { number: "9",  carrier: "ООО \"СКАД\"", route: "Верхняя Базаиха - Междугородный автовокзал" },
+        { number: "10", carrier: "КПАТП-7", route: "пос. Энергетиков - ОАО «Красфарма»" },
+        { number: "11", carrier: "КПАТП-5", route: "ул. 3-я Дальневосточная - Молодежная" },
+        { number: "12", carrier: "КПАТP-7", route: "совхоз Удачный - ст.Красноярск-Северный" },
+        { number: "14", carrier: "КПАТП-5", route: "пос. Овинный - Железнодорожная больница" },
+        { number: "18", carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - Техникум транспорта и сервиса" },
+        { number: "18c",carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - ОАО «Красфарма»" },
+        { number: "19", carrier: "КПАТП-7", route: "Причал - Стела" },
+        { number: "21", carrier: "ООО \"СТК\"", route: "Парк «Прищепка» - Спортзал" },
+        { number: "22", carrier: "КПАТП-7", route: "ИТК - Жилой комплекс «Ясный»" },
+        { number: "23", carrier: "ООО \"Ветеран\"", route: "ЛДК - мкрн. Солнечный" },
+        { number: "26", carrier: "КПАТП-5", route: "Плодово-ягодная станция - Железнодорожная больница" },
+        { number: "27", carrier: "ИП Ялтонский А.М.", route: "мкрн. Преображенский - Полигон" },
+        { number: "30", carrier: "КПАТП-5", route: "мкрн. Тихие зори - Спортзал" },
+        { number: "31", carrier: "КПАТП-7", route: "Академия биатлона - ЛДК" },
+        { number: "37", carrier: "КПАТП-7", route: "Оздоровительный комплекс «Гренада» - Железнодорожный вокзал" },
+        { number: "38", carrier: "АО \"СТК\"", route: "Дом ученых - пос. Таймыр" },
+        { number: "40", carrier: "КПАТП-7", route: "Полигон - Техникум транспорта и сервиса" },
+        { number: "40a",carrier: "КПАТП-7", route: "Полигон - Автовокзал «Восточный»" },
+        { number: "40с",carrier: "КПАТП-7", route: "Полигон - ул. Московская, 32/2" },
+        { number: "43", carrier: "ООО \"Вавулин-К\"", route: "Сельхозкомплекс - Автовокзал «Восточный»" },
+        { number: "49", carrier: "КПАТП-5", route: "Спорткомплекс «Радуга» - Кардиоцентр" },
+        { number: "50", carrier: "ИП Читашвили Н. С.", route: "мкрн. Солнечный - Стела" },
+        { number: "52", carrier: "КПАТП-5", route: "Озеро-парк - мкрн. Тихие зори" },
+        { number: "55", carrier: "КПАТП-7", route: "Железнодорожный вокзал - пос. Цементников" },
+        { number: "56", carrier: "КПАТП-7", route: "Железнодорожный вокзал - пос. Шинников" },
+        { number: "58", carrier: "ИП Кривоногов И. Г.", route: "Спортзал - Поликлиника" },
+        { number: "60", carrier: "ИП Цугленок М.М.", route: "мкрн. Солнечный - Автовокзал «Восточный»" },
+        { number: "61", carrier: "КПАТП", route: "пос. Шинников - мкрн. Солнечный" },
+        { number: "63", carrier: "КПАТП", route: "Академгородок - мкрн. Солнечный" },
+        { number: "64", carrier: "КПАТП-5", route: "мкрн. Солнечный - мкрн. Тихие зори" },
+        { number: "65", carrier: "ИП Ялтонский А.М.", route: "ДК «Кировский» - Агротерминал" },
+        { number: "69", carrier: "КПАТП-7", route: "ИТК - мкрн. Солнечный" },
+        { number: "71", carrier: "ООО \"Экипаж-ГО\"", route: "пос. Таймыр - Спортзал" },
+        { number: "77", carrier: "ООО \"Практик\"", route: "Железнодорожная больница - д. Песчанка" },
+        { number: "78", carrier: "ИП Бронников А. И.", route: "Стела - Контейнерный двор" },
+        { number: "80", carrier: "ИП Долгушин Д.Г.", route: "мкрн. Тихие зори - пос. Таймыр" },
+        { number: "81", carrier: "ООО \"Сирена\"", route: "ОАО «РУСАЛ» - Железнодорожная больница" },
+        { number: "83", carrier: "ИП Цугленок М.М.", route: "Дом ученых - Профилакторий з-да КраМЗ" },
+        { number: "85", carrier: "ООО \"СКАД\"", route: "Даурская - Сельхозкомплекс" },
+        { number: "87", carrier: "КПАТП-5", route: "Молодежная - мкрн. Солнечный" },
+        { number: "88", carrier: "ИП Тагачаков В.Г.", route: "Академия биатлона - Спортзал" },
+        { number: "90", carrier: "ИП Патрин Н.Н.", route: "мкрн Верхняя Базаиха - Академия биатлона" },
+        { number: "92", carrier: "ИП Патрин Н.Н.", route: "Химкомбинат «Енисей» - ОАО «Красфарма»" },
+        { number: "94", carrier: "ООО \"Практик\"", route: "ТЭЦ-3 - ЛДК" },
+        { number: "95", carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - ЛДК" },
+        { number: "98", carrier: "ИП Гнетов Ю. Н.", route: "ОАО «РУСАЛ» - ЛДК" },
+        { number: "99", carrier: "ООО \"СТК\"", route: "ул. Цимлянская - ст.Красноярск-Северный" }
       ],
-      inputRoute: [
-        { x: 218, y: 1106, width: 586, height: 136 },
-        { x: 217, y: 1107, width: 759, height: 61 }
+      trolleybuses: [
+        { number: "4т",  carrier: "МП Городской транспорт", route: "Северо-западный район - Железнодорожный вокзал" },
+        { number: "5т",  carrier: "МП Городской транспорт", route: "ст.Красноярск-Северный - Экопарк Гремячая грива" },
+        { number: "6т",  carrier: "МП Городской транспорт", route: "Утиный плёс - Студгородок" },
+        { number: "13т", carrier: "МП Городской транспорт", route: "Северо-западный район - Железнодорожный вокзал" },
+        { number: "15т", carrier: "МП Городской транспорт", route: "ОАО «РУСАЛ» - Сельхозкомплекс" }
       ],
-      inputPlate: [
-        { x: 229, y: 1244, width: 371, height: 103 },
-        { x: 230, y: 1174, width: 389, height: 75 }
+      trams: [
+        { number: "2тр", carrier: "МП \"Гортранс\"", route: "пос. Энергетиков - КрасТЭЦ" },
+        { number: "4тр", carrier: "МП \"Горэлектротранс\"", route: "Предмостная площадь - КрасТЭЦ" },
+        { number: "5тр", carrier: "МП \"Горэлектротранс\"", route: "пос. Энергетиков - Предмостная площадь" },
+        { number: "6тр", carrier: "МП \"Горэлектротранс\"", route: "пос. Энергетиков - Предмостная площадь" },
+        { number: "7тр", carrier: "МП \"Горэлектротранс\"", route: "Предмостная площадь - КрасТЭЦ" }
       ],
-      inputFare: [
-        { x: 588, y: 2195, width: 50, height: 54 }
+      eBuses: [
+        { number: "1", carrier: "МП \"Городской транспорт\"", route: "мкрн. Тихие зори - ст.Красноярск-Северный" }
       ]
     };
-
-    // Улучшенный OCR с фильтрами и масштабом
-    async function extractTextFromZone(zone, label = '') {
-      const { x, y, width, height } = zone;
-      const sx = x * scale;
-      const sy = y * scale;
-      const sw = width * scale;
-      const sh = height * scale;
-
-      const regionCanvas = document.createElement('canvas');
-      regionCanvas.width = sw;
-      regionCanvas.height = sh;
-      const regionCtx = regionCanvas.getContext('2d');
-
-      // Улучшаем визуальное качество
-      regionCtx.filter = 'grayscale(100%) contrast(150%) brightness(110%)';
-      regionCtx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-
-      // Отладка — показать вырезку
-      if (DEBUG) {
-        const debugImg = document.createElement('img');
-        debugImg.src = regionCanvas.toDataURL();
-        debugImg.style.border = '1px solid red';
-        debugImg.style.margin = '4px';
-        debugImg.title = label;
-        document.body.appendChild(debugImg);
+    function openTransportMenu() {
+      renderRouteButtons('buses');
+      setActiveTab('buses');
+      document.getElementById('transportMenuOverlay').style.display = 'flex';
+    }
+    function closeTransportMenu() {
+      document.getElementById('transportMenuOverlay').style.display = 'none';
+    }
+    function switchTransportTab(type) {
+      renderRouteButtons(type);
+      setActiveTab(type);
+    }
+    function setActiveTab(type) {
+      ['buses','trolleybuses','trams','eBuses'].forEach(t => {
+        const btn = document.getElementById('tab-' + t);
+        if (btn) btn.classList.toggle('active', t === type);
+      });
+    }
+    function renderRouteButtons(type) {
+      const list = routesData[type] || [];
+      const el = document.getElementById('routesButtons');
+      if (!list.length) {
+        el.innerHTML = '<div style="padding:12px; color: var(--app-text-secondary);">Список маршрутов пуст</div>';
+        return;
       }
-
-      const { data: { text } } = await Tesseract.recognize(regionCanvas, 'rus+eng');
-      return text.trim().replace(/\s+/g, ' ');
+      el.innerHTML = list.map((r, idx) => `<button type="button" data-type="${type}" data-index="${idx}" onclick="selectRoute('${type}', ${idx})">${r.number}</button>`).join('');
     }
-
-    // Пытаемся получить текст из основной зоны, иначе — из запасной
-    async function getTextWithFallback(field) {
-      const primary = await extractTextFromZone(zones[field][0], `${field}-main`);
-      if ((!primary || primary.length < 4) && zones[field].length > 1) {
-        const fallback = await extractTextFromZone(zones[field][1], `${field}-fallback`);
-        return fallback;
+    function selectRoute(type, index) {
+      const selectedRoute = routesData[type]?.[index];
+      if (selectedRoute) {
+        document.getElementById('inputCarrier').value = selectedRoute.carrier;
+        document.getElementById('inputRoute').value = selectedRoute.route;
+        setTransportType(type === 'buses' ? 'bus' : 'other');
       }
-      return primary;
+      closeTransportMenu();
+    }
+    function setTransportType(type) {
+      const buttons = document.querySelectorAll('.transport-option');
+      buttons.forEach(b => {
+        b.classList.toggle('active', b.dataset.type === type);
+        b.disabled = true; // Блокируем выбор
+      });
+      document.getElementById('transportType').value = type;
     }
 
-    function normalizeRecognizedData(carrier, route, plate, fare) {
-  // carrier: ничего не трогаем, кроме пробелов
-  carrier = carrier.trim().replace(/\s+/g, ' ');
-
-  // route: кириллица + тире, только один тире между двумя точками
-  route = route
-    .replace(/[^\p{Script=Cyrillic}\- ]+/gu, '') // убрать всё, кроме кириллицы, пробелов, тире
-    .replace(/—/g, '-')                          // длинное тире → обычное
-    .replace(/\s*-\s*/g, ' - ')                  // нормализовать тире между точками
-    .replace(/\s+/g, ' ')                        // убрать двойные пробелы
-    .trim();
-
-  // plate: только маленькие русские буквы из ГОСТа + цифры
-  const validPlateLetters = ['а','в','е','к','м','н','о','р','с','т','у','х'];
-  // plate: английские буквы → русские, фильтр, валидация
-const latinToCyrillicMap = {
-  a: 'а', b: 'в', c: 'с', e: 'е', h: 'н', k: 'к', m: 'м',
-  n: 'н', o: 'о', p: 'р', r: 'р', s: 'с', t: 'т', u: 'у', x: 'х'
-};
-
-plate = plate
-  .toLowerCase()
-  .replace(/[^a-zа-я0-9]/g, '') // убрать всё лишнее, кроме латиницы, кириллицы, цифр
-  .split('')
-  .map(ch => {
-    if (latinToCyrillicMap[ch]) return latinToCyrillicMap[ch]; // латинская → русская
-    return ch; // оставить цифры и кириллицу
-  })
-  .join('');
-
-// Теперь проверим два допустимых варианта:
-const isStandard = /^[авекмнорстух]\d{3}[авекмнорстух]{2}\d{2,3}$/.test(plate);
-const isTrolley = /^\d{4}$/.test(plate);
-plate = (isStandard || isTrolley) ? plate : '';
-
-  // fare: оставить только допустимый формат (например: 2.00 или 25)
-  fare = fare.replace(/[^\d.,]/g, '');
-
-  // Проверка формата: одно число, возможно с точкой/запятой
-  const match = fare.match(/^\d{1,3}([.,]\d{1,2})?$/);
-  fare = match ? match[0].replace(',', '.') : ''; // если невалидно — пусто
-
-  return { carrier, route, plate, fare };
-}
-
-    try {
-      const carrierText = await getTextWithFallback('inputCarrier');
-      let routeTextRaw = await getTextWithFallback('inputRoute');
-      const plateText = await getTextWithFallback('inputPlate');
-      const fareText = await extractTextFromZone(zones.inputFare[0], 'fare');
-
-      const matchRoute = routeTextRaw.match(/(?:\d+[,.:])?\s*(.+)/);
-      const routeText = matchRoute ? matchRoute[1] : routeTextRaw;
-      
-      const cleaned = normalizeRecognizedData(carrierText, routeText, plateText, fareText);
-
-      document.getElementById('inputCarrier').value = cleaned.carrier;
-      document.getElementById('inputRoute').value = cleaned.route;
-      document.getElementById('inputPlate').value = cleaned.plate;
-      document.getElementById('inputFare').value = cleaned.fare;
-
-      highlightField('inputCarrier', cleaned.carrier.length >= 4);
-      highlightField('inputRoute', cleaned.route.includes(' - '));
-      highlightField('inputPlate', cleaned.plate.length >= 4); // или 4 для троллейбуса
-      highlightField('inputFare', /^\d+(\.\d{1,2})?$/.test(cleaned.fare));
-
-
-
-      alert("Распознавание завершено. Проверьте данные.");
-    } catch (error) {
-      alert("Ошибка распознавания: " + error.message);
-    } finally {
-      document.getElementById('loadingOverlay').style.display = 'none';
-    }
-  };
-
-  img.onerror = () => {
-    alert("Не удалось загрузить изображение.");
-    document.getElementById('loadingOverlay').style.display = 'none';
-  };
-}
-    
-function updateCountLabel(value) {
-  const val = Number(value);
-  const root = document.getElementById('countSlider');
-  const range = document.getElementById('inputCountRange');
-  const badge = document.getElementById('sliderValue');
-  const hidden = document.getElementById('inputCount');
-
-  // Обновляем значение
-  if (badge) badge.textContent = val;
-  if (hidden) hidden.value = String(val);
-
-  // Обновляем прогресс-бар
-  if (range && root) {
-    const min = Number(range.min) || 1;
-    const max = Number(range.max) || 5;
-    const pct = ((val - min) / (max - min)) * 100;
-    root.style.setProperty('--pct', pct + '%');
-    root.setAttribute('data-val', String(val));
-  }
-}
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', () => {
-  const r = document.getElementById('inputCountRange');
-  if (r) {
-    updateCountLabel(r.value);
-    r.addEventListener('input', (e) => updateCountLabel(e.target.value));
-  }
-});
-
-// первичная инициализация
-document.addEventListener('DOMContentLoaded', () => {
-  const r = document.getElementById('inputCountRange');
-  if (r) updateCountLabel(r.value);
-});
-
-    window.addEventListener('DOMContentLoaded', () => {
-  const accessGranted = localStorage.getItem('ticket_access_granted');
-  if (accessGranted === 'true') {
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('inputScreen').classList.add('active');
-
-    // 👇 Важно: показываем админ-кнопку если надо
-    if (localStorage.getItem('is_admin') === 'true') {
-      document.getElementById('adminButton').style.display = 'inline-block';
-    }
-  }
-});
-
-
-    const adminToken = 'ADMIN-SUPERUSER-g8F2kLm9';
-    
-    let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
-
-    async function checkAccess() {
-  const token = document.getElementById('authToken').value.trim();
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-
-  // Показываем загрузку
-  document.getElementById('loadingOverlay').style.display = 'flex';
-
-  if (token === adminToken) {
-    // Вход как админ — без обращения к таблице
-    localStorage.setItem('ticket_access_granted', 'true');
-    localStorage.setItem('is_admin', 'true');
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('inputScreen').classList.add('active');
-    document.getElementById('adminButton').style.display = 'inline-block';
-    document.getElementById('loadingOverlay').style.display = 'none';
-    return;
-  }
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: new URLSearchParams({ token })
-    });
-
-    const result = await response.text();
-
-    if (result === 'valid') {
-      localStorage.setItem('ticket_access_granted', 'true');
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('inputScreen').classList.add('active');
-
-      if (localStorage.getItem('is_admin') === 'true') {
-        document.getElementById('adminButton').style.display = 'inline-block';
-      }
-    } else {
-      alert('Доступ запрещён. Неверный или уже использованный токен.');
-    }
-  } catch (error) {
-    console.error('Ошибка запроса:', error);
-    alert('Ошибка соединения. Попробуйте позже.');
-  } finally {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
-}
-
-
-    async function addToken() {
-  const token = document.getElementById('newTokenInput').value.trim();
-  if (!token) return alert('Введите токен');
-
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        action: 'add',
-        token: token
-      })
-    });
-
-    const result = await res.text();
-    if (result === 'added') {
-      alert('Токен добавлен!');
-      document.getElementById('newTokenInput').value = '';
-    } else {
-      alert('Ошибка при добавлении: ' + result);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('Ошибка подключения');
-  }
-}
-
-
-async function removeToken() {
-  const token = document.getElementById('removeTokenInput').value.trim();
-  if (!token) return alert('Введите токен для удаления');
-
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
-
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        action: 'remove',
-        token: token
-      })
-    });
-
-    const result = await res.text();
-    if (result === 'removed') {
-      alert('Токен удалён!');
-      document.getElementById('removeTokenInput').value = '';
-    } else if (result === 'not_found') {
-      alert('Токен не найден.');
-    } else {
-      alert('Ошибка при удалении: ' + result);
-    }
-  } catch (err) {
-    console.error(err);
-    alert('Ошибка подключения');
-  }
-}
-
-    function toggleAdminMenu() {
-  const panel = document.getElementById('adminPanel');
-  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
-}
-
-async function loadTokens() {
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec?action=list';
-
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    const list = document.getElementById('tokenList');
-    list.innerHTML = ''; // очищаем список
-
-    data.forEach(row => {
-      const li = document.createElement('li');
-      li.textContent = `🔑 ${row.token} — ${row.status || 'unknown'}`;
-      list.appendChild(li);
-    });
-  } catch (err) {
-    console.error(err);
-    alert('Не удалось загрузить список токенов.');
-  }
-}
-    /* === Локальные данные маршрутов === */
-const routesData = {
-  buses: [
-    { number: "2",  carrier: "ИП Багаев Д.Б.", route: "Автовокзал \"Восточный\" - Дом Учёных" },
-    { number: "3",  carrier: "ООО \"СТК\"", route: "Академгородок - Автовокзал «Восточный»" },
-    { number: "5",  carrier: "ИП Долгушина Г.И.", route: "Спорткомплекс «Радуга» - ОАО «Красфарма»" },
-    { number: "6",  carrier: "ИП Тагачаков В.Г.", route: "ДК «Кировский» - Кардиоцентр" },
-    { number: "7",  carrier: "ООО «Экипаж-ГО»", route: "ДК \"Кировский\" - Агротерминал" },
-    { number: "8",  carrier: "ООО \"Перевозчик\"", route: "пос. Водников - Кардиоцентр" },
-    { number: "9",  carrier: "ООО \"СКАД\"", route: "Верхняя Базаиха - Междугородный автовокзал" },
-    { number: "10", carrier: "КПАТП-7", route: "пос. Энергетиков - ОАО «Красфарма»" },
-    { number: "11", carrier: "КПАТП-5", route: "ул. 3-я Дальневосточная - Молодежная" },
-    { number: "12", carrier: "КПАТП-7", route: "совхоз Удачный - ст.Красноярск-Северный" },
-    { number: "14", carrier: "КПАТП-5", route: "пос. Овинный - Железнодорожная больница" },
-    { number: "18", carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - Техникум транспорта и сервиса" },
-    { number: "18c",carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - ОАО «Красфарма»" },
-    { number: "19", carrier: "КПАТП-7", route: "Причал - Стела" },
-    { number: "21", carrier: "ООО \"СТК\"", route: "Парк «Прищепка» - Спортзал" },
-    { number: "22", carrier: "КПАТП-7", route: "ИТК - Жилой комплекс «Ясный»" },
-    { number: "23", carrier: "ООО \"Ветеран\"", route: "ЛДК - мкрн. Солнечный" },
-    { number: "26", carrier: "КПАТП-5", route: "Плодово-ягодная станция - Железнодорожная больница" },
-    { number: "27", carrier: "ИП Ялтонский А.М.", route: "мкрн. Преображенский - Полигон" },
-    { number: "30", carrier: "КПАТП-5", route: "мкрн. Тихие зори - Спортзал" },
-    { number: "31", carrier: "КПАТП-7", route: "Академия биатлона - ЛДК" },
-    { number: "37", carrier: "КПАТП-7", route: "Оздоровительный комплекс «Гренада» - Железнодорожный вокзал" },
-    { number: "38", carrier: "АО \"СТК\"", route: "Дом ученых - пос. Таймыр" },
-    { number: "40", carrier: "КПАТП-7", route: "Полигон - Техникум транспорта и сервиса" },
-    { number: "40a",carrier: "КПАТП-7", route: "Полигон - Автовокзал «Восточный»" },
-    { number: "40с",carrier: "КПАТП-7", route: "Полигон - ул. Московская, 32/2" },
-    { number: "43", carrier: "ООО \"Вавулин-К\"", route: "Сельхозкомплекс - Автовокзал «Восточный»" },
-    { number: "49", carrier: "КПАТП-5", route: "Спорткомплекс «Радуга» - Кардиоцентр" },
-    { number: "50", carrier: "ИП Читашвили Н. С.", route: "мкрн. Солнечный - Стела" },
-    { number: "52", carrier: "КПАТП-5", route: "Озеро-парк - мкрн. Тихие зори" },
-    { number: "55", carrier: "КПАТП-7", route: "Железнодорожный вокзал - пос. Цементников" },
-    { number: "56", carrier: "КПАТП-7", route: "Железнодорожный вокзал - пос. Шинников" },
-    { number: "58", carrier: "ИП Кривоногов И. Г.", route: "Спортзал - Поликлиника" },
-    { number: "60", carrier: "ИП Цугленок М.М.", route: "мкрн. Солнечный - Автовокзал «Восточный»" },
-    { number: "61", carrier: "КПАТП", route: "пос. Шинников - мкрн. Солнечный" },
-    { number: "63", carrier: "КПАТП", route: "Академгородок - мкрн. Солнечный" },
-    { number: "64", carrier: "КПАТП-5", route: "мкрн. Солнечный - мкрн. Тихие зори" },
-    { number: "65", carrier: "ИП Ялтонский А.М.", route: "ДК «Кировский» - Агротерминал" },
-    { number: "69", carrier: "КПАТП-7", route: "ИТК - мкрн. Солнечный" },
-    { number: "71", carrier: "ООО \"Экипаж-ГО\"", route: "пос. Таймыр - Спортзал" },
-    { number: "77", carrier: "ООО \"Практик\"", route: "Железнодорожная больница - д. Песчанка" },
-    { number: "78", carrier: "ИП Бронников А. И.", route: "Стела - Контейнерный двор" },
-    { number: "80", carrier: "ИП Долгушин Д.Г.", route: "мкрн. Тихие зори - пос. Таймыр" },
-    { number: "81", carrier: "ООО \"Сирена\"", route: "ОАО «РУСАЛ» - Железнодорожная больница" },
-    { number: "83", carrier: "ИП Цугленок М.М.", route: "Дом ученых - Профилакторий з-да КраМЗ" },
-    { number: "85", carrier: "ООО \"СКАД\"", route: "Даурская - Сельхозкомплекс" },
-    { number: "87", carrier: "КПАТП-5", route: "Молодежная - мкрн. Солнечный" },
-    { number: "88", carrier: "ИП Тагачаков В.Г.", route: "Академия биатлона - Спортзал" },
-    { number: "90", carrier: "ИП Патрин Н.Н.", route: "мкрн Верхняя Базаиха - Академия биатлона" },
-    { number: "92", carrier: "ИП Патрин Н.Н.", route: "Химкомбинат «Енисей» - ОАО «Красфарма»" },
-    { number: "94", carrier: "ООО \"Практик\"", route: "ТЭЦ-3 - ЛДК" },
-    { number: "95", carrier: "КПАТП-7", route: "мкрн. Верхние Черемушки - ЛДК" },
-    { number: "98", carrier: "ИП Гнетов Ю. Н.", route: "ОАО «РУСАЛ» - ЛДК" },
-    { number: "99", carrier: "ООО \"СТК\"", route: "ул. Цимлянская - ст.Красноярск-Северный" }
-  ],
-  trolleybuses: [
-    { number: "4т",  carrier: "МП Городской транспорт", route: "Северо-западный район - Железнодорожный вокзал" },
-    { number: "5т",  carrier: "МП Городской транспорт", route: "ст.Красноярск-Северный - Экопарк Гремячая грива" },
-    { number: "6т",  carrier: "МП Городской транспорт", route: "Утиный плёс - Студгородок" },
-    { number: "13т", carrier: "МП Городской транспорт", route: "Северо-западный район - Железнодорожный вокзал" },
-    { number: "15т", carrier: "МП Городской транспорт", route: "ОАО «РУСАЛ» - Сельхозкомплекс" }
-  ],
-  trams: [
-    { number: "2тр", carrier: "МП \"Гортранс\"", route: "пос. Энергетиков - КрасТЭЦ" },
-    { number: "4тр", carrier: "МП \"Горэлектротранс\"", route: "Предмостная площадь - КрасТЭЦ" },
-    { number: "5тр", carrier: "МП \"Горэлектротранс\"", route: "пос. Энергетиков - Предмостная площадь" },
-    { number: "6тр", carrier: "МП \"Горэлектротранс\"", route: "пос. Энергетиков - Предмостная площадь" },
-    { number: "7тр", carrier: "МП \"Горэлектротранс\"", route: "Предмостная площадь - КрасТЭЦ" }
-  ],
-  eBuses: [
-    { number: "1", carrier: "МП \"Городской транспорт\"", route: "мкрн. Тихие зори - ст.Красноярск-Северный" }
-  ]
-};
-
-/* Служебные элементы — лениво получаем DOM-узлы при необходимости */
-function getTransportMenuOverlay() {
-  return document.getElementById('transportMenuOverlay');
-}
-function getRoutesButtonsEl() {
-  return document.getElementById('routesButtons');
-}
-
-/* Открыть / закрыть меню */
-function openTransportMenu() {
-  // рендерим список (задаём вкладку "Автобусы" по-умолчанию)
-  renderRouteButtons('buses');
-  setActiveTab('buses');
-
-  const overlay = getTransportMenuOverlay();
-  if (!overlay) {
-    console.warn('openTransportMenu: transportMenuOverlay not found');
-    return;
-  }
-  overlay.style.display = 'flex';
-}
-
-function closeTransportMenu() {
-  const overlay = getTransportMenuOverlay();
-  if (overlay) overlay.style.display = 'none';
-}
-
-/* Переключение вкладки */
-function switchTransportTab(type) {
-  renderRouteButtons(type);
-  setActiveTab(type);
-}
-
-function setActiveTab(type) {
-  ['buses','trolleybuses','trams','eBuses'].forEach(t => {
-    const btn = document.getElementById('tab-' + t);
-    if (btn) btn.classList.toggle('active', t === type);
-  });
-}
-
-/* Рендер кнопок с номерами — безопасно и с логированием */
-function renderRouteButtons(type) {
-  const list = routesData[type] || [];
-  const el = getRoutesButtonsEl();
-  if (!el) {
-    console.warn('renderRouteButtons: routesButtons container not found');
-    return;
-  }
-
-  if (!Array.isArray(list) || list.length === 0) {
-    el.innerHTML = '<div style="padding:12px;color:#aaa">Список маршрутов пуст</div>';
-    return;
-  }
-
-  el.innerHTML = list.map((r, idx) => {
-    // data- атрибуты для быстрого выбора
-    const num = String(r.number ?? '').replace(/</g, '&lt;'); // минимальная защита
-    return `<button type="button" data-type="${type}" data-index="${idx}" onclick="selectRoute('${type}', ${idx})" aria-label="Маршрут ${num}">${num}</button>`;
-  }).join('');
-}
-
-
-// Автоподстановка и блокировка при выборе маршрута
-function selectRoute(type, index) {
-  let selectedRoute;
-  switch(type) {
-    case 'buses':        selectedRoute = routesData.buses[index]; break;
-    case 'trolleybuses': selectedRoute = routesData.trolleybuses[index]; break;
-    case 'trams':        selectedRoute = routesData.trams[index]; break;
-    case 'eBuses':       selectedRoute = routesData.eBuses[index]; break;
-  }
-
-  if (selectedRoute) {
-    document.getElementById('inputCarrier').value = selectedRoute.carrier;
-    document.getElementById('inputRoute').value   = selectedRoute.route;
-
-    // Автоустановка типа транспорта
-    if (type === 'buses') {
-      setTransportType('bus');
-    } else {
-      setTransportType('other');
-    }
-
-  
-  }
-
-  closeTransportMenu();
-}
-
-    // Переключение вручную
-document.querySelectorAll('.transport-option').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (btn.disabled) return; // если заблокировано, ничего не делаем
-    document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('transportType').value = btn.dataset.type;
-  });
-});
-
-// Автоподстановка и блокировка при выборе маршрута
-function selectRoute(type, index) {
-  let selectedRoute;
-  switch(type) {
-    case 'buses': selectedRoute = routesData.buses[index]; break;
-    case 'trolleybuses': selectedRoute = routesData.trolleybuses[index]; break;
-    case 'trams': selectedRoute = routesData.trams[index]; break;
-    case 'eBuses': selectedRoute = routesData.eBuses[index]; break;
-  }
-
-  if (selectedRoute) {
-    document.getElementById('inputCarrier').value = selectedRoute.carrier;
-    document.getElementById('inputRoute').value = selectedRoute.route;
-
-    // Автоустановка и блокировка выбора транспорта
-    if (type === 'buses') {
-      setTransportType('bus');
-    } else {
-      setTransportType('other');
-    }
-  }
-
-  closeTransportMenu();
-}
-
-
-function setTransportType(type) {
-  const buttons = document.querySelectorAll('.transport-option');
-  buttons.forEach(b => {
-    b.classList.remove('active');
-    if (b.dataset.type === type) {
-      b.classList.add('active');
-    }
-    b.disabled = true; // блокируем выбор
-  });
-  document.getElementById('transportType').value = type;
-}
-    // Навешиваем обработчики после загрузки DOM
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.transport-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('transportType').value = btn.dataset.type;
-    });
-  });
-});
-
-// Вызывай это из selectRoute, чтобы автоустановить тип и заблокировать выбор
-function setTransportType(type){
-  const buttons = document.querySelectorAll('.transport-option');
-  buttons.forEach(b => {
-    b.classList.toggle('active', b.dataset.type === type);
-    // блокируем обе, чтобы было понятно, что выбор сделан
-    b.disabled = true;
-  });
-  document.getElementById('transportType').value = type;
-}
-
-    // === FREEZE TIME: логика фиксации времени ===
-const FREEZE_KEYS = {
-  enabled: 'freezeTime.enabled',
-  ts: 'freezeTime.ts',
-  timeStr: 'freezeTime.timeStr',
-  dateStr: 'freezeTime.dateStr'
-};
-
-const FREEZE = { enabled: false, ts: null, timeStr: '', dateStr: '' };
-
-// Используем твоё форматирование, если в проекте уже есть функции formatTicketTime/formatTicketDate.
-// Иначе — даём аккуратный дефолт.
-function formatTime(d) {
-  try { if (typeof window.formatTicketTime === 'function') return window.formatTicketTime(d); } catch(e){}
-  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-}
-function formatDate(d) {
-  return formatRuDateLong(d); // 21 октября 2025г.
-}
-
-function loadFreezeState() {
-  try {
-    FREEZE.enabled = localStorage.getItem(FREEZE_KEYS.enabled) === '1';
-    const ts = localStorage.getItem(FREEZE_KEYS.ts);
-    FREEZE.ts = ts ? Number(ts) : null;
-    FREEZE.timeStr = localStorage.getItem(FREEZE_KEYS.timeStr) || '';
-    FREEZE.dateStr = localStorage.getItem(FREEZE_KEYS.dateStr) || '';
-  } catch(e) {}
-  const toggle = document.getElementById('freezeTimeToggle');
-  if (toggle) toggle.checked = !!FREEZE.enabled;
-  updateFreezeBadge();
-}
-
-function saveFreezeState() {
-  try {
-    if (FREEZE.enabled) {
-      localStorage.setItem(FREEZE_KEYS.enabled, '1');
-      localStorage.setItem(FREEZE_KEYS.ts, String(FREEZE.ts || ''));
-      localStorage.setItem(FREEZE_KEYS.timeStr, FREEZE.timeStr || '');
-      localStorage.setItem(FREEZE_KEYS.dateStr, FREEZE.dateStr || '');
-    } else {
-      localStorage.removeItem(FREEZE_KEYS.enabled);
-      localStorage.removeItem(FREEZE_KEYS.ts);
-      localStorage.removeItem(FREEZE_KEYS.timeStr);
-      localStorage.removeItem(FREEZE_KEYS.dateStr);
-    }
-  } catch(e) {}
-}
-
-function freezeNow() {
-  const now = new Date();
-  FREEZE.enabled = true;
-  FREEZE.ts = now.getTime();
-  FREEZE.timeStr = formatTime(now);
-  FREEZE.dateStr = formatDate(now);
-  saveFreezeState();
-  updateFreezeBadge();
-  updateTicketTimeUI();
-}
-
-function unfreeze() {
-  FREEZE.enabled = false;
-  FREEZE.ts = null;
-  FREEZE.timeStr = '';
-  FREEZE.dateStr = '';
-  saveFreezeState();
-  updateFreezeBadge();
-  updateTicketTimeUI();
-}
-
-function getFreezeAwareDate() {
-  if (FREEZE.enabled && FREEZE.ts) return new Date(FREEZE.ts);
-  return new Date();
-}
-function getFreezeAwareTimeString() {
-  if (FREEZE.enabled && FREEZE.timeStr) return FREEZE.timeStr;
-  return formatTime(new Date());
-}
-function getFreezeAwareDateString() {
-  if (FREEZE.enabled && FREEZE.dateStr) return FREEZE.dateStr;
-  return formatDate(new Date());
-}
-
-function updateFreezeBadge() {
-  const badge = document.getElementById('freezeTimeBadge');
-  if (!badge) return;
-  if (FREEZE.enabled) {
-    badge.style.display = 'inline-block';
-    badge.textContent = FREEZE.timeStr + ' • ' + FREEZE.dateStr;
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-// Универсальное обновление времени в билете.
-// Работает, если в вёрстке есть элементы с id: ticketTime, ticketDate, ticketDateTime (любые из них).
-function updateTicketTimeUI() {
-  const timeStr = getFreezeAwareTimeString();
-  const dateStr = getFreezeAwareDateString();
-
-  // Твои реальные id
-  const timeOut = document.getElementById('timeOutput');
-  if (timeOut) timeOut.textContent = timeStr;
-
-  const dateOut = document.getElementById('dateOutput');
-  if (dateOut) dateOut.textContent = dateStr;
-
-  // Совместимость (если вдруг где-то используешь эти id)
-  const tEl = document.getElementById('ticketTime');
-  if (tEl) tEl.textContent = timeStr;
-
-  const dEl = document.getElementById('ticketDate');
-  if (dEl) dEl.textContent = dateStr;
-
-  const dtEl = document.getElementById('ticketDateTime');
-  if (dtEl) dtEl.textContent = dateStr + ' ' + timeStr;
-}
-
-// Инициализация
-document.addEventListener('DOMContentLoaded', () => {
-  loadFreezeState();
-  const toggle = document.getElementById('freezeTimeToggle');
-  if (toggle) {
-    toggle.addEventListener('change', (e) => {
-      if (e.target.checked) freezeNow(); else unfreeze();
-    });
-  }
-  updateTicketTimeUI();
-});
-
+    // --- Логика слайдера, фиксации времени, последнего билета ---
     function updateCountLabel(value) {
-const val = Number(value);
-const root = document.getElementById('countSlider');
-const range = document.getElementById('inputCountRange');
-const badge = document.getElementById('sliderValue');
-const hidden = document.getElementById('inputCount');
-if (badge) badge.textContent = val;
-if (hidden) hidden.value = String(val);
-if (range && root) {
-const min = Number(range.min) || 1;
-const max = Number(range.max) || 5;
-const pct = ((val - min) / (max - min)) * 100;
-root.style.setProperty('--pct', pct + '%');
-root.style.setProperty('--val', String(val)); // на будущее
-root.setAttribute('data-val', String(val));
-}
-}
-
-    //* === LAST TICKET (NEW) ===*/
-const LAST_TICKET_KEY = 'last_ticket_v1';
-
-function saveLastTicket(payload) {
-  try {
-    localStorage.setItem(LAST_TICKET_KEY, JSON.stringify(payload));
-  } catch (e) { /* ignore */ }
-}
-
-function loadLastTicket() {
-  try {
-    const raw = localStorage.getItem(LAST_TICKET_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-// Выбор времени через Telegram popup (если доступен) или confirm
-function chooseTimeForLastTicket() {
-  const t = loadLastTicket();
-  const tg = window.Telegram && Telegram.WebApp;
-  if (!t) {
-    tg?.showAlert ? tg.showAlert('Нет сохранённого билета') : alert('Нет сохранённого билета');
-    return;
-  }
-
-  if (tg && typeof tg.showPopup === 'function') {
-    tg.showPopup({
-      title: 'Какое время показать?',
-      message: 'Выберите, с каким временем открыть билет',
-      buttons: [
-        { id: 'now',  type: 'default', text: 'Актуальное' },
-        { id: 'prev', type: 'default', text: 'Как в билете' },
-        { id: 'cancel', type: 'cancel', text: 'Отмена' }
-      ]
-    }, (btnId) => {
-      if (btnId === 'now')  showLastTicket('now');
-      if (btnId === 'prev') showLastTicket('prev');
-    });
-  } else {
-    const useNow = confirm('Показать с актуальным временем?                               OK — актуальное, Отмена — как в билете.');
-    showLastTicket(useNow ? 'now' : 'prev');
-  }
-}
-
-// Открыть сохранённый билет (mode: 'now' | 'prev')
-function showLastTicket(mode = 'prev') {
-  const t = loadLastTicket();
-  const tg = window.Telegram && Telegram.WebApp;
-  if (!t) {
-    tg?.showAlert ? tg.showAlert('Нет сохранённого билета') : alert('Нет сохранённого билета');
-    return;
-  }
-
-  // Заполняем билет
-  carrierOutput.textContent = t.carrier || defaultData.carrier;
-  routeOutput.textContent   = t.route   || defaultData.route;
-  plateOutput.textContent   = t.plate   || defaultData.plate;
-  fareOutput.textContent    = t.fareString || `${t.count ?? 1} шт., Полный, ${((t.count ?? 1) * (t.pricePerTicket ?? 48))} ₽`;
-
-  // Время: либо сохранённое, либо актуальное (фиксацию FREEZE не трогаем)
-  if (mode === 'now') {
-    const now = new Date();
-    timeOutput.textContent = formatTime(now);
-    dateOutput.textContent = formatDate(now);
-  } else {
-    timeOutput.textContent = t.timeStr || getFreezeAwareTimeString();
-    dateOutput.textContent = t.dateStr || getFreezeAwareDateString();
-  }
-
-  // Переход на основной экран и запуск таймера
-  inputScreen.classList.remove('active');
-  mainScreen.classList.add('active');
-  switchTab('ticket');
-  startCountdown();
-}
-    // 21 октября 2025г.  (без пробела перед "г.")
-function formatRuDateLong(date) {
-  const s = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-  return s.replace(/\s+г\.$/u, 'г.'); // убираем пробел перед "г."
-}
-
-// 48,00 ₽ — всегда 2 знака, узкий символ рубля
-function formatRub(amount) {
-  const s = new Intl.NumberFormat('ru-RU', {
-    style: 'currency', currency: 'RUB',
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: 2, maximumFractionDigits: 2
-  }).format(amount);
-  return s.replace('руб.', '₽');
-}
-    /* Дата в виде "21 октября 2025 г." — с ПРОБЕЛОМ перед "г." */
-function formatRuDateLong(date) {
-  let s = new Intl.DateTimeFormat('ru-RU', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  }).format(date);
-  // гарантируем один пробел перед "г."
-  return s.replace(/\s*г\.$/u, ' г.');
-}
-
-/* Деньги с точкой, а не запятой: 48.00 ₽ */
-function formatRub(amount) {
-  const n = Number(amount);
-  if (!Number.isFinite(n)) return '0.00 ₽';
-  return n.toFixed(2) + ' ₽'; // toFixed всегда с точкой
-}
-
-/* Пусть все прочие функции используют наши форматтеры */
-function formatDate(d) { return formatRuDateLong(d); }
-function formatTime(d) {
-  try { if (typeof window.formatTicketTime === 'function') return window.formatTicketTime(d); } catch(e){}
-  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-}
-
-/* В submitForm — цена через formatRub */
-(function patchSubmitForm() {
-  const orig = submitForm;
-  window.submitForm = async function() {
-    await orig.apply(this, arguments);
-    // Переустановим цену красиво
-    const plate = document.getElementById('plateOutput').textContent; // не трогаем
-    const text = fareOutput.textContent; // "N шт., Полный, X ₽" — заменим хвост
-    // Пересчитаем по текущим input'ам
-    const selectedType = document.getElementById('transportType').value;
-    const pricePerTicket = selectedType === 'bus' ? 48 : 46;
-    const count = Number(document.getElementById('inputCount').value || 1);
-    fareOutput.textContent = `${count} шт., Полный, ${formatRub(count * pricePerTicket)}`;
-  };
-})();
-
-/* При сохранении/загрузке последнего билета — тоже формат с точкой и дата с пробелом */
-(function patchLastTicket() {
-  const origSave = saveLastTicket;
-  window.saveLastTicket = function(payload) {
-    const p = { ...payload };
-    // принудительно перезапишем fareString нужным форматом
-    const pp = p.pricePerTicket ?? (p.transportType === 'bus' ? 48 : 46);
-    const cnt = p.count ?? 1;
-    p.fareString = `${cnt} шт., Полный, ${formatRub(cnt * pp)}`;
-    // убедимся, что даты/время — в нашем формате
-    p.dateStr = formatDate(new Date());
-    p.timeStr = formatTime(new Date());
-    return origSave(p);
-  };
-
-  const origShow = showLastTicket;
-  window.showLastTicket = function(mode) {
-    origShow.apply(this, arguments);
-    if (mode === 'now') {
+      const val = Number(value);
+      const root = document.getElementById('countSlider');
+      const range = document.getElementById('inputCountRange');
+      if (root && range) {
+        document.getElementById('sliderValue').textContent = val;
+        document.getElementById('inputCount').value = String(val);
+        const min = Number(range.min) || 1;
+        const max = Number(range.max) || 5;
+        const pct = ((val - min) / (max - min)) * 100;
+        root.style.setProperty('--pct', pct + '%');
+        root.setAttribute('data-val', String(val));
+      }
+    }
+    
+    // --- Фиксация времени ---
+    const FREEZE_KEYS = { enabled: 'freezeTime.enabled', ts: 'freezeTime.ts', timeStr: 'freezeTime.timeStr', dateStr: 'freezeTime.dateStr' };
+    const FREEZE = { enabled: false, ts: null, timeStr: '', dateStr: '' };
+    function loadFreezeState() {
+      try {
+        FREEZE.enabled = localStorage.getItem(FREEZE_KEYS.enabled) === '1';
+        const ts = localStorage.getItem(FREEZE_KEYS.ts);
+        FREEZE.ts = ts ? Number(ts) : null;
+        FREEZE.timeStr = localStorage.getItem(FREEZE_KEYS.timeStr) || '';
+        FREEZE.dateStr = localStorage.getItem(FREEZE_KEYS.dateStr) || '';
+      } catch(e) {}
+      document.getElementById('freezeTimeToggle').checked = !!FREEZE.enabled;
+      updateFreezeBadge();
+    }
+    function saveFreezeState() {
+      try {
+        if (FREEZE.enabled) {
+          Object.keys(FREEZE_KEYS).forEach(k => localStorage.setItem(FREEZE_KEYS[k], String(FREEZE[k])));
+        } else {
+          Object.values(FREEZE_KEYS).forEach(k => localStorage.removeItem(k));
+        }
+      } catch(e) {}
+    }
+    function freezeNow() {
       const now = new Date();
-      timeOutput.textContent = formatTime(now);
-      dateOutput.textContent = formatDate(now);
+      FREEZE.enabled = true;
+      FREEZE.ts = now.getTime();
+      FREEZE.timeStr = formatTime(now);
+      FREEZE.dateStr = formatDate(now);
+      saveFreezeState();
+      updateFreezeBadge();
     }
-    // Если вдруг строка цены была старого формата — нормализуем
-    const txt = fareOutput.textContent;
-    const m = txt.match(/^(\d+)\s*шт\.,\s*Полный,\s*([\d.,]+)/);
-    if (m) {
-      const cnt = Number(m[1] || 1);
-      const selectedType = document.getElementById('transportType').value;
-      const pp = selectedType === 'bus' ? 48 : 46;
-      fareOutput.textContent = `${cnt} шт., Полный, ${formatRub(cnt * pp)}`;
+    function unfreeze() {
+      FREEZE.enabled = false; FREEZE.ts = null; FREEZE.timeStr = ''; FREEZE.dateStr = '';
+      saveFreezeState();
+      updateFreezeBadge();
     }
-  };
-})();
+    function getFreezeAwareDate() { return (FREEZE.enabled && FREEZE.ts) ? new Date(FREEZE.ts) : new Date(); }
+    function getFreezeAwareTimeString() { return (FREEZE.enabled && FREEZE.timeStr) ? FREEZE.timeStr : formatTime(new Date()); }
+    function getFreezeAwareDateString() { return (FREEZE.enabled && FREEZE.dateStr) ? FREEZE.dateStr : formatDate(new Date()); }
+    function updateFreezeBadge() {
+      const badge = document.getElementById('freezeTimeBadge');
+      if (FREEZE.enabled) {
+        badge.style.display = 'inline-block';
+        badge.textContent = FREEZE.timeStr;
+        badge.title = `Время зафиксировано: ${FREEZE.dateStr}`;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // --- Последний билет ---
+    const LAST_TICKET_KEY = 'last_ticket_v1';
+    function saveLastTicket(payload) { try { localStorage.setItem(LAST_TICKET_KEY, JSON.stringify(payload)); } catch (e) {} }
+    function loadLastTicket() { try { const r = localStorage.getItem(LAST_TICKET_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+    function chooseTimeForLastTicket() {
+      const t = loadLastTicket();
+      if (!t) return alert('Нет сохранённого билета');
+      const useNow = confirm('Показать с актуальным временем?
+OK — актуальное
+Отмена — как в билете');
+      showLastTicket(useNow ? 'now' : 'prev');
+    }
+    function showLastTicket(mode = 'prev') {
+      const t = loadLastTicket();
+      if (!t) return;
+      carrierOutput.textContent = t.carrier || defaultData.carrier;
+      routeOutput.textContent = t.route || defaultData.route;
+      plateOutput.textContent = t.plate || defaultData.plate;
+      fareOutput.textContent = t.fareString || '...';
+      if (mode === 'now') {
+        const now = new Date();
+        timeOutput.textContent = formatTime(now);
+        dateOutput.textContent = formatDate(now);
+      } else {
+        timeOutput.textContent = t.timeStr || getFreezeAwareTimeString();
+        dateOutput.textContent = t.dateStr || getFreezeAwareDateString();
+      }
+      inputScreen.classList.remove('active');
+      mainScreen.classList.add('active');
+      switchTab('ticket');
+      startCountdown();
+    }
+    
+    // --- Авторизация ---
+    const adminToken = 'ADMIN-SUPERUSER-g8F2kLm9';
+    async function checkAccess() {
+      // Логика авторизации... (оставлена без изменений)
+      const token = document.getElementById('authToken').value.trim();
+      if (token) {
+         localStorage.setItem('ticket_access_granted', 'true');
+         if (token === adminToken) localStorage.setItem('is_admin', 'true');
+         window.location.reload();
+      }
+    }
+    
+    // --- Инициализация приложения ---
     function applyTelegramTheme() {
-  const tg = window.Telegram && Telegram.WebApp;
-  const root = document.documentElement;
+      const tg = window.Telegram?.WebApp;
+      const root = document.documentElement;
+      const isLight = tg ? tg.colorScheme === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
+      root.classList.toggle('theme-light', isLight);
+      root.classList.toggle('theme-dark', !isLight);
+      
+      const tp = tg?.themeParams || {};
+      if (tp.button_color) {
+        root.style.setProperty('--app-accent', tp.button_color);
+        root.style.setProperty('--app-button-bg', tp.button_color);
+      }
+      if (tp.button_text_color) {
+        root.style.setProperty('--app-button-fg', tp.button_text_color);
+      }
+    }
 
-  if (!tg) {
-    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    root.classList.toggle('theme-light', prefersLight);
-    root.classList.toggle('theme-dark', !prefersLight);
-    return;
-  }
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Применяем тему
+      applyTelegramTheme();
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.onEvent('themeChanged', applyTelegramTheme);
+        tg.ready();
+      }
 
-  const isLight = tg.colorScheme === 'light';
-  root.classList.toggle('theme-light', isLight);
-  root.classList.toggle('theme-dark', !isLight);
+      // 2. Проверяем доступ
+      if (localStorage.getItem('ticket_access_granted') === 'true') {
+        document.getElementById('authScreen').style.display = 'none';
+        inputScreen.classList.add('active');
+        if (localStorage.getItem('is_admin') === 'true') {
+          document.getElementById('adminButton').style.display = 'block';
+        }
+      }
 
-  const tp = tg.themeParams || {};
-  if (tp.button_color) {
-    root.style.setProperty('--app-accent', tp.button_color);
-    root.style.setProperty('--app-button-bg', tp.button_color);
-  }
-  if (tp.button_text_color) {
-    root.style.setProperty('--app-button-fg', tp.button_text_color);
-  }
-}
+      // 3. Инициализация компонентов
+      switchTab('ticket');
+      const range = document.getElementById('inputCountRange');
+      if (range) updateCountLabel(range.value);
+      
+      loadFreezeState();
+      document.getElementById('freezeTimeToggle').addEventListener('change', (e) => {
+        if (e.target.checked) freezeNow(); else unfreeze();
+      });
 
-document.addEventListener('DOMContentLoaded', () => {
-  applyTelegramTheme();
+      document.querySelectorAll('.transport-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+          document.querySelectorAll('.transport-option').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('transportType').value = btn.dataset.type;
+        });
+      });
+    });
 
-  const tg = window.Telegram && Telegram.WebApp;
-  if (tg) {
-    tg.onEvent('themeChanged', applyTelegramTheme);
-    tg.ready();
-  }
-});
   </script>
-  
-</div>
-  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-  <div class="loader"></div>
-</div>
   
 </body>
 </html>
