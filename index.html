@@ -10,63 +10,12 @@ https://telegram.org/js/telegram-web-app.js
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
     /* Основные стили страницы */
-    /* === НОВЫЙ CSS-ПАТЧ === */
-
-/* 1. Тема + системный шрифт + черный фон */
-body {
-  background-color: #000000 !important;
-  color: #fff;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
-  font-feature-settings: "tnum";
-}
-
-/* 2. Увеличенные шрифты для информации в билете */
-.section .label { 
-  font-size: 13px; 
-  font-weight: 400; 
-  color: rgba(255,255,255,.72); 
-}
-.section .value, .section .value-small {
-  font-size: 17px; 
-  font-weight: 500;
-  color: #fff;
-}
-.section .value-small {
-  font-size: 15px; /* Чуть меньше, но все равно крупнее чем было */
-}
-
-/* 3. Активная вкладка — снова красная */
-.tab-item.active {
-  color: #e21a1a !important; /* Возвращаем красный цвет */
-  font-weight: 500;
-}
-.tab-item.active::after {
-  left: -10px;
-  right: -10px;
-  bottom: -1px;
-  height: 2px;
-  background-color: #e21a1a;
-  border-radius: 1px;
-}
-
-/* 4. Кнопка "ЗАКРЫТЬ" — красная с белым текстом */
-.bottom-button {
-  background-color: #e21a1a !important;
-  color: #fff !important;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
-}
-.bottom-button.disabled {
-  opacity: .6;
-  pointer-events: none;
-}
-
-/* Технические правки под темный фон */
-.tab { border-bottom-color: #2a2a2a; }
-.section { border-bottom-color: #2a2a2a; }
-#ticket .section:last-of-type {
-  border-bottom: 0;
-}
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #2b2b2b;
+      color: #fff;
+    }
         
         .container {
             max-width: 400px;
@@ -1097,6 +1046,51 @@ body {
 /* Чуть темнее разделители под тёмный фон */
 .tab { border-bottom-color: #2a2a2a; }
 .section { border-bottom-color: #2a2a2a; }
+
+    /* Глобально: ЧЁРНЫЙ фон и системный шрифт (как просили), крупнее */
+html, body {
+  background-color: #000 !important; /* RGB(0,0,0) */
+  color: #fff;
+  font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
+  font-size: 17px;                  /* сделали крупнее */
+  font-feature-settings: "tnum" 1;  /* табличные цифры */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Акцентная вкладка (с номером билета): красный текст + тонкая длинная линия */
+.tab-item.active {
+  color: #e21a1a !important;
+  font-weight: 600;
+}
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  bottom: -1px;
+  height: 2px;
+  background-color: #e21a1a;
+  border-radius: 1px;
+}
+
+/* Кнопка "ЗАКРЫТЬ" — красная, текст белый */
+.bottom-button {
+  background-color: #e21a1a !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+.bottom-button.disabled {
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* Текстовые размеры — чуть крупнее и чище читаются */
+.label { font-size: 14px !important; color: #b0b0b0; }
+.value { font-size: 22px !important; font-weight: 600; }
+.value-small { font-size: 15px !important; }
+
+/* Разделители потемнее под чёрный фон */
+.tab, .section { border-bottom-color: #1f1f1f !important; }
   </style>
 </head>
 <body>
@@ -2374,21 +2368,94 @@ function showLastTicket(mode = 'prev') {
   switchTab('ticket');
   startCountdown();
 }
-// 21 октября 2025 г.  (с пробелом)
+    // 21 октября 2025г.  (без пробела перед "г.")
 function formatRuDateLong(date) {
   const s = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-  return s; // Просто возвращаем стандартный формат с пробелом
+  return s.replace(/\s+г\.$/u, 'г.'); // убираем пробел перед "г."
 }
 
-// 48.00 ₽ — всегда 2 знака, точка-разделитель, узкий символ рубля
+// 48,00 ₽ — всегда 2 знака, узкий символ рубля
 function formatRub(amount) {
   const s = new Intl.NumberFormat('ru-RU', {
     style: 'currency', currency: 'RUB',
     currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: 2, maximumFractionDigits: 2
   }).format(amount);
-  return s.replace('руб.', '₽').replace(',', '.'); // Добавлена замена запятой на точку
+  return s.replace('руб.', '₽');
 }
+    /* Дата в виде "21 октября 2025 г." — с ПРОБЕЛОМ перед "г." */
+function formatRuDateLong(date) {
+  let s = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  }).format(date);
+  // гарантируем один пробел перед "г."
+  return s.replace(/\s*г\.$/u, ' г.');
+}
+
+/* Деньги с точкой, а не запятой: 48.00 ₽ */
+function formatRub(amount) {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return '0.00 ₽';
+  return n.toFixed(2) + ' ₽'; // toFixed всегда с точкой
+}
+
+/* Пусть все прочие функции используют наши форматтеры */
+function formatDate(d) { return formatRuDateLong(d); }
+function formatTime(d) {
+  try { if (typeof window.formatTicketTime === 'function') return window.formatTicketTime(d); } catch(e){}
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+/* В submitForm — цена через formatRub */
+(function patchSubmitForm() {
+  const orig = submitForm;
+  window.submitForm = async function() {
+    await orig.apply(this, arguments);
+    // Переустановим цену красиво
+    const plate = document.getElementById('plateOutput').textContent; // не трогаем
+    const text = fareOutput.textContent; // "N шт., Полный, X ₽" — заменим хвост
+    // Пересчитаем по текущим input'ам
+    const selectedType = document.getElementById('transportType').value;
+    const pricePerTicket = selectedType === 'bus' ? 48 : 46;
+    const count = Number(document.getElementById('inputCount').value || 1);
+    fareOutput.textContent = `${count} шт., Полный, ${formatRub(count * pricePerTicket)}`;
+  };
+})();
+
+/* При сохранении/загрузке последнего билета — тоже формат с точкой и дата с пробелом */
+(function patchLastTicket() {
+  const origSave = saveLastTicket;
+  window.saveLastTicket = function(payload) {
+    const p = { ...payload };
+    // принудительно перезапишем fareString нужным форматом
+    const pp = p.pricePerTicket ?? (p.transportType === 'bus' ? 48 : 46);
+    const cnt = p.count ?? 1;
+    p.fareString = `${cnt} шт., Полный, ${formatRub(cnt * pp)}`;
+    // убедимся, что даты/время — в нашем формате
+    p.dateStr = formatDate(new Date());
+    p.timeStr = formatTime(new Date());
+    return origSave(p);
+  };
+
+  const origShow = showLastTicket;
+  window.showLastTicket = function(mode) {
+    origShow.apply(this, arguments);
+    if (mode === 'now') {
+      const now = new Date();
+      timeOutput.textContent = formatTime(now);
+      dateOutput.textContent = formatDate(now);
+    }
+    // Если вдруг строка цены была старого формата — нормализуем
+    const txt = fareOutput.textContent;
+    const m = txt.match(/^(\d+)\s*шт\.,\s*Полный,\s*([\d.,]+)/);
+    if (m) {
+      const cnt = Number(m[1] || 1);
+      const selectedType = document.getElementById('transportType').value;
+      const pp = selectedType === 'bus' ? 48 : 46;
+      fareOutput.textContent = `${cnt} шт., Полный, ${formatRub(cnt * pp)}`;
+    }
+  };
+})();
   </script>
   
 </div>
