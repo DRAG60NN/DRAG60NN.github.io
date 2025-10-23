@@ -10,12 +10,63 @@ https://telegram.org/js/telegram-web-app.js
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
     /* Основные стили страницы */
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background-color: #2b2b2b;
-      color: #fff;
-    }
+    /* === НОВЫЙ CSS-ПАТЧ === */
+
+/* 1. Тема + системный шрифт + черный фон */
+body {
+  background-color: #000000 !important;
+  color: #fff;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
+  font-feature-settings: "tnum";
+}
+
+/* 2. Увеличенные шрифты для информации в билете */
+.section .label { 
+  font-size: 13px; 
+  font-weight: 400; 
+  color: rgba(255,255,255,.72); 
+}
+.section .value, .section .value-small {
+  font-size: 17px; 
+  font-weight: 500;
+  color: #fff;
+}
+.section .value-small {
+  font-size: 15px; /* Чуть меньше, но все равно крупнее чем было */
+}
+
+/* 3. Активная вкладка — снова красная */
+.tab-item.active {
+  color: #e21a1a !important; /* Возвращаем красный цвет */
+  font-weight: 500;
+}
+.tab-item.active::after {
+  left: -10px;
+  right: -10px;
+  bottom: -1px;
+  height: 2px;
+  background-color: #e21a1a;
+  border-radius: 1px;
+}
+
+/* 4. Кнопка "ЗАКРЫТЬ" — красная с белым текстом */
+.bottom-button {
+  background-color: #e21a1a !important;
+  color: #fff !important;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
+}
+.bottom-button.disabled {
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* Технические правки под темный фон */
+.tab { border-bottom-color: #2a2a2a; }
+.section { border-bottom-color: #2a2a2a; }
+#ticket .section:last-of-type {
+  border-bottom: 0;
+}
         
         .container {
             max-width: 400px;
@@ -2323,20 +2374,20 @@ function showLastTicket(mode = 'prev') {
   switchTab('ticket');
   startCountdown();
 }
-    // 21 октября 2025г.  (без пробела перед "г.")
+// 21 октября 2025 г.  (с пробелом)
 function formatRuDateLong(date) {
   const s = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-  return s.replace(/\s+г\.$/u, 'г.'); // убираем пробел перед "г."
+  return s; // Просто возвращаем стандартный формат с пробелом
 }
 
-// 48,00 ₽ — всегда 2 знака, узкий символ рубля
+// 48.00 ₽ — всегда 2 знака, точка-разделитель, узкий символ рубля
 function formatRub(amount) {
   const s = new Intl.NumberFormat('ru-RU', {
     style: 'currency', currency: 'RUB',
     currencyDisplay: 'narrowSymbol',
     minimumFractionDigits: 2, maximumFractionDigits: 2
   }).format(amount);
-  return s.replace('руб.', '₽');
+  return s.replace('руб.', '₽').replace(',', '.'); // Добавлена замена запятой на точку
 }
   </script>
   
