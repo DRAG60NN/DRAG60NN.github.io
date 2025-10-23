@@ -1133,6 +1133,24 @@ html, body {
 
 /* 3) Опционально: если хочешь, чтобы и заголовок сверху был не жирным */
 .top-text { font-weight: 402 !important; }
+    /* Tweaks для кнопки "ЗАКРЫТЬ" */
+#closeButton {
+  /* немного выше и больше поля по бокам */
+  bottom: 12px !important;   /* было ~4px */
+  left: 8px !important;      /* было ~2px */
+  right: 8px !important;     /* было ~2px */
+
+  /* убираем «затемнение» (тень) */
+  box-shadow: none !important;
+}
+
+/* когда кнопка временно заблокирована таймером — не тускнеет */
+#closeButton.disabled {
+  opacity: 1 !important;
+  filter: none !important;
+  /* по-прежнему не кликается — оставляем блокировку */
+  pointer-events: none !important;
+}
   </style>
 </head>
 <body>
