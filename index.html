@@ -10,18 +10,34 @@ https://telegram.org/js/telegram-web-app.js
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-  --app-bg: #0d0d0d;
+  --app-bg: #090909;
+  --app-bg-elevated: #141414;
   --app-surface: #1f1f1f;
-  --app-text-primary: #f5f5f5;
+  --app-text-primary: #f6f6f6;
   --app-text-secondary: #b0b0b0;
   --app-divider: rgba(255, 255, 255, 0.12);
   --app-accent: #e21a1a;
   --app-button-bg: #e21a1a;
-  --app-button-fg: #000000;
-  --app-muted-icon: #d5d5d5;
+  --app-button-fg: #ffffff;
+  --app-muted-icon: #d4d4d4;
 }
 
+:root.theme-light {
+  --app-bg: #f4f4f6;
+  --app-bg-elevated: #ffffff;
+  --app-surface: #ffffff;
+  --app-text-primary: #1d1d1f;
+  --app-text-secondary: #666772;
+  --app-divider: rgba(0, 0, 0, 0.08);
+  --app-accent: #e21a1a;
+  --app-button-bg: #e21a1a;
+  --app-button-fg: #ffffff;
+  --app-muted-icon: #3e3f45;
+}
+
+html,
 body {
+  min-height: 100%;
   background-color: var(--app-bg);
   color: var(--app-text-primary);
 }
@@ -42,6 +58,38 @@ body {
 #closeButton {
   background-color: var(--app-button-bg);
   color: var(--app-button-fg);
+}
+    .header,
+.countdown-bar {
+  background: var(--app-bg-elevated);
+  color: var(--app-text-primary);
+}
+
+.section,
+.ticket-row,
+.ticket-info,
+.ticket-details {
+  background: var(--app-surface);
+  border-color: var(--app-divider);
+  color: var(--app-text-primary);
+}
+
+.label    { color: var(--app-text-secondary); }
+.value    { color: var(--app-text-primary);  }
+.value--faded { color: var(--app-text-secondary); }
+
+.bottom-button,
+#closeButton {
+  background: var(--app-button-bg);
+  color: var(--app-button-fg);
+}
+
+svg path[fill="#dedede"],
+svg path[fill="#e8e8e8"],
+svg path[fill="#e7e7e6"],
+svg path[fill="#e6e7e6"],
+svg path[fill="#eaeaea"] {
+  fill: var(--app-muted-icon);
 }
 
 /* Светлая тема */
@@ -2626,31 +2674,36 @@ function formatTime(d) {
 })();
     function applyTelegramTheme() {
   const tg = window.Telegram && Telegram.WebApp;
-  if (!tg) return;
+  const root = document.documentElement;
+
+  if (!tg) {
+    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    root.classList.toggle('theme-light', prefersLight);
+    root.classList.toggle('theme-dark', !prefersLight);
+    return;
+  }
 
   const isLight = tg.colorScheme === 'light';
-  document.body.classList.toggle('light-theme', isLight);
+  root.classList.toggle('theme-light', isLight);
+  root.classList.toggle('theme-dark', !isLight);
 
-  // Дополнительно подтягиваем акцент и фон из themeParams, чтобы полностью следовать клиенту
   const tp = tg.themeParams || {};
   if (tp.button_color) {
-    document.documentElement.style.setProperty('--app-accent', tp.button_color);
-    document.documentElement.style.setProperty('--app-button-bg', tp.button_color);
+    root.style.setProperty('--app-accent', tp.button_color);
+    root.style.setProperty('--app-button-bg', tp.button_color);
   }
   if (tp.button_text_color) {
-    document.documentElement.style.setProperty('--app-button-fg', tp.button_text_color);
-  }
-  if (tp.bg_color && !isLight) {
-    document.documentElement.style.setProperty('--app-bg', tp.bg_color);
+    root.style.setProperty('--app-button-fg', tp.button_text_color);
   }
 }
 
-// Гарантируем запуск при старте и пересчёт при смене темы
 document.addEventListener('DOMContentLoaded', () => {
   applyTelegramTheme();
+
   const tg = window.Telegram && Telegram.WebApp;
-  if (tg && typeof tg.onEvent === 'function') {
+  if (tg) {
     tg.onEvent('themeChanged', applyTelegramTheme);
+    tg.ready();
   }
 });
   </script>
