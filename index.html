@@ -14,7 +14,8 @@ https://telegram.org/js/telegram-web-app.js
   --app-text-secondary: #757575;
   --app-text-muted: #9d9d9d;
 
-  --app-button-bg: #e21a1a;
+  --app-accent: #e21a1a;
+  --app-button-bg: var(--app-accent);
   --app-button-fg: #ffffff;
   --app-divider: rgba(0, 0, 0, 0.08);
   --app-muted-icon: #3e3f45;
@@ -28,7 +29,7 @@ https://telegram.org/js/telegram-web-app.js
   --app-bg-elevated: #090909;   /* чтобы и хедер не выбивался */
 }
 
-:root.theme-light {
+:root.-light {
   --app-bg: #ffffff;
   --app-bg-elevated: #ffffff;
   --app-surface: #ffffff;
@@ -96,7 +97,7 @@ body {
         input, select {
             width: 100%;
             padding: 10px;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border: 1px solid var(--tg--hint-color, #ccc);
             border-radius: 8px;
             font-size: 16px;
             box-sizing: border-box;
@@ -108,7 +109,7 @@ body {
             align-items: center;
             justify-content: space-between;
             padding: 15px;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            background: var(--tg--secondary-bg-color, #f5f5f5);
             border-radius: 12px;
             margin: 20px 0;
         }
@@ -154,7 +155,7 @@ body {
         }
         
         input:checked + .slider {
-            background-color: var(--tg-theme-button-color, #3390ec);
+            background-color: var(--tg--button-color, #3390ec);
         }
         
         input:checked + .slider:before {
@@ -165,8 +166,8 @@ body {
         .send-button {
             width: 100%;
             padding: 15px;
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #fff);
+            background: var(--tg--button-color, #3390ec);
+            color: var(--tg--button-text-color, #fff);
             border: none;
             border-radius: 12px;
             font-size: 16px;
@@ -199,7 +200,7 @@ body {
         
         .ticket-info {
             text-align: left;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            background: var(--tg--secondary-bg-color, #f5f5f5);
             padding: 15px;
             border-radius: 12px;
             margin: 10px 0;
@@ -2569,14 +2570,25 @@ function formatTime(d) {
     }
   };
 })();
-    function applyTelegramTheme() {
-  const tg = window.Telegram && Telegram.WebApp;
+function applyTelegramTheme() {
   const root = document.documentElement;
+  const tg = window.Telegram && Telegram.WebApp;
+  const BRAND_ACCENT = '#e21a1a';
+  const BRAND_FG = '#ffffff';
+
+  const forceAccent = () => {
+    root.style.setProperty('--app-accent', BRAND_ACCENT);
+    root.style.setProperty('--app-button-bg', BRAND_ACCENT);
+    root.style.setProperty('--app-button-fg', BRAND_FG);
+    root.style.setProperty('--tg-theme-button-color', BRAND_ACCENT);
+    root.style.setProperty('--tg-theme-button-text-color', BRAND_FG);
+  };
 
   if (!tg) {
     const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
     root.classList.toggle('theme-light', prefersLight);
     root.classList.toggle('theme-dark', !prefersLight);
+    forceAccent();
     return;
   }
 
@@ -2584,14 +2596,7 @@ function formatTime(d) {
   root.classList.toggle('theme-light', isLight);
   root.classList.toggle('theme-dark', !isLight);
 
-  const tp = tg.themeParams || {};
-  if (tp.button_color) {
-    root.style.setProperty('--app-accent', tp.button_color);
-    root.style.setProperty('--app-button-bg', tp.button_color);
-  }
-  if (tp.button_text_color) {
-    root.style.setProperty('--app-button-fg', tp.button_text_color);
-  }
+  forceAccent();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
