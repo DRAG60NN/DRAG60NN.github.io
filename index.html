@@ -1160,6 +1160,11 @@ html, body {
   pointer-events: none !important;      /* Оставили, чтобы не нажималась */
   cursor: default;
 }
+    /* Финальный override — без затемнения в disabled */
+#closeButton.disabled,
+.bottom-button.disabled {
+  opacity: 1 !important;
+}
   </style>
 </head>
 <body>
