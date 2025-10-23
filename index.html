@@ -1133,23 +1133,40 @@ html, body {
 
 /* 3) Опционально: если хочешь, чтобы и заголовок сверху был не жирным */
 .top-text { font-weight: 402 !important; }
-    /* Tweaks для кнопки "ЗАКРЫТЬ" */
-#closeButton {
-  /* немного выше и больше поля по бокам */
-  bottom: 12px !important;   /* было ~4px */
-  left: 8px !important;      /* было ~2px */
-  right: 8px !important;     /* было ~2px */
+/* === Финальный патч для кнопки "ЗАКРЫТЬ" === */
 
-  /* убираем «затемнение» (тень) */
-  box-shadow: none !important;
+/* 1. Основной стиль: выше и с боковыми отступами */
+.bottom-button {
+  /* Позиционирование */
+  bottom: 4px;
+  left: 4px;     /* Увеличили боковой отступ (было 2px) */
+  right: 4px;    /* Увеличили боковой отступ (было 2px) */
+  width: auto;   /* Убираем фикс. ширину, чтобы работали left/right */
+  
+  /* Размеры */
+  padding: 16px 0 !important; /* Сделали чуть выше (было 14px) */
+
+  /* Внешний вид */
+  background-color: #e21a1a !important;
+  color: #000 !important;
+  font-weight: 600 !important;
+  border-radius: 9px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  
+  /* Остальное */
+  position: fixed;
+  text-align: center;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 1000;
 }
 
-/* когда кнопка временно заблокирована таймером — не тускнеет */
-#closeButton.disabled {
-  opacity: 1 !important;
-  filter: none !important;
-  /* по-прежнему не кликается — оставляем блокировку */
-  pointer-events: none !important;
+/* 2. Стиль НЕАКТИВНОЙ кнопки: убираем затемнение */
+.bottom-button.disabled {
+  opacity: 1 !important;      /* Убрали затемнение (было 0.6) */
+  pointer-events: none;      /* Оставили, чтобы не нажималась */
+  cursor: default;
 }
   </style>
 </head>
