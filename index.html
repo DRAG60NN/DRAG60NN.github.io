@@ -38,15 +38,8 @@ https://telegram.org/js/telegram-web-app.js
 html,
 body {
   min-height: 100%;
-  background-color: var(--app-bg);
+  background: var(--app-bg);
   color: var(--app-text-primary);
-}
-
-.section,
-.ticket .row,
-.ticket-info {
-  background: var(--app-surface);
-  border-bottom: 1px solid var(--app-divider);
 }
 
 .label  { color: var(--app-text-secondary); }
@@ -78,63 +71,6 @@ body {
 .value    { color: var(--app-text-primary);  }
 .value--faded { color: var(--app-text-secondary); }
 
-.bottom-button,
-#closeButton {
-  background: var(--app-button-bg);
-  color: var(--app-button-fg);
-}
-
-svg path[fill="#dedede"],
-svg path[fill="#e8e8e8"],
-svg path[fill="#e7e7e6"],
-svg path[fill="#e6e7e6"],
-svg path[fill="#eaeaea"] {
-  fill: var(--app-muted-icon);
-}
-
-/* Светлая тема */
-body.light-theme {
-  --app-bg: #ffffff;
-  --app-surface: #f6f6f6;
-  --app-text-primary: #121212;
-  --app-text-secondary: #5c5c5c;
-  --app-divider: rgba(0, 0, 0, 0.08);
-  --app-accent: #e21a1a;      /* акцент остаётся красным */
-  --app-button-bg: #e21a1a;
-  --app-button-fg: #ffffff;
-  --app-muted-icon: #3a3a3a;
-}
-
-body.light-theme .tab-item.active {
-  color: var(--app-accent);
-}
-
-body.light-theme .section,
-body.light-theme .ticket .row,
-body.light-theme .ticket-info {
-  background: var(--app-surface);
-}
-
-body.light-theme .top-text,
-body.light-theme #countdown {
-  color: var(--app-text-primary);
-}
-
-/* Перекрашиваем «серые» иконки под светлый фон */
-body.light-theme svg path[fill="#dedede"],
-body.light-theme svg path[fill="#e8e8e8"],
-body.light-theme svg path[fill="#e7e7e6"],
-body.light-theme svg path[fill="#e6e7e6"],
-body.light-theme svg path[fill="#eaeaea"] {
-  fill: var(--app-muted-icon) !important;
-}
-    /* Основные стили страницы */
-    body {
-      margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background-color: #2b2b2b;
-      color: #fff;
-    }
         
         .container {
             max-width: 400px;
@@ -323,35 +259,18 @@ body.light-theme svg path[fill="#eaeaea"] {
       font-weight: 300;
     }
     .value {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 300;
       margin-top: 5px;
+      font-weight: 600;
     }
     .value-small {
-      font-size: 16px;
+      font-size: 15px;
       color: #aaa;
       margin-top: 3px;
       font-weight: 400;
     }
-    /* Кнопка "ЗАКРЫТЬ" - всегда отображается на основном экране */
-    .bottom-button {
-      width: 100%;
-      padding: 14px 0;
-      background-color: #e21a1a;
-      color: black;
-      text-align: center;
-      font-weight: bold;
-      font-size: 14px;
-      position: fixed;
-      bottom: 4px;
-      left: 2px;
-      right: 2px;
-      border-radius: 9px; /* Закругляем углы */
-      cursor: pointer;
-      user-select: none;
-      box-shadow: 0 2px 6px rgba(226, 26, 26, 0.6);
-      z-index: 1000;
-    }
+
     .row {
       display: flex;
       align-items: center;
@@ -1123,82 +1042,18 @@ padding: 0 2px;
   width: 100%; height: 56px; border: 0; border-radius: var(--radius);
   background: #FFFFFF; color: var(--accent); font-weight: 600; font-size: 16px;
 }
-    /* Тема + системный стек шрифтов */
-body {
-  background-color: #0D0D0D !important;
-  color: #fff;
-  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
-  font-feature-settings: "tnum";
-}
 
-/* Вкладки: активная — белый текст; полоса — тоньше и длиннее */
-.tab-item.active {
-  color: #fff;
-  font-weight: 500;
-}
-.tab-item.active::after {
-  left: -10px;
-  right: -10px;
-  bottom: -1px;
-  height: 2px;
-  background-color: #e21a1a;
-  border-radius: 1px;
-}
+
 
 /* Убрать разделитель у "Время покупки" (последняя секция на билете) */
 #ticket .section:last-of-type {
   border-bottom: 0;
 }
 
-/* Кнопка "ЗАКРЫТЬ" — белая с красным текстом */
-.bottom-button {
-  background-color: #000 !important;
-  color: #e21a1a !important;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-}
-
 /* Чуть темнее разделители под тёмный фон */
 .tab { border-bottom-color: #2a2a2a; }
 .section { border-bottom-color: #2a2a2a; }
 
-    /* Глобально: ЧЁРНЫЙ фон и системный шрифт (как просили), крупнее */
-html, body {
-  background-color: #000 !important; /* RGB(0,0,0) */
-  color: #fff;
-  font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
-  font-size: 17px;                  /* сделали крупнее */
-  font-feature-settings: "tnum" 1;  /* табличные цифры */
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Акцентная вкладка (с номером билета): красный текст + тонкая длинная линия */
-.tab-item.active {
-  color: #e21a1a !important;
-  font-weight: 600;
-}
-.tab-item.active::after {
-  content: '';
-  position: absolute;
-  left: -10px;
-  right: -10px;
-  bottom: -1px;
-  height: 2px;
-  background-color: #e21a1a;
-  border-radius: 1px;
-}
-
-/* Кнопка "ЗАКРЫТЬ" — красная, текст белый */
-.bottom-button {
-  background-color: #e21a1a !important;
-  color: #fff !important;
-  font-weight: 700;
-}
-
-/* Текстовые размеры — чуть крупнее и чище читаются */
-.label { font-size: 14px !important; color: #b0b0b0; }
-.value { font-size: 22px !important; font-weight: 600; }
-.value-small { font-size: 15px !important; }
 
 /* Разделители потемнее под чёрный фон */
 .tab, .section { border-bottom-color: #2c2c2e !important; }
@@ -1212,12 +1067,6 @@ html, body {
   -webkit-text-fill-color: #000 !important; /* Safari/WebView */
   text-shadow: none !important;
   font-weight: 600 !important;
-}
-#closeButton.disabled {
-  opacity: .6 !important;
-  pointer-events: none !important;
-  color: #000 !important;
-  -webkit-text-fill-color: #000 !important;
 }
 
 /* 2) Типографика экрана билета — применяем к реальному контейнеру #ticket */
