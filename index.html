@@ -278,7 +278,6 @@ https://telegram.org/js/telegram-web-app.js
   .input-screen {
   padding: 30px 40px 160px 20px; /* большой запас под фикс-панель */
 }
-    }
     .input-screen input {
       width: 100%;
       padding: 12px;
@@ -1005,6 +1004,48 @@ padding: 0 2px;
   width: 100%; height: 56px; border: 0; border-radius: var(--radius);
   background: #FFFFFF; color: var(--accent); font-weight: 600; font-size: 16px;
 }
+    /* Тема + системный стек шрифтов */
+body {
+  background-color: #0D0D0D !important;
+  color: #fff;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji" !important;
+  font-feature-settings: "tnum";
+}
+
+/* Вкладки: активная — белый текст; полоса — тоньше и длиннее */
+.tab-item.active {
+  color: #fff;
+  font-weight: 500;
+}
+.tab-item.active::after {
+  left: -10px;
+  right: -10px;
+  bottom: -1px;
+  height: 2px;
+  background-color: #e21a1a;
+  border-radius: 1px;
+}
+
+/* Убрать разделитель у "Время покупки" (последняя секция на билете) */
+#ticket .section:last-of-type {
+  border-bottom: 0;
+}
+
+/* Кнопка "ЗАКРЫТЬ" — белая с красным текстом */
+.bottom-button {
+  background-color: #fff !important;
+  color: #e21a1a !important;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.bottom-button.disabled {
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* Чуть темнее разделители под тёмный фон */
+.tab { border-bottom-color: #2a2a2a; }
+.section { border-bottom-color: #2a2a2a; }
   </style>
 </head>
 <body>
@@ -1387,7 +1428,7 @@ if (!Number.isFinite(count) || count < 1) count = 1;
   carrierOutput.textContent = carrier;
   routeOutput.textContent = route;
   plateOutput.textContent = plate;
-  fareOutput.textContent = `${count} шт., Полный, ${fare} ₽`;
+  fareOutput.textContent = `${count} шт., Полный, ${formatRub(fare)}`;
 
       // Устанавливаем дату/время с учётом фиксации
 dateOutput.textContent = getFreezeAwareDateString();
@@ -1401,7 +1442,7 @@ saveLastTicket({
   count,
   pricePerTicket,
   transportType: selectedType,
-  fareString: `${count} шт., Полный, ${fare} ₽`,
+  fareString: `${count} шт., Полный, ${formatRub(fare)}`,
   // сохраняем видимые пользователю дату/время с учётом фиксации
   timeStr: getFreezeAwareTimeString(),
   dateStr: getFreezeAwareDateString(),
@@ -2074,8 +2115,7 @@ function formatTime(d) {
   return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 }
 function formatDate(d) {
-  try { if (typeof window.formatTicketDate === 'function') return window.formatTicketDate(d); } catch(e){}
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return formatRuDateLong(d); // 21 октября 2025г.
 }
 
 function loadFreezeState() {
@@ -2270,8 +2310,8 @@ function showLastTicket(mode = 'prev') {
   // Время: либо сохранённое, либо актуальное (фиксацию FREEZE не трогаем)
   if (mode === 'now') {
     const now = new Date();
-    timeOutput.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-    dateOutput.textContent = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    timeOutput.textContent = formatTime(now);
+    dateOutput.textContent = formatDate(now);
   } else {
     timeOutput.textContent = t.timeStr || getFreezeAwareTimeString();
     dateOutput.textContent = t.dateStr || getFreezeAwareDateString();
