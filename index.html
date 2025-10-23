@@ -1165,6 +1165,29 @@ html, body {
 .bottom-button.disabled {
   opacity: 1 !important;
 }
+    /* Верхние вкладки */
+#tabs .tab-item,
+#tabs .tab-item.active,
+#tabs .tab-item[aria-selected="true"],
+#tabs .tab-item:active,
+#tabs .tab-item:focus {
+  font-weight: 400 !important; /* или normal */
+}
+
+/* Табы в меню выбора транспорта */
+.transport-tabs button,
+.transport-tabs button.active,
+.transport-tabs button[aria-selected="true"] {
+  font-weight: 400 !important;
+}
+
+/* Если текст обёрнут в <strong>/<b> — не даём им утяжелять */
+#tabs .tab-item strong,
+#tabs .tab-item b,
+.transport-tabs button strong,
+.transport-tabs button b {
+  font-weight: inherit;
+}
   </style>
 </head>
 <body>
