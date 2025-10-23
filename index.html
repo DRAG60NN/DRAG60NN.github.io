@@ -1091,6 +1091,48 @@ html, body {
 
 /* Разделители потемнее под чёрный фон */
 .tab, .section { border-bottom-color: #2c2c2e !important; }
+    /* 1) Кнопка "ЗАКРЫТЬ" — красный фон, ЧЁРНЫЙ текст (перебиваем всё) */
+#closeButton,
+#closeButton:focus,
+#closeButton:hover,
+#closeButton:active {
+  background-color: #e21a1a !important;
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important; /* Safari/WebView */
+  text-shadow: none !important;
+  font-weight: 600 !important;
+}
+#closeButton.disabled {
+  opacity: .6 !important;
+  pointer-events: none !important;
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important;
+}
+
+/* 2) Типографика экрана билета — применяем к реальному контейнеру #ticket */
+#ticket .label {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: #b0b0b0 !important;
+}
+#ticket .value {
+  font-size: 24px !important;     /* крупнее */
+  font-weight: 400 !important;     /* убрали жирность */
+  line-height: 1.22 !important;
+  color: #fff !important;
+}
+#ticket .value-small {
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  color: #aaa !important;
+}
+/* На всякий случай снимем жирность с b/strong внутри билета */
+#ticket b, #ticket strong {
+  font-weight: 400 !important;
+}
+
+/* 3) Опционально: если хочешь, чтобы и заголовок сверху был не жирным */
+.top-text { font-weight: 400 !important; }
   </style>
 </head>
 <body>
