@@ -25,11 +25,24 @@ https://telegram.org/js/telegram-web-app.js
   --text-secondary: var(--app-text-secondary);
 }
     :root.theme-dark {
-  --app-surface: #090909;       /* тот же цвет, что и фон */
-  --app-bg-elevated: #090909;   /* чтобы и хедер не выбивался */
+  --app-bg: #090909;             /* основной фон */
+  --app-surface: #1C1C1E;       /* фон карточек и секций (чуть светлее) */
+  --app-bg-elevated: #1C1C1E;   /* фон хедера */
+
+  --app-text-primary: #FFFFFF;    /* белый основной текст */
+  --app-text-secondary: #A0A0A0; /* серый для лейблов */
+  --app-text-muted: #6D6D72;     /* ещё более тусклый серый */
+
+  --app-divider: rgba(255, 255, 255, 0.12); /* светлый полупрозрачный разделитель */
+  --app-muted-icon: #A0A0A0;    /* цвет иконок */
+
+  /* Акцент и кнопки остаются как мы настроили */
+  --app-accent: #e21a1a;
+  --app-button-bg: var(--app-accent);
+  --app-button-fg: #000000;      /* чёрный текст на красной кнопке */
 }
 
-:root.-light {
+:root.theme-light {
   --app-bg: #ffffff;
   --app-bg-elevated: #ffffff;
   --app-surface: #ffffff;
