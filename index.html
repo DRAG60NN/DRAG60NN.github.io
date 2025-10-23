@@ -9,17 +9,14 @@ https://telegram.org/js/telegram-web-app.js
   <title>Билет</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
   <style>
-    :root {
-  --app-bg: #090909;
-  --app-bg-elevated: #141414;
-  --app-surface: #1f1f1f;
-  --app-text-primary: #f6f6f6;
-  --app-text-secondary: #b0b0b0;
-  --app-divider: rgba(255, 255, 255, 0.12);
-  --app-accent: #e21a1a;
-  --app-button-bg: #e21a1a;
-  --app-button-fg: #ffffff;
-  --app-muted-icon: #d4d4d4;
+:root {
+  /* --- Цвета для СВЕТЛОЙ темы (по умолчанию) --- */
+  --text-primary: #000000;   /* Основной текст - чёрный */
+  --text-secondary: #6c6c6c;  /* Второстепенный текст (подписи "Перевозчик") - серый */
+  --app-background: #f0f0f0;  /* Фон страницы - светло-серый */
+  --app-surface: #ffffff;     /* Фон центральной карточки - белый */
+  --divider-color: #e0e0e0;   /* Цвет разделителей */
+  --icon-color: #000000;      /* Цвет иконок - чёрный */
 }
     :root.theme-dark {
   --app-surface: #090909;       /* тот же цвет, что и фон */
