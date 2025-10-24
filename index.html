@@ -1208,6 +1208,40 @@ padding: 0 2px;
   color: var(--app-button-fg) !important;
   -webkit-text-fill-color: var(--app-button-fg) !important;
 }
+    :root.theme-light {
+  --app-text-primary: #2f2f2f;
+  --app-text-secondary: #666666;
+  --app-text-muted: #8c8c8c;
+}
+
+:root.theme-light body,
+:root.theme-light #ticket {
+  color: var(--app-text-primary);
+}
+
+:root.theme-light #ticket .value,
+:root.theme-light #ticket .value-small {
+  color: var(--app-text-primary) !important;
+}
+
+:root.theme-light #ticket .label {
+  color: var(--app-text-secondary) !important;
+}
+
+:root.theme-light .top-text,
+:root.theme-light .tab-item,
+:root.theme-light .tab-item.active,
+:root.theme-light .transport-option,
+:root.theme-light .photo-controls button,
+:root.theme-light .upload-label {
+  color: var(--app-text-primary) !important;
+}
+
+:root.theme-light .tab-item,
+:root.theme-light .label,
+:root.theme-light .transport-option:not(.active) {
+  color: var(--app-text-secondary) !important;
+}
   </style>
 </head>
 <body>
