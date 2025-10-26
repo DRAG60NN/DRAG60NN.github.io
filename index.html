@@ -1210,6 +1210,86 @@ padding: 0 2px;
   color: var(--app-button-fg) !important;
   -webkit-text-fill-color: var(--app-button-fg) !important;
 }
+    /* Стили для таблицы сессий */
+.table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+#sessionsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+#sessionsTable th, #sessionsTable td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+#sessionsTable th {
+  background-color: #f2f2f2;
+}
+#sessionsTable .actions-menu {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+#sessionsTable .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  right: 0;
+}
+#sessionsTable .dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+#sessionsTable .dropdown-content a:hover {
+  background-color: #f1f1f1;
+}
+#sessionsTable .show {
+  display: block;
+}
+
+/* Стили для модального окна */
+.modal-overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  max-width: 80%;
+  width: 500px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  position: relative;
+}
+.modal-content .close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+}
+.modal-content pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #eee;
+  padding: 10px;
+  border-radius: 4px;
+}
   </style>
 </head>
 <body>
@@ -1312,6 +1392,8 @@ padding: 0 2px;
 
     <h2>Админ-панель</h2>
 
+    <button onclick="openSessionManager()">Управлять сессиями</button> 
+  <button onclick="logout()">Выйти</button>
     <input id="newTokenInput" placeholder="Новый токен" />
     <button onclick="addToken()">Добавить токен</button>
 
@@ -1325,6 +1407,42 @@ padding: 0 2px;
     <h3 style="margin-bottom: 10px;">Все токены</h3>
     <button onclick="loadTokens()">Обновить список</button>
     <ul id="tokenList" style="list-style: none; padding: 0; margin-top: 10px; font-size: 14px;"></ul>
+  </div>
+</div>
+  <!-- ЭКРАН УПРАВЛЕНИЯ СЕССИЯМИ -->
+<div id="sessionManagerScreen" class="screen">
+  <h2>Управление сессиями</h2>
+  <button onclick="showAdminPanel()">Назад</button>
+  <div class="table-container">
+    <table id="sessionsTable">
+      <thead>
+        <tr>
+          <th>Пользователь</th>
+          <th>Последний доступ</th>
+          <th>Статус</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Сюда будут вставляться строки сессий -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ ДЕТАЛЕЙ СЕССИИ -->
+<div id="sessionDetailsModal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <span class="close-button" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+    <h3>Детали сессии</h3>
+    <p><strong>ID сессии:</strong> <span id="detail-sessionId"></span></p>
+    <p><strong>Токен:</strong> <span id="detail-token"></span></p>
+    <p><strong>Аккаунт:</strong> <span id="detail-username"></span></p>
+    <p><strong>Создана:</strong> <span id="detail-createdAt"></span></p>
+    <p><strong>Устройство:</strong> <pre id="detail-deviceInfo"></pre></p>
+    <hr>
+    <p><strong>Последний билет:</strong></p>
+    <pre id="detail-lastTicketData">Нет данных.</pre>
   </div>
 </div>
 
@@ -2620,6 +2738,144 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.ready();
   }
 });
+        // Глобальная переменная для хранения загруженных сессий
+    let allSessionsData = [];
+
+    async function openSessionManager() {
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      
+      const sessionId = localStorage.getItem('sessionId');
+      
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body: new URLSearchParams({ action: 'listSessions', sessionId: sessionId })
+        });
+        const result = await response.json();
+        
+        if (result.status === 'ok') {
+          allSessionsData = result.sessions; // Сохраняем данные
+          renderSessions(allSessionsData);
+          document.getElementById('sessionManagerScreen').style.display = 'block';
+        } else {
+          alert('Ошибка: ' + (result.reason || 'Не удалось загрузить сессии.'));
+          showAdminPanel(); // Возвращаемся назад при ошибке
+        }
+      } catch (error) {
+        console.error("Ошибка при загрузке сессий:", error);
+        alert('Сетевая ошибка при загрузке сессий.');
+        showAdminPanel();
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }
+    }
+
+    function renderSessions(sessions) {
+      const tableBody = document.querySelector('#sessionsTable tbody');
+      tableBody.innerHTML = ''; // Очищаем таблицу
+      
+      sessions.forEach(session => {
+        const row = document.createElement('tr');
+        const lastAccessDate = new Date(session.lastAccess).toLocaleString('ru-RU');
+        const status = session.isActive ? '<span style="color:green;">Активна</span>' : '<span style="color:red;">Завершена</span>';
+
+        row.innerHTML = `
+          <td>${session.username}</td>
+          <td>${lastAccessDate}</td>
+          <td>${status}</td>
+          <td>
+            <div class="actions-menu" onclick="toggleDropdown(event, '${session.sessionId}')">
+              &#8942; <!-- Вертикальное троеточие -->
+              <div id="dropdown-${session.sessionId}" class="dropdown-content">
+                <a href="#" onclick="showSessionDetails('${session.sessionId}')">Информация</a>
+                ${session.isActive ? `<a href="#" onclick="terminateSession('${session.sessionId}')">Отключить</a>` : ''}
+              </div>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function toggleDropdown(event, sessionId) {
+      event.stopPropagation(); // Предотвращаем закрытие по клику на троеточие
+      // Закрываем все другие открытые меню
+      document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
+        if (openDropdown.id !== `dropdown-${sessionId}`) {
+          openDropdown.classList.remove('show');
+        }
+      });
+      // Открываем/закрываем текущее
+      document.getElementById(`dropdown-${sessionId}`).classList.toggle('show');
+    }
+
+    // Закрывать выпадающие списки при клике в любом другом месте
+    window.onclick = function(event) {
+      if (!event.target.matches('.actions-menu')) {
+        document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
+          openDropdown.classList.remove('show');
+        });
+      }
+    }
+
+    function showSessionDetails(sessionId) {
+      const session = allSessionsData.find(s => s.sessionId === sessionId);
+      if (!session) return;
+      
+      document.getElementById('detail-sessionId').textContent = session.sessionId;
+      document.getElementById('detail-token').textContent = session.token;
+      document.getElementById('detail-username').textContent = session.username;
+      document.getElementById('detail-createdAt').textContent = new Date(session.createdAt).toLocaleString('ru-RU');
+      document.getElementById('detail-deviceInfo').textContent = session.deviceInfo;
+      document.getElementById('detail-lastTicketData').textContent = session.lastTicketData || 'Нет данных.';
+      
+      document.getElementById('sessionDetailsModal').style.display = 'flex';
+    }
+
+    async function terminateSession(sessionIdToTerminate) {
+      if (!confirm('Вы уверены, что хотите отключить эту сессию? Пользователь потеряет доступ.')) {
+        return;
+      }
+
+      document.getElementById('loadingOverlay').style.display = 'flex';
+      const adminSessionId = localStorage.getItem('sessionId');
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          body: new URLSearchParams({ 
+            action: 'terminateSession', 
+            sessionId: adminSessionId,
+            targetSessionId: sessionIdToTerminate 
+          })
+        });
+        const result = await response.json();
+
+        if (result.status === 'ok') {
+          alert('Сессия успешно отключена.');
+          // Обновляем данные на лету, без перезагрузки с сервера
+          const session = allSessionsData.find(s => s.sessionId === sessionIdToTerminate);
+          if (session) {
+            session.isActive = false;
+          }
+          renderSessions(allSessionsData); // Перерисовываем таблицу
+        } else {
+          alert('Ошибка: ' + (result.reason || 'Не удалось отключить сессию.'));
+        }
+      } catch (error) {
+        console.error("Ошибка при отключении сессии:", error);
+        alert('Сетевая ошибка при отключении сессии.');
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }
+    }
+    
+    // Вспомогательная функция для возврата в админ-панель
+    function showAdminPanel() {
+        document.getElementById('sessionManagerScreen').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+    }
   </script>
   
 </div>
