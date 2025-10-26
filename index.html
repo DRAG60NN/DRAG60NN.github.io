@@ -1422,6 +1422,8 @@ padding: 0 2px;
   <!-- ЭКРАН УПРАВЛЕНИЯ СЕССИЯМИ -->
 <div id="sessionManagerScreen" class="screen">
   <h2>Управление сессиями</h2>
+  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+  <button onclick="openSessionManager()">Обновить список</button>
   <button onclick="showAdminPanel()">Назад</button>
   <div class="table-container">
     <table id="sessionsTable">
@@ -1747,6 +1749,8 @@ saveLastTicket({
 
   // Запускаем таймер
   startCountdown();
+      
+  saveTicketDataOnServer(ticketPayload);
 }
 
 
@@ -2023,31 +2027,47 @@ document.addEventListener('DOMContentLoaded', () => {
     let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
 
         async function checkAccess() {
-      const token = document.getElementById('authToken').value.trim();
-      const url = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec'; // Замените на ваш URL, если он другой
+  const token = document.getElementById('authToken').value.trim();
+  const url = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec';
 
-      document.getElementById('loadingOverlay').style.display = 'flex';
+  document.getElementById('loadingOverlay').style.display = 'flex';
 
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          // ВАЖНО: Мы отправляем 'login', чтобы сервер понял, что мы делаем
-          body: new URLSearchParams({ action: 'login', token: token })
-        });
-        
-        // Ожидаем JSON в ответе
-        const result = await response.json(); 
+  // --- ДОБАВЛЕНО: Получаем данные о пользователе и устройстве ---
+  const tg = window.Telegram.WebApp;
+  const username = tg.initDataUnsafe?.user?.username || 'unknown_user';
+  
+  // Определяем ОС для deviceInfo
+  let deviceInfo = 'Desktop';
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  if (/android/i.test(userAgent)) {
+      deviceInfo = "Android";
+  }
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+      deviceInfo = "iOS";
+  }
 
-        if (result.status === 'valid') {
-          // Вход успешен, сохраняем сессию
-          localStorage.setItem('ticket_access_granted', 'true');
-          localStorage.setItem('sessionId', result.sessionId); // Сохраняем ID сессии
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({ 
+          action: 'login', 
+          token: token,
+          username: username, // <-- Отправляем username
+          deviceInfo: deviceInfo // <-- Отправляем deviceInfo
+      })
+    });
+    
+    const result = await response.json(); 
 
-          // Проверяем, являемся ли мы админом, на основе ответа СЕРВЕРА
-          if (result.isAdmin) {
-            localStorage.setItem('is_admin', 'true');
-            document.getElementById('adminButton').style.display = 'inline-block';
-          } else {
+    if (result.status === 'valid') {
+      localStorage.setItem('ticket_access_granted', 'true');
+      localStorage.setItem('sessionId', result.sessionId);
+
+      if (result.isAdmin) {
+        localStorage.setItem('is_admin', 'true');
+        document.getElementById('adminButton').style.display = 'inline-block';
+
+    } else {
             localStorage.removeItem('is_admin'); // На всякий случай удаляем старый флаг
             document.getElementById('adminButton').style.display = 'none';
           }
@@ -2751,51 +2771,38 @@ document.addEventListener('DOMContentLoaded', () => {
         // Глобальная переменная для хранения загруженных сессий
     let allSessionsData = [];
 
-    // ЗАМЕНИТЕ ЭТУ ФУНКЦИЮ В ВАШЕМ HTML
+// --- ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ openSessionManager ---
 async function openSessionManager() {
-  // Сначала получим ключ администратора.
-  // Для простоты запросим его у пользователя.
-  // В реальном приложении его лучше хранить более безопасно.
-  const adminKey = prompt("Введите ключ администратора для доступа к сессиям:");
-  if (!adminKey) {
-    alert("Ключ не был введен. Доступ запрещен.");
-    return; // Прерываем выполнение, если ключ не введен
-  }
-
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('loadingOverlay').style.display = 'flex';
-  
-  const sessionId = localStorage.getItem('sessionId');
-  // ВАЖНО: Добавляем adminKey в URL запроса
-  const url = `https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=listSessions&sessionId=${sessionId}&adminKey=${encodeURIComponent(adminKey)}`;
-  
-  try {
-    const response = await fetch(url, {
-      method: 'GET'
-    });
-    const result = await response.json();
+    // Убираем запрос ключа, он больше не нужен на клиенте!
     
-    if (result.status === 'ok') {
-      allSessionsData = result.sessions; 
-      renderSessions(allSessionsData);
-      // Убираем класс 'active' у других экранов и добавляем его нашему
-      document.getElementById('inputScreen').classList.remove('active');
-      document.getElementById('mainScreen').classList.remove('active');
-      document.getElementById('sessionManagerScreen').classList.add('active'); // Используем classList для управления видимостью
-      document.getElementById('sessionManagerScreen').style.display = 'block'; // Убедимся, что он видим
-
-    } else {
-      // Теперь вы увидите более конкретную причину ошибки
-      alert('Ошибка доступа: ' + (result.reason || 'Не удалось загрузить сессии.'));
-      showAdminPanel(); // Возвращаемся в админку в случае ошибки
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    const sessionId = localStorage.getItem('sessionId');
+    const url = `https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=listSessions&sessionId=${sessionId}`;
+    
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.status === 'ok') {
+            allSessionsData = result.sessions; 
+            renderSessions(allSessionsData);
+            document.getElementById('inputScreen').classList.remove('active');
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('sessionManagerScreen').classList.add('active');
+            document.getElementById('sessionManagerScreen').style.display = 'block';
+        } else {
+            alert('Ошибка доступа: ' + (result.reason || 'Не удалось загрузить сессии.'));
+            showAdminPanel(); // Возвращаемся в админку в случае ошибки
+        }
+    } catch (error) {
+        console.error("Ошибка при загрузке сессий:", error);
+        alert('Сетевая ошибка при загрузке сессий.');
+        showAdminPanel();
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
     }
-  } catch (error) {
-    console.error("Ошибка при загрузке сессий:", error);
-    alert('Сетевая ошибка при загрузке сессий.');
-    showAdminPanel();
-  } finally {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
 }
 
 // Также убедитесь, что ваша функция showAdminPanel выглядит примерно так
@@ -2868,43 +2875,47 @@ function showAdminPanel() {
       document.getElementById('sessionDetailsModal').style.display = 'flex';
     }
 
-    async function terminateSession(sessionIdToTerminate) {
-      if (!confirm('Вы уверены, что хотите отключить эту сессию? Пользователь потеряет доступ.')) {
-        return;
+    // --- ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ terminateSession ---
+async function terminateSession(sessionIdToTerminate) {
+  if (!confirm('Вы уверены, что хотите отключить эту сессию? Пользователь потеряет доступ.')) {
+    return;
+  }
+
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  
+  // ID сессии текущего пользователя (администратора)
+  const adminSessionId = localStorage.getItem('sessionId'); 
+  const url = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec';
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: new URLSearchParams({ 
+        action: 'terminateSession', 
+        sessionId: adminSessionId, // Сессия админа для проверки прав
+        targetSessionId: sessionIdToTerminate // Какую сессию отключаем
+      })
+    });
+    const result = await response.json();
+
+    if (result.status === 'ok') {
+      alert('Сессия успешно отключена.');
+      // Обновляем данные на лету, без перезагрузки с сервера
+      const session = allSessionsData.find(s => s.sessionId === sessionIdToTerminate);
+      if (session) {
+        session.isActive = false;
       }
-
-      document.getElementById('loadingOverlay').style.display = 'flex';
-      const adminSessionId = localStorage.getItem('sessionId');
-
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          body: new URLSearchParams({ 
-            action: 'terminateSession', 
-            sessionId: adminSessionId,
-            targetSessionId: sessionIdToTerminate 
-          })
-        });
-        const result = await response.json();
-
-        if (result.status === 'ok') {
-          alert('Сессия успешно отключена.');
-          // Обновляем данные на лету, без перезагрузки с сервера
-          const session = allSessionsData.find(s => s.sessionId === sessionIdToTerminate);
-          if (session) {
-            session.isActive = false;
-          }
-          renderSessions(allSessionsData); // Перерисовываем таблицу
-        } else {
-          alert('Ошибка: ' + (result.reason || 'Не удалось отключить сессию.'));
-        }
-      } catch (error) {
-        console.error("Ошибка при отключении сессии:", error);
-        alert('Сетевая ошибка при отключении сессии.');
-      } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }
+      renderSessions(allSessionsData); // Перерисовываем таблицу
+    } else {
+      alert('Ошибка: ' + (result.reason || 'Не удалось отключить сессию.'));
     }
+  } catch (error) {
+    console.error("Ошибка при отключении сессии:", error);
+    alert('Сетевая ошибка при отключении сессии.');
+  } finally {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
     
     // Вспомогательная функция для возврата в админ-панель
     function showAdminPanel() {
@@ -2919,6 +2930,33 @@ function showAdminPanel() {
   
   // Перезагружаем страницу, чтобы вернуться к экрану входа
   location.reload();
+}
+    // --- ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ ---
+async function saveTicketDataOnServer(ticketData) {
+    const sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) return; // Не отправляем, если нет сессии
+
+    const url = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec';
+
+    // Формируем полезную нагрузку
+    const payload = new URLSearchParams({
+        action: 'saveTicketData',
+        sessionId: sessionId,
+        // Преобразуем объект в строку для отправки
+        ticketData: JSON.stringify(ticketData) 
+    });
+
+    try {
+        // Отправляем в фоне, не блокируя интерфейс
+        await fetch(url, {
+            method: 'POST',
+            body: payload,
+            keepalive: true // Позволяет запросу завершиться, даже если пользователь закроет вкладку
+        });
+        console.log('Ticket data sent to server.');
+    } catch (e) {
+        console.error('Failed to send ticket data:', e);
+    }
 }
   </script>
   
