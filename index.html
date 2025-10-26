@@ -1701,17 +1701,15 @@ padding: 0 2px;
   }, 1000);
 }
 
-
-
-
     async function submitForm() {
   // Считываем значения из инпутов
   const carrier = document.getElementById('inputCarrier').value.trim() || defaultData.carrier;
   const route = document.getElementById('inputRoute').value.trim() || defaultData.route;
   const plate = document.getElementById('inputPlate').value.trim() || defaultData.plate;
+  
   const rangeEl = document.getElementById('inputCountRange');
-let count = rangeEl ? parseInt(rangeEl.value, 10) : parseInt(document.getElementById('inputCount').value, 10);
-if (!Number.isFinite(count) || count < 1) count = 1;
+  let count = rangeEl ? parseInt(rangeEl.value, 10) : parseInt(document.getElementById('inputCount').value, 10);
+  if (!Number.isFinite(count) || count < 1) count = 1;
 
   // Определяем тариф
   const selectedType = document.getElementById('transportType').value;
@@ -1724,24 +1722,26 @@ if (!Number.isFinite(count) || count < 1) count = 1;
   plateOutput.textContent = plate;
   fareOutput.textContent = `${count} шт., Полный, ${formatRub(fare)}`;
 
-      // Устанавливаем дату/время с учётом фиксации
-dateOutput.textContent = getFreezeAwareDateString();
-timeOutput.textContent = getFreezeAwareTimeString();
+  // Устанавливаем дату/время с учётом фиксации
+  dateOutput.textContent = getFreezeAwareDateString();
+  timeOutput.textContent = getFreezeAwareTimeString();
 
-      // Сохраняем последний билет для быстрого показа позже
-saveLastTicket({
-  carrier,
-  route,
-  plate,
-  count,
-  pricePerTicket,
-  transportType: selectedType,
-  fareString: `${count} шт., Полный, ${formatRub(fare)}`,
-  // сохраняем видимые пользователю дату/время с учётом фиксации
-  timeStr: getFreezeAwareTimeString(),
-  dateStr: getFreezeAwareDateString(),
-  ts: Date.now()
-});
+  // 👇 СОЗДАЁМ ОБЪЕКТ БИЛЕТА ДЛЯ ОТПРАВКИ
+  const ticketPayload = {
+    carrier,
+    route,
+    plate,
+    count,
+    pricePerTicket,
+    transportType: selectedType,
+    fareString: `${count} шт., Полный, ${formatRub(fare)}`,
+    timeStr: getFreezeAwareTimeString(),
+    dateStr: getFreezeAwareDateString(),
+    ts: Date.now()
+  };
+
+  // Сохраняем последний билет для быстрого показа позже
+  saveLastTicket(ticketPayload);
 
   // Скрываем экран ввода, показываем основной
   inputScreen.classList.remove('active');
@@ -1749,7 +1749,8 @@ saveLastTicket({
 
   // Запускаем таймер
   startCountdown();
-      
+
+  // 👇 ОТПРАВЛЯЕМ НА СЕРВЕР
   saveTicketDataOnServer(ticketPayload);
 }
 
