@@ -2743,15 +2743,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ЗАМЕНИТЕ ЭТУ ФУНКЦИЮ В ВАШЕМ HTML
 async function openSessionManager() {
+  // Сначала получим ключ администратора.
+  // Для простоты запросим его у пользователя.
+  // В реальном приложении его лучше хранить более безопасно.
+  const adminKey = prompt("Введите ключ администратора для доступа к сессиям:");
+  if (!adminKey) {
+    alert("Ключ не был введен. Доступ запрещен.");
+    return; // Прерываем выполнение, если ключ не введен
+  }
+
   document.getElementById('adminPanel').style.display = 'none';
   document.getElementById('loadingOverlay').style.display = 'flex';
   
   const sessionId = localStorage.getItem('sessionId');
-  // ВАЖНО: URL теперь содержит параметры `action` и `sessionId`
-  const url = `https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=listSessions&sessionId=${sessionId}`;
+  // ВАЖНО: Добавляем adminKey в URL запроса
+  const url = `https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=listSessions&sessionId=${sessionId}&adminKey=${encodeURIComponent(adminKey)}`;
   
   try {
-    // Делаем GET-запрос, тело (body) не нужно
     const response = await fetch(url, {
       method: 'GET'
     });
@@ -2760,10 +2768,16 @@ async function openSessionManager() {
     if (result.status === 'ok') {
       allSessionsData = result.sessions; 
       renderSessions(allSessionsData);
-      document.getElementById('sessionManagerScreen').style.display = 'block';
+      // Убираем класс 'active' у других экранов и добавляем его нашему
+      document.getElementById('inputScreen').classList.remove('active');
+      document.getElementById('mainScreen').classList.remove('active');
+      document.getElementById('sessionManagerScreen').classList.add('active'); // Используем classList для управления видимостью
+      document.getElementById('sessionManagerScreen').style.display = 'block'; // Убедимся, что он видим
+
     } else {
-      alert('Ошибка: ' + (result.reason || 'Не удалось загрузить сессии.'));
-      showAdminPanel();
+      // Теперь вы увидите более конкретную причину ошибки
+      alert('Ошибка доступа: ' + (result.reason || 'Не удалось загрузить сессии.'));
+      showAdminPanel(); // Возвращаемся в админку в случае ошибки
     }
   } catch (error) {
     console.error("Ошибка при загрузке сессий:", error);
@@ -2772,6 +2786,14 @@ async function openSessionManager() {
   } finally {
     document.getElementById('loadingOverlay').style.display = 'none';
   }
+}
+
+// Также убедитесь, что ваша функция showAdminPanel выглядит примерно так
+// и правильно управляет видимостью экранов.
+function showAdminPanel() {
+    document.getElementById('sessionManagerScreen').style.display = 'none';
+    document.getElementById('sessionManagerScreen').classList.remove('active');
+    document.getElementById('adminPanel').style.display = 'flex'; // или 'block', в зависимости от вашего CSS
 }
 
     function renderSessions(sessions) {
