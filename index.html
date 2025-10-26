@@ -2864,19 +2864,28 @@ function showAdminPanel() {
       }
     }
 
-    function showSessionDetails(sessionId) {
-      const session = allSessionsData.find(s => s.sessionId === sessionId);
-      if (!session) return;
-      
-      document.getElementById('detail-sessionId').textContent = session.sessionId;
-      document.getElementById('detail-token').textContent = session.token;
-      document.getElementById('detail-username').textContent = session.username;
-      document.getElementById('detail-createdAt').textContent = new Date(session.createdAt).toLocaleString('ru-RU');
-      document.getElementById('detail-deviceInfo').textContent = session.deviceInfo;
-      document.getElementById('detail-lastTicketData').textContent = session.lastTicketData || 'Нет данных.';
-      
-      document.getElementById('sessionDetailsModal').style.display = 'flex';
-    }
+    // JavaScript (фронтенд)
+
+function showSessionDetails(sessionId) {
+  // Находим сессию в данных, которые мы сохранили ранее
+  const session = allSessionsData.find(s => s.sessionId === sessionId);
+  if (!session) {
+    alert('Не удалось найти информацию по сессии.');
+    return;
+  }
+
+  // Заполняем поля модального окна
+  document.getElementById('detail-username').textContent = session.username || 'Не указан';
+  document.getElementById('detail-createdAt').textContent = new Date(session.createdAt).toLocaleString('ru-RU');
+  document.getElementById('detail-lastSeen').textContent = new Date(session.lastSeen).toLocaleString('ru-RU');
+  
+  // Для deviceInfo и lastTicketData ставим заглушку, если данных нет
+  document.getElementById('detail-deviceInfo').textContent = session.deviceInfo || 'Unknown';
+  document.getElementById('detail-lastTicketData').textContent = session.lastTicketData || 'Нет данных о последнем билете.';
+  
+  // Показываем модальное окно
+  document.getElementById('sessionDetailsModal').style.display = 'flex';
+}
 
     // --- ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ terminateSession ---
 async function terminateSession(sessionIdToTerminate) {
