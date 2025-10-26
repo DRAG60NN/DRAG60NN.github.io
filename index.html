@@ -2768,41 +2768,44 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.ready();
   }
 });
-        // Глобальная переменная для хранения загруженных сессий
-    let allSessionsData = [];
+    
+let allSessionsData = []; 
 
-// --- ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ openSessionManager ---
-async function openSessionManager() {
-    // Убираем запрос ключа, он больше не нужен на клиенте!
-    
-    document.getElementById('adminPanel').style.display = 'none';
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    
-    const sessionId = localStorage.getItem('sessionId');
-    const url = `https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=listSessions&sessionId=${sessionId}`;
-    
-    try {
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.status === 'ok') {
-            allSessionsData = result.sessions; 
-            renderSessions(allSessionsData);
-            document.getElementById('inputScreen').classList.remove('active');
-            document.getElementById('mainScreen').classList.remove('active');
-            document.getElementById('sessionManagerScreen').classList.add('active');
-            document.getElementById('sessionManagerScreen').style.display = 'block';
-        } else {
-            alert('Ошибка доступа: ' + (result.reason || 'Не удалось загрузить сессии.'));
-            showAdminPanel(); // Возвращаемся в админку в случае ошибки
-        }
-    } catch (error) {
-        console.error("Ошибка при загрузке сессий:", error);
-        alert('Сетевая ошибка при загрузке сессий.');
-        showAdminPanel();
-    } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
+function renderSessions(sessions) {
+  const tableBody = document.querySelector('#sessionsTable tbody');
+  tableBody.innerHTML = ''; // Очищаем таблицу перед отрисовкой
+
+  // Сохраняем данные в глобальную переменную
+  allSessionsData = sessions; 
+
+  sessions.forEach(session => {
+    // Форматируем дату в читаемый вид. Если дата отсутствует, ставим прочерк.
+    const lastSeenText = session.lastSeen 
+      ? new Date(session.lastSeen).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'medium' })
+      : '—';
+
+    // Устанавливаем статус в зависимости от флага isActive
+    const statusHtml = session.isActive
+      ? '<span style="color: limegreen;">Активна</span>'
+      : '<span style="color: #ff5252;">Отключена</span>';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${session.username || 'N/A'}</td>
+      <td>${lastSeenText}</td>
+      <td>${statusHtml}</td>
+      <td>
+        <div class="actions-menu" onclick="toggleDropdown(event, '${session.sessionId}')">
+          &#8942;
+          <div id="dropdown-${session.sessionId}" class="dropdown-content">
+            <a href="#" onclick="showSessionDetails('${session.sessionId}')">Информация</a>
+            ${session.isActive ? `<a href="#" onclick="terminateSession('${session.sessionId}')">Отключить</a>` : ''}
+          </div>
+        </div>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
 }
 
 // Также убедитесь, что ваша функция showAdminPanel выглядит примерно так
