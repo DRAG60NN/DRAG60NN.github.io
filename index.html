@@ -1894,50 +1894,57 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
 
-    async function checkAccess() {
-  const token = document.getElementById('authToken').value.trim();
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec';
+        async function checkAccess() {
+      const token = document.getElementById('authToken').value.trim();
+      const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec'; // Замените на ваш URL, если он другой
 
-  // Показываем загрузку
-  document.getElementById('loadingOverlay').style.display = 'flex';
+      document.getElementById('loadingOverlay').style.display = 'flex';
 
-  if (token === adminToken) {
-    // Вход как админ — без обращения к таблице
-    localStorage.setItem('ticket_access_granted', 'true');
-    localStorage.setItem('is_admin', 'true');
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('inputScreen').classList.add('active');
-    document.getElementById('adminButton').style.display = 'inline-block';
-    document.getElementById('loadingOverlay').style.display = 'none';
-    return;
-  }
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          // ВАЖНО: Мы отправляем 'login', чтобы сервер понял, что мы делаем
+          body: new URLSearchParams({ action: 'login', token: token })
+        });
+        
+        // Ожидаем JSON в ответе
+        const result = await response.json(); 
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: new URLSearchParams({ token })
-    });
+        if (result.status === 'valid') {
+          // Вход успешен, сохраняем сессию
+          localStorage.setItem('ticket_access_granted', 'true');
+          localStorage.setItem('sessionId', result.sessionId); // Сохраняем ID сессии
 
-    const result = await response.text();
+          // Проверяем, являемся ли мы админом, на основе ответа СЕРВЕРА
+          if (result.isAdmin) {
+            localStorage.setItem('is_admin', 'true');
+            document.getElementById('adminButton').style.display = 'inline-block';
+          } else {
+            localStorage.removeItem('is_admin'); // На всякий случай удаляем старый флаг
+            document.getElementById('adminButton').style.display = 'none';
+          }
+          
+          document.getElementById('authScreen').style.display = 'none';
+          document.getElementById('inputScreen').classList.add('active');
 
-    if (result === 'valid') {
-      localStorage.setItem('ticket_access_granted', 'true');
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('inputScreen').classList.add('active');
-
-      if (localStorage.getItem('is_admin') === 'true') {
-        document.getElementById('adminButton').style.display = 'inline-block';
+        } else {
+          // Обрабатываем ошибки, которые вернул сервер
+          const reason = result.reason || 'unknown_error';
+          let alertMessage = 'Доступ запрещён.';
+          if (reason === 'already_used') {
+            alertMessage = 'Этот токен уже был использован.';
+          } else if (reason === 'invalid_token') {
+            alertMessage = 'Неверный токен.';
+          }
+          alert(alertMessage);
+        }
+      } catch (error) {
+        console.error('Ошибка запроса:', error);
+        alert('Ошибка соединения. Попробуйте позже.');
+      } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
       }
-    } else {
-      alert('Доступ запрещён. Неверный или уже использованный токен.');
     }
-  } catch (error) {
-    console.error('Ошибка запроса:', error);
-    alert('Ошибка соединения. Попробуйте позже.');
-  } finally {
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
-}
 
 
     async function addToken() {
