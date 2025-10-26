@@ -2741,35 +2741,38 @@ document.addEventListener('DOMContentLoaded', () => {
         // Глобальная переменная для хранения загруженных сессий
     let allSessionsData = [];
 
-    async function openSessionManager() {
-      document.getElementById('adminPanel').style.display = 'none';
-      document.getElementById('loadingOverlay').style.display = 'flex';
-      
-      const sessionId = localStorage.getItem('sessionId');
-      
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          body: new URLSearchParams({ action: 'listSessions', sessionId: sessionId })
-        });
-        const result = await response.json();
-        
-        if (result.status === 'ok') {
-          allSessionsData = result.sessions; // Сохраняем данные
-          renderSessions(allSessionsData);
-          document.getElementById('sessionManagerScreen').style.display = 'block';
-        } else {
-          alert('Ошибка: ' + (result.reason || 'Не удалось загрузить сессии.'));
-          showAdminPanel(); // Возвращаемся назад при ошибке
-        }
-      } catch (error) {
-        console.error("Ошибка при загрузке сессий:", error);
-        alert('Сетевая ошибка при загрузке сессий.');
-        showAdminPanel();
-      } finally {
-        document.getElementById('loadingOverlay').style.display = 'none';
-      }
+    // ЗАМЕНИТЕ ЭТУ ФУНКЦИЮ В ВАШЕМ HTML
+async function openSessionManager() {
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  
+  const sessionId = localStorage.getItem('sessionId');
+  // ВАЖНО: URL теперь содержит параметры `action` и `sessionId`
+  const url = `https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec?action=listSessions&sessionId=${sessionId}`;
+  
+  try {
+    // Делаем GET-запрос, тело (body) не нужно
+    const response = await fetch(url, {
+      method: 'GET'
+    });
+    const result = await response.json();
+    
+    if (result.status === 'ok') {
+      allSessionsData = result.sessions; 
+      renderSessions(allSessionsData);
+      document.getElementById('sessionManagerScreen').style.display = 'block';
+    } else {
+      alert('Ошибка: ' + (result.reason || 'Не удалось загрузить сессии.'));
+      showAdminPanel();
     }
+  } catch (error) {
+    console.error("Ошибка при загрузке сессий:", error);
+    alert('Сетевая ошибка при загрузке сессий.');
+    showAdminPanel();
+  } finally {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
 
     function renderSessions(sessions) {
       const tableBody = document.querySelector('#sessionsTable tbody');
