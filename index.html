@@ -1403,7 +1403,7 @@ padding: 0 2px;
     <h2>Админ-панель</h2>
 
     <button onclick="logout()">Выйти из админки</button>
-    <button onclick="renderSessions()">Управлять сессиями</button> 
+    <button onclick="fetchAndShowSessions()">Управлять сессиями</button>  
     <input id="newTokenInput" placeholder="Новый токен" />
     <button onclick="addToken()">Добавить токен</button>
 
@@ -2816,33 +2816,6 @@ function showAdminPanel() {
     document.getElementById('adminPanel').style.display = 'flex'; // или 'block', в зависимости от вашего CSS
 }
 
-    function renderSessions(sessions) {
-      const tableBody = document.querySelector('#sessionsTable tbody');
-      tableBody.innerHTML = ''; // Очищаем таблицу
-      
-      sessions.forEach(session => {
-        const row = document.createElement('tr');
-        const lastAccessDate = new Date(session.lastAccess).toLocaleString('ru-RU');
-        const status = session.isActive ? '<span style="color:green;">Активна</span>' : '<span style="color:red;">Завершена</span>';
-
-        row.innerHTML = `
-          <td>${session.username}</td>
-          <td>${lastAccessDate}</td>
-          <td>${status}</td>
-          <td>
-            <div class="actions-menu" onclick="toggleDropdown(event, '${session.sessionId}')">
-              &#8942; <!-- Вертикальное троеточие -->
-              <div id="dropdown-${session.sessionId}" class="dropdown-content">
-                <a href="#" onclick="showSessionDetails('${session.sessionId}')">Информация</a>
-                ${session.isActive ? `<a href="#" onclick="terminateSession('${session.sessionId}')">Отключить</a>` : ''}
-              </div>
-            </div>
-          </td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-
     function toggleDropdown(event, sessionId) {
       event.stopPropagation(); // Предотвращаем закрытие по клику на троеточие
       // Закрываем все другие открытые меню
@@ -2968,6 +2941,57 @@ async function saveTicketDataOnServer(ticketData) {
         console.log('Ticket data sent to server.');
     } catch (e) {
         console.error('Failed to send ticket data:', e);
+    }
+}
+    // JavaScript (фронтенд)
+
+// --- ДОБАВЬТЕ ЭТУ НОВУЮ ФУНКЦИЮ ---
+async function fetchAndShowSessions() {
+    const adminSessionId = localStorage.getItem('sessionId');
+    if (!adminSessionId) {
+        alert('Ошибка: ID сессии администратора не найден. Пожалуйста, войдите заново.');
+        return;
+    }
+
+    // Показываем оверлей загрузки
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    // Скрываем админ-панель и показываем экран управления сессиями
+    document.getElementById('adminPanel').style.display = 'none';
+    const sessionManagerScreen = document.getElementById('sessionManagerScreen');
+    sessionManagerScreen.style.display = 'block'; // или 'flex', в зависимости от CSS
+    sessionManagerScreen.classList.add('active');
+
+
+    const url = 'https://script.google.com/macros/s/AKfycbzo4obkd_i5YRnMI0r8breZbww0NkbsQB4prTR_NXls9zif4Mh5VycKvjdKHcY-VojFTA/exec';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: new URLSearchParams({
+                action: 'getSessions',
+                sessionId: adminSessionId // Отправляем ID админа для проверки прав
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'ok') {
+            // Если данные получены, передаем их в функцию отрисовки
+            renderSessions(result.sessions);
+        } else {
+            alert('Ошибка: ' + (result.reason || 'Не удалось загрузить сессии.'));
+            // Если ошибка, возвращаем пользователя на админ-панель
+            showAdminPanel(); 
+        }
+
+    } catch (error) {
+        console.error("Ошибка при загрузке сессий:", error);
+        alert('Сетевая ошибка при загрузке сессий.');
+        showAdminPanel(); // Возвращаем на админ-панель
+    } finally {
+        // Прячем оверлей загрузки
+        document.getElementById('loadingOverlay').style.display = 'none';
     }
 }
   </script>
