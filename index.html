@@ -2876,7 +2876,7 @@ async function terminateSession(sessionIdToTerminate) {
     const response = await fetch(url, {
       method: 'POST',
       body: new URLSearchParams({ 
-        action: 'listSessions', 
+        action: 'terminateSessions', 
         sessionId: adminSessionId, // Сессия админа для проверки прав
         targetSessionId: sessionIdToTerminate // Какую сессию отключаем
       })
