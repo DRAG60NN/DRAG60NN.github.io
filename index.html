@@ -1403,7 +1403,7 @@ padding: 0 2px;
     <h2>Админ-панель</h2>
 
     <button onclick="logout()">Выйти из админки</button>
-    <button onclick="renderSessions(sessions)">Управлять сессиями</button> 
+    <button onclick="renderSessions()">Управлять сессиями</button> 
     <input id="newTokenInput" placeholder="Новый токен" />
     <button onclick="addToken()">Добавить токен</button>
 
@@ -1423,7 +1423,7 @@ padding: 0 2px;
 <div id="sessionManagerScreen" class="screen">
   <h2>Управление сессиями</h2>
   <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-  <button onclick="renderSessions(sessions)">Обновить список</button>
+  <button onclick="renderSessions()">Обновить список</button>
   <button onclick="showAdminPanel()">Назад</button>
   <div class="table-container">
     <table id="sessionsTable">
