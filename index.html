@@ -1392,6 +1392,7 @@ padding: 0 2px;
 
     <h2>Админ-панель</h2>
 
+    <button onclick="logout()">Выйти из админки</button>
     <button onclick="openSessionManager()">Управлять сессиями</button> 
   <button onclick="logout()">Выйти</button>
     <input id="newTokenInput" placeholder="Новый токен" />
@@ -2008,7 +2009,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-    const adminToken = 'ADMIN-SUPERUSER-g8F2kLm9';
+
     
     let allowedTokens = JSON.parse(localStorage.getItem('allowedTokens')) || ['Y7KD92', 'F2X9Z1', 'QW38GT'];
 
@@ -2879,9 +2880,17 @@ async function openSessionManager() {
         document.getElementById('sessionManagerScreen').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
     }
+    function logout() {
+  // Очищаем все данные сессии из хранилища
+  localStorage.removeItem('ticket_access_granted');
+  localStorage.removeItem('sessionId');
+  localStorage.removeItem('is_admin');
+  
+  // Перезагружаем страницу, чтобы вернуться к экрану входа
+  location.reload();
+}
   </script>
   
-</div>
   <div id="loadingOverlay" class="loading-overlay" style="display: none;">
   <div class="loader"></div>
 </div>
