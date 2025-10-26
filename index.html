@@ -997,7 +997,7 @@ padding: 0 2px;
   appearance: none;
   background: linear-gradient(to right, #ff3b30 var(--pct, 0%), #3a3a3a var(--pct, 0%));
   /* На мобильных, чтобы свайп по слайдеру не уводил страницу */
-  touch-action: pan-y;
+  touch-: pan-y;
 }
 .count-slider input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1227,7 +1227,7 @@ padding: 0 2px;
 #sessionsTable th {
   background-color: #f2f2f2;
 }
-#sessionsTable .actions-menu {
+#sessionsTable .s-menu {
   position: relative;
   display: inline-block;
   cursor: pointer;
@@ -2050,7 +2050,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const response = await fetch(url, {
       method: 'POST',
       body: new URLSearchParams({ 
-          action: 'login', 
+          : 'login', 
           token: token,
           username: username, // <-- Отправляем username
           deviceInfo: deviceInfo // <-- Отправляем deviceInfo
@@ -2106,7 +2106,7 @@ document.addEventListener('DOMContentLoaded', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        action: 'add',
+        : 'add',
         token: token
       })
     });
@@ -2136,7 +2136,7 @@ async function removeToken() {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        action: 'remove',
+        : 'remove',
         token: token
       })
     });
@@ -2162,7 +2162,7 @@ async function removeToken() {
 }
 
 async function loadTokens() {
-  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec?action=list';
+  const url = 'https://script.google.com/macros/s/AKfycbw7tOiFx5iMRiAyCOYh20gdmr53rlR7L75EnMWXfVLBuPNiA29vOfFUsAXxTVuBmZlJFw/exec?=list';
 
   try {
     const res = await fetch(url);
@@ -2653,7 +2653,7 @@ function formatRub(amount) {
   const s = new Intl.NumberFormat('ru-RU', {
     style: 'currency', currency: 'RUB',
     currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: 2, maximumFractionDigits: 2
+    minimumFrDigits: 2, maximumFrDigits: 2
   }).format(amount);
   return s.replace('руб.', '₽');
 }
@@ -2795,7 +2795,7 @@ function renderSessions(sessions) {
       <td>${lastSeenText}</td>
       <td>${statusHtml}</td>
       <td>
-        <div class="actions-menu" onclick="toggleDropdown(event, '${session.sessionId}')">
+        <div class="s-menu" onclick="toggleDropdown(event, '${session.sessionId}')">
           &#8942;
           <div id="dropdown-${session.sessionId}" class="dropdown-content">
             <a href="#" onclick="showSessionDetails('${session.sessionId}')">Информация</a>
@@ -2830,7 +2830,7 @@ function showAdminPanel() {
 
     // Закрывать выпадающие списки при клике в любом другом месте
     window.onclick = function(event) {
-      if (!event.target.matches('.actions-menu')) {
+      if (!event.target.matches('.s-menu')) {
         document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
           openDropdown.classList.remove('show');
         });
@@ -2876,7 +2876,7 @@ async function terminateSession(sessionIdToTerminate) {
     const response = await fetch(url, {
       method: 'POST',
       body: new URLSearchParams({ 
-        action: 'terminateSession', 
+        action: 'listSessions', 
         sessionId: adminSessionId, // Сессия админа для проверки прав
         targetSessionId: sessionIdToTerminate // Какую сессию отключаем
       })
