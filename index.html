@@ -3077,6 +3077,20 @@ function refreshSessions() {
         document.getElementById('loadingOverlay').style.display = 'none';
     }
 }
+    function getParams(e) {
+  const params = e && e.parameter ? Object.assign({}, e.parameter) : {};
+  try {
+    if (e && e.postData && e.postData.contents) {
+      const body = JSON.parse(e.postData.contents);
+      // Merge but do not override params already present unless missing
+      for (const k in body) if (!(k in params)) params[k] = body[k];
+    }
+  } catch (err) {
+    // не критично — значит тело не JSON
+  }
+  return params;
+}
+
   </script>
   
   <div id="loadingOverlay" class="loading-overlay" style="display: none;">
